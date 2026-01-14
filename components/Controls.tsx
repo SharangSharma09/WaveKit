@@ -147,25 +147,60 @@ const Controls: React.FC<ControlsProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Visualization Mode Selector */}
-        <div className="flex items-center justify-center gap-2 bg-black/20 p-1.5 rounded-xl border border-white/5">
-          <button onClick={() => onModeChange(VisualizerMode.PAPER_BAND)} className={`p-2.5 px-4 rounded-lg transition-all flex items-center gap-2 ${mode === VisualizerMode.PAPER_BAND ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60'}`} title="Paper Band">
+        {/* Row 2: Visualization Mode Selector - Updated with labels and left alignment */}
+        <div className="flex items-center justify-start gap-2 bg-black/20 p-1.5 rounded-xl border border-white/5 overflow-x-auto no-scrollbar">
+          <button 
+            onClick={() => onModeChange(VisualizerMode.PAPER_BAND)} 
+            className={`p-2 min-w-[64px] rounded-lg transition-all flex flex-col items-center gap-1.5 ${mode === VisualizerMode.PAPER_BAND ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`} 
+            title="Paper Band"
+          >
             <Origami size={18} />
+            <span className="text-[9px] font-bold uppercase tracking-wider">Paper</span>
           </button>
-          <button onClick={() => onModeChange(VisualizerMode.ENVELOPE)} className={`p-2.5 px-4 rounded-lg transition-all flex items-center gap-2 ${mode === VisualizerMode.ENVELOPE ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60'}`} title="Envelope Mode">
+          
+          <button 
+            onClick={() => onModeChange(VisualizerMode.ENVELOPE)} 
+            className={`p-2 min-w-[64px] rounded-lg transition-all flex flex-col items-center gap-1.5 ${mode === VisualizerMode.ENVELOPE ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`} 
+            title="Envelope Mode"
+          >
             <Activity size={18} />
+            <span className="text-[9px] font-bold uppercase tracking-wider">Envelope</span>
           </button>
-          <button onClick={() => onModeChange(VisualizerMode.SINO)} className={`p-2.5 px-4 rounded-lg transition-all flex items-center gap-2 ${mode === VisualizerMode.SINO ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60'}`} title="Sino Mode">
+
+          <button 
+            onClick={() => onModeChange(VisualizerMode.SINO)} 
+            className={`p-2 min-w-[64px] rounded-lg transition-all flex flex-col items-center gap-1.5 ${mode === VisualizerMode.SINO ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`} 
+            title="Sino Mode"
+          >
             <Spline size={18} />
+            <span className="text-[9px] font-bold uppercase tracking-wider">Sino</span>
           </button>
-          <button onClick={() => onModeChange(VisualizerMode.SPRING_BAND)} className={`p-2.5 px-4 rounded-lg transition-all flex items-center gap-2 ${mode === VisualizerMode.SPRING_BAND ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60'}`} title="Spring Band">
+
+          <button 
+            onClick={() => onModeChange(VisualizerMode.SPRING_BAND)} 
+            className={`p-2 min-w-[64px] rounded-lg transition-all flex flex-col items-center gap-1.5 ${mode === VisualizerMode.SPRING_BAND ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`} 
+            title="Spring Band"
+          >
             <Layers size={18} />
+            <span className="text-[9px] font-bold uppercase tracking-wider">Spring</span>
           </button>
-          <button onClick={() => onModeChange(VisualizerMode.WAVE)} className={`p-2.5 px-4 rounded-lg transition-all flex items-center gap-2 ${mode === VisualizerMode.WAVE ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60'}`} title="Wave Mode">
+
+          <button 
+            onClick={() => onModeChange(VisualizerMode.WAVE)} 
+            className={`p-2 min-w-[64px] rounded-lg transition-all flex flex-col items-center gap-1.5 ${mode === VisualizerMode.WAVE ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`} 
+            title="Wave Mode"
+          >
             <Waves size={18} />
+            <span className="text-[9px] font-bold uppercase tracking-wider">Wave</span>
           </button>
-          <button onClick={() => onModeChange(VisualizerMode.BARS)} className={`p-2.5 px-4 rounded-lg transition-all flex items-center gap-2 ${mode === VisualizerMode.BARS ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60'}`} title="Bars Mode">
+
+          <button 
+            onClick={() => onModeChange(VisualizerMode.BARS)} 
+            className={`p-2 min-w-[64px] rounded-lg transition-all flex flex-col items-center gap-1.5 ${mode === VisualizerMode.BARS ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`} 
+            title="Bars Mode"
+          >
             <BarChart2 size={18} />
+            <span className="text-[9px] font-bold uppercase tracking-wider">Bars</span>
           </button>
         </div>
 
@@ -177,17 +212,23 @@ const Controls: React.FC<ControlsProps> = ({
                 <input type="range" min="0.1" max="2.0" step="0.1" value={sensitivity} onChange={(e) => onSensitivityChange(parseFloat(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer" />
                 <span className="text-[10px] text-white/40 w-6 text-right font-mono">{sensitivity.toFixed(1)}</span>
              </div>
-             <div className="flex items-center gap-2 flex-1">
+             <div className="flex items-center gap-2">
                 <MoveHorizontal size={14} className="text-white/40 shrink-0" />
-                <span className="text-[9px] font-bold text-white/40 uppercase tracking-wider w-8 shrink-0">WIDTH</span>
-                <input type="range" min="400" max="1000" value={containerWidth} onChange={(e) => onContainerWidthChange(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer" />
-                <span className="text-[10px] text-white/40 w-8 text-right font-mono">{containerWidth}</span>
+                <input 
+                    type="number" 
+                    value={containerWidth} 
+                    onChange={(e) => onContainerWidthChange(Number(e.target.value))} 
+                    className="w-16 bg-white/10 border border-white/5 rounded-md px-2 py-1 text-xs text-white font-mono focus:outline-none focus:bg-white/20 transition-colors text-center" 
+                />
              </div>
-             <div className="flex items-center gap-2 flex-1">
+             <div className="flex items-center gap-2">
                 <MoveVertical size={14} className="text-white/40 shrink-0" />
-                <span className="text-[9px] font-bold text-white/40 uppercase tracking-wider w-8 shrink-0">POS Y</span>
-                <input type="range" min="-50" max="50" value={verticalShift} onChange={(e) => onVerticalShiftChange(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer" />
-                <span className="text-[10px] text-white/40 w-8 text-right font-mono">{verticalShift}</span>
+                <input 
+                    type="number" 
+                    value={verticalShift} 
+                    onChange={(e) => onVerticalShiftChange(Number(e.target.value))} 
+                    className="w-14 bg-white/10 border border-white/5 rounded-md px-2 py-1 text-xs text-white font-mono focus:outline-none focus:bg-white/20 transition-colors text-center" 
+                />
              </div>
         </div>
 
