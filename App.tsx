@@ -18,7 +18,7 @@ const App: React.FC = () => {
   const [showPhoneFrame, setShowPhoneFrame] = useState(true);
   const [containerWidth, setContainerWidth] = useState(480);
   const [color, setColor] = useState<string>(VISUALIZER_COLORS[0]);
-  const [verticalShift, setVerticalShift] = useState(0); 
+  const [verticalShift, setVerticalShift] = useState(-30); 
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Envelope Config
