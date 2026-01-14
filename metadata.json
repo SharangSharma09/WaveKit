@@ -1,0 +1,7 @@
+{
+  "name": "Audio RMS Visualizer 2",
+  "description": "A real-time audio visualization tool that reacts to microphone input intensity (RMS) using the Web Audio API.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
