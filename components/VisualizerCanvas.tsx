@@ -1,11 +1,11 @@
 import React, { useRef, useEffect } from 'react';
-import { VisualizerMode } from '../types';
+import { VisualizerMode, Theme } from '../types';
 
 interface VisualizerCanvasProps {
   isListening: boolean;
   getMetrics: () => { rms: number; frequencyData: Uint8Array };
   mode: VisualizerMode;
-  theme: 'dark' | 'light';
+  theme: Theme;
   sensitivity: number;
   color: string;
   palette: string[];
@@ -49,8 +49,7 @@ const hexToRgb = (hex: string) => {
   } : { r: 255, g: 255, b: 255 };
 }
 
-const SPRING_STRAND_COLORS_DARK = ['#40B9F8', '#8E8EFF', '#D48EFF', '#FF87D1'];
-const SPRING_STRAND_COLORS_LIGHT = ['#007AFF', '#6200EA', '#AA00FF', '#C2185B'];
+const SPRING_STRAND_COLORS = ['#40B9F8', '#8E8EFF', '#D48EFF', '#FF87D1'];
 
 const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({ 
   isListening, 
@@ -109,11 +108,7 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
     resizeCanvas();
 
     const render = () => {
-      // Different clear color for trails based on theme
-      // Dark Mode: Dark Blue-ish tint (#12151E)
-      // Light Mode: Light Gray tint (#FCFCFD)
-      ctx.fillStyle = theme === 'dark' ? 'rgba(18, 21, 30, 0.4)' : 'rgba(252, 252, 253, 0.4)'; 
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       if (!isListening) {
         drawIdle(ctx, canvas.width, canvas.height);
@@ -349,11 +344,8 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
       strand.pos += strand.vel;
     });
     const frequency = (Math.PI * 3) / width;
-    
-    const strandPalette = theme === 'dark' ? SPRING_STRAND_COLORS_DARK : SPRING_STRAND_COLORS_LIGHT;
-
     springStateRef.current.forEach((strand, i) => {
-      const strandColor = strandPalette[i % strandPalette.length];
+      const strandColor = SPRING_STRAND_COLORS[i % SPRING_STRAND_COLORS.length];
       const { r, g, b } = hexToRgb(strandColor);
       const phaseOffset = (2 * Math.PI * i) / springStrands;
       ctx.beginPath();

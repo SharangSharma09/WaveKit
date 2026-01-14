@@ -4,6 +4,11 @@ export interface AudioMetrics {
   frequencyData: Uint8Array; // Raw frequency data for more complex visuals if needed
 }
 
+export enum Theme {
+  LIGHT = 'LIGHT',
+  DARK = 'DARK'
+}
+
 export enum VisualizerMode {
   WAVE = 'WAVE',
   BARS = 'BARS',
@@ -24,7 +29,6 @@ export interface VisualizerConfig {
   color: string;
   palette: string[];
   containerWidth: number;
-  containerHeight: number;
   verticalShift: number;
   envelope: {
     amplitude: number;

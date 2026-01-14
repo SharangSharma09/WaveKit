@@ -3,42 +3,23 @@ import { useAudioAnalyzer } from './hooks/useAudioAnalyzer';
 import VisualizerCanvas from './components/VisualizerCanvas';
 import Controls from './components/Controls';
 import ExportModal from './components/ExportModal';
-import { VisualizerMode, VisualizerConfig } from './types';
+import { VisualizerMode, VisualizerConfig, Theme } from './types';
 
-// Dark Mode Palette (Neon/Bright on Dark)
-export const PALETTE_DARK = ['#40B9F8', '#5AFFBA', '#FFC700', '#FF87D1', '#8E8EFF', '#FFFFFF'];
-// Light Mode Palette (Saturated/Darker on Light)
-export const PALETTE_LIGHT = ['#0066CC', '#00A859', '#E65100', '#C2185B', '#4527A0', '#1A1A1A'];
-
-// Try using the direct Googleusercontent domain which is often more reliable for embedding
-const PHONE_FRAME_DARK = "https://lh3.googleusercontent.com/d/1YtgNRD5bhsW_JhFOfvscWU0nLmFGkXyd";
-const PHONE_FRAME_LIGHT = "https://lh3.googleusercontent.com/d/1a4gwZ_bfhzv61f6Q2o3l8oekIGwixWQv";
+export const VISUALIZER_COLORS = ['#40B9F8', '#5AFFBA', '#FFC700', '#FF87D1', '#8E8EFF', '#FFFFFF'];
+const PHONE_FRAME_DARK = "https://drive.google.com/thumbnail?id=1YtgNRD5bhsW_JhFOfvscWU0nLmFGkXyd&sz=w2000";
+const PHONE_FRAME_LIGHT = "https://drive.google.com/thumbnail?id=1a4gwZ_bfhzv61f6Q2o3l8oekIGwixWQv&sz=w2000";
 
 const App: React.FC = () => {
   const { isListening, isSimulated, start, stop, getMetrics, error } = useAudioAnalyzer();
   const [mode, setMode] = useState<VisualizerMode>(VisualizerMode.PAPER_BAND);
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [sensitivity, setSensitivity] = useState(3); 
+  const [theme, setTheme] = useState<Theme>(Theme.DARK);
+  const [sensitivity, setSensitivity] = useState(1.5); 
   const [currentRms, setCurrentRms] = useState(0);
-  const [showPhoneFrame, setShowPhoneFrame] = useState(false);
-  const [containerWidth, setContainerWidth] = useState(430);
-  const [containerHeight, setContainerHeight] = useState(766);
-  
-  const currentPalette = theme === 'dark' ? PALETTE_DARK : PALETTE_LIGHT;
-  const [color, setColor] = useState<string>(currentPalette[0]);
-  const [verticalShift, setVerticalShift] = useState(-29); 
+  const [showPhoneFrame, setShowPhoneFrame] = useState(true);
+  const [containerWidth, setContainerWidth] = useState(480);
+  const [color, setColor] = useState<string>(VISUALIZER_COLORS[0]);
+  const [verticalShift, setVerticalShift] = useState(0); 
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
-  // Reset color selection when switching themes if the current color isn't in the new palette
-  useEffect(() => {
-    setColor(currentPalette[0]);
-  }, [theme]);
-
-  // Reset image error state when toggling frame or switching themes to allow retrying load
-  useEffect(() => {
-    setImageError(false);
-  }, [theme, showPhoneFrame]);
 
   // Envelope Config
   const [envelopeAmplitude, setEnvelopeAmplitude] = useState(40); 
@@ -49,7 +30,7 @@ const App: React.FC = () => {
   // Paper Band Config
   const [paperAmount, setPaperAmount] = useState(12);
   const [paperScale, setPaperScale] = useState(30); 
-  const [paperWaves, setPaperWaves] = useState(2);
+  const [paperWaves, setPaperWaves] = useState(3);
   const [paperPoints, setPaperPoints] = useState(10);
   const [paperIdleAmplitude, setPaperIdleAmplitude] = useState(() => {
     const saved = localStorage.getItem('paperIdleAmplitude');
@@ -70,6 +51,7 @@ const App: React.FC = () => {
   const [sinoSpeed, setSinoSpeed] = useState(1.0);
   const [springStrands, setSpringStrands] = useState(3);
   const [springAmplitude, setSpringAmplitude] = useState(60);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('paperIdleAmplitude', paperIdleAmplitude.toString());
@@ -90,9 +72,8 @@ const App: React.FC = () => {
     mode,
     sensitivity,
     color,
-    palette: currentPalette,
+    palette: VISUALIZER_COLORS,
     containerWidth,
-    containerHeight,
     verticalShift,
     envelope: {
       amplitude: envelopeAmplitude,
@@ -115,12 +96,19 @@ const App: React.FC = () => {
       points: paperPoints,
       idle: paperIdleAmplitude
     }
-  }), [mode, sensitivity, color, currentPalette, containerWidth, containerHeight, verticalShift, envelopeAmplitude, envelopeSpeed, envelopePoints, envelopeFillOpacity, waveAmplitude, waveNoise, sinoAmplitude, sinoWavelength, sinoSpeed, paperAmount, paperWaves, paperPoints, paperIdleAmplitude]);
+  }), [mode, sensitivity, color, containerWidth, verticalShift, envelopeAmplitude, envelopeSpeed, envelopePoints, envelopeFillOpacity, waveAmplitude, waveNoise, sinoAmplitude, sinoWavelength, sinoSpeed, paperAmount, paperWaves, paperPoints, paperIdleAmplitude]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === Theme.DARK ? Theme.LIGHT : Theme.DARK);
+  };
+
+  const currentPhoneFrame = theme === Theme.DARK ? PHONE_FRAME_DARK : PHONE_FRAME_LIGHT;
+  const bgColor = theme === Theme.DARK ? 'bg-[#12151E]' : 'bg-[#FCFCFD]';
 
   return (
-    <div className={`relative w-full h-screen overflow-hidden flex flex-col items-center justify-center font-sans transition-colors duration-500 ${theme === 'dark' ? 'bg-[#12151E]' : 'bg-[#FCFCFD]'}`}>
+    <div className={`relative w-full h-screen ${bgColor} transition-colors duration-500 overflow-hidden flex flex-col items-center justify-center font-sans`}>
       <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-        <div className="max-w-full relative transform scale-100 transition-all duration-300" style={{ width: `${containerWidth}px`, height: `${containerHeight}px` }}>
+        <div className="max-w-full h-full relative transform scale-90 transition-all duration-300" style={{ width: `${containerWidth}px` }}>
           <VisualizerCanvas 
             isListening={isListening} 
             getMetrics={getMetrics} 
@@ -128,7 +116,7 @@ const App: React.FC = () => {
             theme={theme}
             sensitivity={sensitivity} 
             color={color}
-            palette={currentPalette}
+            palette={VISUALIZER_COLORS}
             verticalShift={verticalShift} 
             numWaves={numWaves} 
             barWidth={barWidth} 
@@ -155,27 +143,8 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {showPhoneFrame && (
-        !imageError ? (
-          <img 
-            src={theme === 'dark' ? PHONE_FRAME_DARK : PHONE_FRAME_LIGHT} 
-            alt="Phone Frame" 
-            referrerPolicy="no-referrer" 
-            onError={() => {
-              console.error("Failed to load phone frame image, switching to CSS fallback");
-              setImageError(true);
-            }} 
-            className="absolute top-0 left-1/2 -translate-x-1/2 h-1/2 w-auto z-20 pointer-events-none transition-opacity duration-300" 
-          />
-        ) : (
-          /* CSS Fallback Frame */
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[70vh] aspect-[9/19] z-20 pointer-events-none border-8 rounded-[3rem] shadow-2xl transition-all duration-300 box-content flex flex-col items-center justify-between py-4 bg-transparent border-gray-800 opacity-80 backdrop-grayscale">
-             {/* Notch */}
-             <div className="w-1/3 h-6 bg-gray-900 rounded-full mb-auto" />
-             {/* Home indicator area */}
-             <div className="w-1/3 h-1 bg-gray-900/50 rounded-full mt-auto" />
-          </div>
-        )
+      {showPhoneFrame && !imageError && (
+        <img key={currentPhoneFrame} src={currentPhoneFrame} alt="Phone Frame" referrerPolicy="no-referrer" onError={() => setImageError(true)} className="absolute top-0 left-1/2 -translate-x-1/2 h-1/2 w-auto z-20 pointer-events-none" />
       )}
 
       {error && (
@@ -193,17 +162,14 @@ const App: React.FC = () => {
       )}
 
       <Controls 
-        theme={theme}
-        onThemeChange={setTheme}
         isListening={isListening} 
         isSimulated={isSimulated}
         onToggleListening={isListening ? stop : () => start(true)} 
         mode={mode} onModeChange={setMode}
+        theme={theme} onThemeToggle={toggleTheme}
         sensitivity={sensitivity} onSensitivityChange={setSensitivity} verticalShift={verticalShift} onVerticalShiftChange={setVerticalShift}
-        containerWidth={containerWidth} onContainerWidthChange={setContainerWidth}
-        containerHeight={containerHeight} onContainerHeightChange={setContainerHeight}
-        rms={currentRms * sensitivity}
-        colors={currentPalette} selectedColor={color} onColorChange={setColor}
+        containerWidth={containerWidth} onContainerWidthChange={setContainerWidth} rms={currentRms * sensitivity}
+        colors={VISUALIZER_COLORS} selectedColor={color} onColorChange={setColor}
         numWaves={numWaves} onNumWavesChange={setNumWaves} barWidth={barWidth} onBarWidthChange={setBarWidth}
         barSpacing={barSpacing} onBarSpacingChange={setBarSpacing} barAmplitude={barAmplitude} onBarAmplitudeChange={setBarAmplitude}
         sinoAmplitude={sinoAmplitude} onSinoAmplitudeChange={setSinoAmplitude}

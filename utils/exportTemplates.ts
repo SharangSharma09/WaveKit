@@ -1,6 +1,7 @@
 import { VisualizerConfig, VisualizerMode } from '../types';
 
 export const generateThreeJSCode = (config: VisualizerConfig): string => {
+  // Serialize the entire config to be used inside the template
   const configJson = JSON.stringify(config, null, 2);
 
   return `<!DOCTYPE html>
@@ -21,7 +22,7 @@ export const generateThreeJSCode = (config: VisualizerConfig): string => {
             height: 100vh;
         }
         #verification-panel {
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.8);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding: 12px 20px;
             font-family: 'Courier New', Courier, monospace;
@@ -29,28 +30,24 @@ export const generateThreeJSCode = (config: VisualizerConfig): string => {
             color: #4ade80;
             z-index: 1000;
             position: relative;
-            max-height: 140px;
+            max-height: 200px;
             overflow-y: auto;
+            pointer-events: auto;
         }
-        #verification-panel strong { color: #fff; display: block; margin-bottom: 4px; font-size: 10px; text-transform: uppercase; }
-        #canvas-container { 
-            flex: 1; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            position: relative; 
-            background: #0F1118;
+        #verification-panel strong {
+            color: #fff;
+            display: block;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 10px;
         }
-        #visualizer-mask {
-            width: ${config.containerWidth}px;
-            height: ${config.containerHeight}px;
+        #canvas-container {
+            flex: 1;
             position: relative;
             overflow: hidden;
-            background: #0F1118;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.03);
         }
+        canvas { display: block; }
         #overlay {
             position: absolute;
             inset: 0;
@@ -58,226 +55,243 @@ export const generateThreeJSCode = (config: VisualizerConfig): string => {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: rgba(15, 17, 24, 0.95);
+            background: rgba(15, 17, 24, 0.9);
             backdrop-filter: blur(20px);
             z-index: 100;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        #overlay.hidden { opacity: 0; pointer-events: none; transition: opacity 0.6s ease; }
+        #overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
         .btn {
-            background: white; color: black; padding: 14px 32px; border-radius: 99px;
-            font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em;
-            border: none; cursor: pointer;
+            background: white;
+            color: black;
+            padding: 16px 40px;
+            border-radius: 99px;
+            font-weight: 800;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, background 0.2s ease;
         }
-        canvas { display: block; }
+        .btn:hover {
+            transform: scale(1.05);
+            background: #f0f0f0;
+        }
+        .info {
+            margin-top: 24px;
+            font-size: 12px;
+            opacity: 0.4;
+            letter-spacing: 0.05em;
+            text-align: center;
+            max-width: 300px;
+            line-height: 1.6;
+        }
+        .status-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            display: flex;
+            gap: 16px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: rgba(255,255,255,0.3);
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
     <div id="verification-panel">
-        <strong>Export Verification Data</strong>
+        <strong>Export Verification Data (Current UI State)</strong>
         <pre>${configJson}</pre>
     </div>
 
     <div id="canvas-container">
-        <div id="visualizer-mask">
-            <!-- Three.js Canvas -->
-        </div>
         <div id="overlay">
-            <button id="startBtn" class="btn">Start Visualization</button>
+            <button id="startBtn" class="btn">Enter Visualizer</button>
+            <div class="info">Click to activate audio analysis.<br/>Fallback simulated mode enabled for restricted environments.</div>
+        </div>
+        <div class="status-bar">
+            <span>Mode: ${config.mode}</span>
+            <span id="audio-status">Audio: Ready</span>
         </div>
     </div>
 
     <script type="importmap">
     {
         "imports": {
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "three/examples/jsm/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
         }
     }
     </script>
     <script type="module">
         import * as THREE from 'three';
-        import { Line2 } from 'three/examples/jsm/lines/Line2.js';
-        import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-        import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
-        import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-        import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-        import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 
+        // The exact configuration from the UI
         const CONFIG = ${configJson};
-        let scene, camera, renderer, composer, analyser, dataArray;
-        let elements = []; // Stores Lines or Meshes
+
+        let scene, camera, renderer, visualMesh, analyser, dataArray;
         let isInitialized = false;
-        let paperState = [];
-        let springState = [];
-        let waveHistory = [];
+        let isSimulated = false;
         let smoothRms = 0;
 
-        const MASK_W = CONFIG.containerWidth;
-        const MASK_H = CONFIG.containerHeight;
-        const ASPECT = MASK_W / MASK_H;
-        const VIEW_W = 16; 
-        const VIEW_H = VIEW_W / ASPECT;
-
         function init() {
-            const container = document.getElementById('visualizer-mask');
+            const container = document.getElementById('canvas-container');
             scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
             
-            camera = new THREE.OrthographicCamera(-VIEW_W/2, VIEW_W/2, VIEW_H/2, -VIEW_H/2, 0.1, 1000);
-            const yOffset = (CONFIG.verticalShift / 100) * VIEW_H;
-            camera.position.set(0, yOffset, 10);
-            camera.lookAt(0, yOffset, 0);
+            // Adjust camera based on vertical shift
+            const yOffset = (CONFIG.verticalShift / 100) * 5;
+            camera.position.set(0, 1 - yOffset, 6);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(MASK_W, MASK_H);
-            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(0x0f1118, 1);
             container.appendChild(renderer.domElement);
 
-            const renderScene = new RenderPass(scene, camera);
-            const bloomPass = new UnrealBloomPass(new THREE.Vector2(MASK_W, MASK_H), 0.8, 0.2, 0.1);
-            bloomPass.threshold = 0.05;
-            bloomPass.strength = 1.0; 
-            bloomPass.radius = 0.15;
+            // Lighting
+            const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambient);
+            const point = new THREE.PointLight(CONFIG.color, 2, 20);
+            point.position.set(0, 2, 2);
+            scene.add(point);
 
-            composer = new EffectComposer(renderer);
-            composer.addPass(renderScene);
-            composer.addPass(bloomPass);
-            composer.addPass(new OutputPass());
+            // Visualizer Geometry - Points count reflects points setting
+            let pointsCount = 128;
+            if (CONFIG.mode === 'ENVELOPE') pointsCount = CONFIG.envelope.points;
+            if (CONFIG.mode === 'PAPER_BAND') pointsCount = CONFIG.paper.points;
 
-            if (CONFIG.mode === 'BARS') {
-                for (let i = 0; i < 10; i++) {
-                    const geom = new THREE.BoxGeometry(0.5, 1, 0.1);
-                    const mat = new THREE.MeshBasicMaterial({ color: CONFIG.color });
-                    const bar = new THREE.Mesh(geom, mat);
-                    scene.add(bar);
-                    elements.push(bar);
-                }
-            } else {
-                let count = 1;
-                if (CONFIG.mode === 'PAPER_BAND') count = CONFIG.paper.waves;
-                if (CONFIG.mode === 'SPRING_BAND') count = 4;
-                if (CONFIG.mode === 'ENVELOPE') count = 2;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(pointsCount * 3);
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            const material = new THREE.LineBasicMaterial({ 
+                color: CONFIG.color,
+                linewidth: 4,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending
+            });
 
-                for (let i = 0; i < count; i++) {
-                    const color = new THREE.Color(CONFIG.palette[i % CONFIG.palette.length]);
-                    const geometry = new LineGeometry();
-                    const material = new LineMaterial({
-                        color: color.getHex(),
-                        linewidth: 4,
-                        transparent: true,
-                        resolution: new THREE.Vector2(MASK_W, MASK_H)
-                    });
-                    const line = new Line2(geometry, material);
-                    line.userData.idx = i;
-                    scene.add(line);
-                    elements.push(line);
-                }
-            }
+            visualMesh = new THREE.Line(geometry, material);
+            scene.add(visualMesh);
+
+            // Floor Grid
+            const grid = new THREE.GridHelper(30, 30, 0x222222, 0x111111);
+            grid.position.y = -2.5 - yOffset;
+            scene.add(grid);
+
+            window.addEventListener('resize', onWindowResize);
             animate();
         }
 
         async function startAudio() {
+            const statusEl = document.getElementById('audio-status');
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
             analyser = audioCtx.createAnalyser();
             analyser.fftSize = 512;
             dataArray = new Uint8Array(analyser.frequencyBinCount);
+
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                audioCtx.createMediaStreamSource(stream).connect(analyser);
+                const source = audioCtx.createMediaStreamSource(stream);
+                source.connect(analyser);
+                statusEl.textContent = 'Audio: Live Mic';
+                isSimulated = false;
             } catch (err) {
-                const osc = audioCtx.createOscillator(); osc.connect(analyser); osc.start();
+                console.warn("Microphone access failed. Falling back to simulation.", err);
+                const osc = audioCtx.createOscillator();
+                const lfo = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const lfoGain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+                lfo.frequency.setValueAtTime(1.5, audioCtx.currentTime);
+                lfoGain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                lfo.connect(lfoGain);
+                lfoGain.connect(gain.gain);
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                osc.connect(gain);
+                gain.connect(analyser);
+                osc.start();
+                lfo.start();
+                statusEl.textContent = 'Audio: Simulated';
+                isSimulated = true;
             }
+
             if (audioCtx.state === 'suspended') await audioCtx.resume();
             isInitialized = true;
             document.getElementById('overlay').classList.add('hidden');
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
         }
 
         function animate() {
             requestAnimationFrame(animate);
             if (isInitialized) {
                 analyser.getByteFrequencyData(dataArray);
-                let sum = 0; for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
                 const rms = (sum / dataArray.length) / 255.0;
                 smoothRms += (rms - smoothRms) * 0.15;
-                updateGeometry(smoothRms, dataArray);
+                updateGeometry(smoothRms);
             }
-            composer.render();
+            renderer.render(scene, camera);
         }
 
-        function updateGeometry(rms, data) {
+        function updateGeometry(rms) {
+            const pos = visualMesh.geometry.attributes.position.array;
+            const count = pos.length / 3;
             const time = Date.now() * 0.001;
             const sens = CONFIG.sensitivity;
+            const yBase = (CONFIG.verticalShift / 100) * 5;
 
-            if (CONFIG.mode === 'BARS') {
-                elements.forEach((bar, i) => {
-                    const val = data[i * 5] / 255.0;
-                    const h = 0.5 + (val * 5 * sens) + (rms * 2);
-                    bar.scale.y = h;
-                    bar.position.x = (i * 0.7) - 3.15;
-                });
-                return;
-            }
+            for (let i = 0; i < count; i++) {
+                const t = i / (count - 1);
+                const x = (t * 14) - 7;
+                let y = 0;
 
-            if (CONFIG.mode === 'PAPER_BAND') {
-                const amount = CONFIG.paper.amount;
-                if (paperState.length !== amount) paperState = new Array(amount).fill(0);
-                for (let i = 0; i < amount; i++) {
-                    const target = data[Math.floor(i * (data.length / amount))] / 255.0;
-                    paperState[i] += (target - paperState[i]) * 0.15;
+                if (CONFIG.mode === 'SINO') {
+                    const freq = (Math.PI * 2) / (CONFIG.sino.wavelength / 50); 
+                    const speed = CONFIG.sino.speed * 3;
+                    const amp = (CONFIG.sino.amplitude / 40) * (rms * sens * 4 + 0.3);
+                    y = Math.sin(x * freq + time * speed) * amp;
+                } else if (CONFIG.mode === 'ENVELOPE') {
+                    const envelope = Math.sin(t * Math.PI);
+                    const speed = CONFIG.envelope.speed * 100;
+                    const amp = (CONFIG.envelope.amplitude / 40) * (rms * sens * 5 + 0.6);
+                    y = envelope * Math.sin(x * 5 + time * speed) * amp;
+                } else if (CONFIG.mode === 'WAVE') {
+                    const speed = 6;
+                    const noise = Math.sin(x * 8 + time * speed) * (CONFIG.wave.noise / 100);
+                    y = (rms * sens * (CONFIG.wave.amplitude / 50)) + noise;
+                } else if (CONFIG.mode === 'PAPER_BAND') {
+                   const freq = 1 + (CONFIG.paper.waves);
+                   y = Math.sin(x * freq + time * 2) * (rms * sens * 2 + (CONFIG.paper.idle / 10));
+                } else {
+                    const specIdx = Math.floor(t * dataArray.length * 0.5);
+                    y = (dataArray[specIdx] / 255) * sens * 2.5;
                 }
+
+                pos[i * 3] = x;
+                pos[i * 3 + 1] = y + yBase;
+                pos[i * 3 + 2] = Math.sin(time + x * 0.5) * 0.3;
             }
-
-            if (CONFIG.mode === 'SPRING_BAND' && springState.length === 0) {
-                springState = Array.from({length: 4}, () => ({pos: 0, vel: 0}));
-            }
-            if (CONFIG.mode === 'SPRING_BAND') {
-                springState.forEach(s => {
-                    const force = (rms * 5 * sens - s.pos) * 0.15;
-                    s.vel = (s.vel + force) * 0.82;
-                    s.pos += s.vel;
-                });
-            }
-
-            if (CONFIG.mode === 'WAVE') {
-                waveHistory.push(rms * CONFIG.wave.amplitude * 0.05);
-                if (waveHistory.length > 128) waveHistory.shift();
-            }
-
-            elements.forEach((line) => {
-                const idx = line.userData.idx;
-                let pts = [];
-                const count = 64;
-
-                for (let i = 0; i <= count; i++) {
-                    const t = i / count;
-                    const x = (t * VIEW_W) - (VIEW_W / 2);
-                    let y = 0;
-
-                    if (CONFIG.mode === 'PAPER_BAND') {
-                        const bandIdx = Math.floor((1 - t) * (CONFIG.paper.amount - 1));
-                        const intensity = paperState[bandIdx] || 0;
-                        const mag = (intensity * 5 * sens) + (CONFIG.paper.idle * 0.1);
-                        y = - mag * Math.sin((idx * Math.PI/2) + (i * 0.3) + time);
-                    } else if (CONFIG.mode === 'ENVELOPE') {
-                        const env = Math.sin(t * Math.PI);
-                        const side = idx === 0 ? 1 : -1;
-                        y = env * Math.sin(x * 5 + time * 4) * (rms * sens * 1.5) * side;
-                    } else if (CONFIG.mode === 'SINO') {
-                        const env = Math.exp(-Math.pow((x/4), 2) * 2);
-                        y = env * Math.sin(x * 4 + time * 5) * (rms * sens * 3);
-                    } else if (CONFIG.mode === 'SPRING_BAND') {
-                        const env = Math.sin(t * Math.PI);
-                        const s = springState[idx];
-                        y = env * Math.sin(x * 3 + (idx * Math.PI/2)) * s.pos;
-                    } else if (CONFIG.mode === 'WAVE') {
-                        const historyIdx = Math.floor(t * (waveHistory.length - 1));
-                        y = waveHistory[historyIdx] || 0;
-                    }
-
-                    pts.push(x, y, 0);
-                }
-                line.geometry.setPositions(pts);
-            });
+            
+            visualMesh.geometry.attributes.position.needsUpdate = true;
+            camera.lookAt(0, yBase + (smoothRms * 2), 0);
         }
 
         document.getElementById('startBtn').addEventListener('click', startAudio);
@@ -288,5 +302,83 @@ export const generateThreeJSCode = (config: VisualizerConfig): string => {
 };
 
 export const generateLottiePreset = (config: VisualizerConfig): string => {
-    return JSON.stringify({ v: "5.5.7", layers: [] });
+  const { color } = config;
+  const lottie = {
+    "v": "5.5.7",
+    "fr": 60,
+    "ip": 0,
+    "op": 60,
+    "w": 500,
+    "h": 500,
+    "nm": "Visualizer Export",
+    "ddd": 0,
+    "assets": [],
+    "layers": [
+      {
+        "ddd": 0,
+        "ind": 1,
+        "ty": 4,
+        "nm": "Wave",
+        "sr": 1,
+        "ks": {
+          "o": { "a": 0, "k": 100 },
+          "r": { "a": 0, "k": 0 },
+          "p": { "a": 0, "k": [250, 250, 0] },
+          "a": { "a": 0, "k": [0, 0, 0] },
+          "s": { "a": 0, "k": [100, 100, 100] }
+        },
+        "ao": 0,
+        "shapes": [
+          {
+            "ty": "gr",
+            "it": [
+              {
+                "ty": "sh",
+                "nm": "Path 1",
+                "ks": {
+                  "a": 1,
+                  "k": [
+                    {
+                      "i": { "x": 0.833, "y": 0.833 },
+                      "o": { "x": 0.167, "y": 0.167 },
+                      "t": 0,
+                      "s": [{ "i": [[0, 0], [0, 0]], "o": [[0, 0], [0, 0]], "v": [[-100, 0], [100, 0]], "c": false }]
+                    },
+                    {
+                      "t": 30,
+                      "s": [{ "i": [[0, -50], [0, 50]], "o": [[0, 50], [0, -50]], "v": [[-100, 0], [100, 0]], "c": false }]
+                    },
+                    {
+                      "t": 60,
+                      "s": [{ "i": [[0, 0], [0, 0]], "o": [[0, 0], [0, 0]], "v": [[-100, 0], [100, 0]], "c": false }]
+                    }
+                  ]
+                }
+              },
+              {
+                "ty": "st",
+                "c": { "k": hexToRgbNormalized(color) },
+                "o": { "k": 100 },
+                "w": { "k": 10 },
+                "lc": 2,
+                "lj": 2,
+                "nm": "Stroke 1"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+  return JSON.stringify(lottie, null, 2);
+};
+
+const hexToRgbNormalized = (hex: string) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? [
+    parseInt(result[1], 16) / 255,
+    parseInt(result[2], 16) / 255,
+    parseInt(result[3], 16) / 255,
+    1
+  ] : [1, 1, 1, 1];
 };
