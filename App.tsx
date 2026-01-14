@@ -5,7 +5,11 @@ import Controls from './components/Controls';
 import ExportModal from './components/ExportModal';
 import { VisualizerMode, VisualizerConfig, Theme } from './types';
 
-export const VISUALIZER_COLORS = ['#40B9F8', '#5AFFBA', '#FFC700', '#FF87D1', '#8E8EFF', '#FFFFFF'];
+// Sorted lexicographically: 4 -> 5 -> 9 -> A -> F2 -> F6 -> FF
+const DARK_MODE_COLORS = ['#4DA3FF', '#5CE1B6', '#9B8CFF', '#A6A6A6', '#F2C94C', '#F65CB1', '#FFFFFF'];
+// Light mode presets as requested
+const LIGHT_MODE_COLORS = ['#4DA3FF', '#5CE1B6', '#9B8CFF', '#F08BC3', '#F2C94C', '#D1D1D1', '#000000'];
+
 const PHONE_FRAME_DARK = "https://drive.google.com/thumbnail?id=1YtgNRD5bhsW_JhFOfvscWU0nLmFGkXyd&sz=w2000";
 const PHONE_FRAME_LIGHT = "https://drive.google.com/thumbnail?id=1a4gwZ_bfhzv61f6Q2o3l8oekIGwixWQv&sz=w2000";
 
@@ -16,10 +20,15 @@ const App: React.FC = () => {
   const [sensitivity, setSensitivity] = useState(1.5); 
   const [currentRms, setCurrentRms] = useState(0);
   const [showPhoneFrame, setShowPhoneFrame] = useState(true);
-  const [containerWidth, setContainerWidth] = useState(480);
-  const [color, setColor] = useState<string>(VISUALIZER_COLORS[0]);
-  const [verticalShift, setVerticalShift] = useState(-30); 
+  const [containerWidth, setContainerWidth] = useState(784);
+  const [verticalShift, setVerticalShift] = useState(0); 
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+  // Derive the active palette based on theme
+  const activePalette = theme === Theme.DARK ? DARK_MODE_COLORS : LIGHT_MODE_COLORS;
+
+  // Initialize color with the first color of the dark palette (default)
+  const [color, setColor] = useState<string>(DARK_MODE_COLORS[0]);
 
   // Envelope Config
   const [envelopeAmplitude, setEnvelopeAmplitude] = useState(40); 
@@ -68,11 +77,12 @@ const App: React.FC = () => {
     return () => cancelAnimationFrame(raf);
   }, [isListening, getMetrics]);
 
+  // Ensure currentConfig uses the activePalette so exports match the visible theme
   const currentConfig: VisualizerConfig = useMemo(() => ({
     mode,
     sensitivity,
     color,
-    palette: VISUALIZER_COLORS,
+    palette: activePalette,
     containerWidth,
     verticalShift,
     envelope: {
@@ -96,56 +106,77 @@ const App: React.FC = () => {
       points: paperPoints,
       idle: paperIdleAmplitude
     }
-  }), [mode, sensitivity, color, containerWidth, verticalShift, envelopeAmplitude, envelopeSpeed, envelopePoints, envelopeFillOpacity, waveAmplitude, waveNoise, sinoAmplitude, sinoWavelength, sinoSpeed, paperAmount, paperWaves, paperPoints, paperIdleAmplitude]);
+  }), [mode, sensitivity, color, activePalette, containerWidth, verticalShift, envelopeAmplitude, envelopeSpeed, envelopePoints, envelopeFillOpacity, waveAmplitude, waveNoise, sinoAmplitude, sinoWavelength, sinoSpeed, paperAmount, paperWaves, paperPoints, paperIdleAmplitude]);
 
   const toggleTheme = () => {
-    setTheme(prev => prev === Theme.DARK ? Theme.LIGHT : Theme.DARK);
+    setTheme(prev => {
+      const newTheme = prev === Theme.DARK ? Theme.LIGHT : Theme.DARK;
+      // Optional: Automatically switch selected color to the first in the new palette 
+      // if the current color isn't custom (you can remove this logic if you prefer to keep the color constant)
+      const newPalette = newTheme === Theme.DARK ? DARK_MODE_COLORS : LIGHT_MODE_COLORS;
+      setColor(newPalette[0]); 
+      return newTheme;
+    });
   };
 
   const currentPhoneFrame = theme === Theme.DARK ? PHONE_FRAME_DARK : PHONE_FRAME_LIGHT;
-  const bgColor = theme === Theme.DARK ? 'bg-[#12151E]' : 'bg-[#FCFCFD]';
+  const bgColor = theme === Theme.DARK ? 'bg-[#1C1C1C]' : 'bg-[#F2F2F2]';
 
   return (
-    <div className={`relative w-full h-screen ${bgColor} transition-colors duration-500 overflow-hidden flex flex-col items-center justify-center font-sans`}>
-      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-        <div className="max-w-full h-full relative transform scale-90 transition-all duration-300" style={{ width: `${containerWidth}px` }}>
-          <VisualizerCanvas 
-            isListening={isListening} 
-            getMetrics={getMetrics} 
-            mode={mode} 
-            theme={theme}
-            sensitivity={sensitivity} 
-            color={color}
-            palette={VISUALIZER_COLORS}
-            verticalShift={verticalShift} 
-            numWaves={numWaves} 
-            barWidth={barWidth} 
-            barSpacing={barSpacing}
-            barAmplitude={barAmplitude}
-            sinoAmplitude={sinoAmplitude} 
-            sinoWavelength={sinoWavelength} 
-            sinoSpeed={sinoSpeed}
-            springStrands={springStrands} 
-            springAmplitude={springAmplitude}
-            envelopeAmplitude={envelopeAmplitude}
-            envelopeSpeed={envelopeSpeed}
-            envelopePoints={envelopePoints}
-            envelopeFillOpacity={envelopeFillOpacity}
-            waveAmplitude={waveAmplitude} 
-            waveNoise={waveNoise}
-            paperAmount={paperAmount}
-            paperScale={paperScale}
-            paperWaves={paperWaves}
-            paperPoints={paperPoints}
-            paperIdleAmplitude={paperIdleAmplitude}
-            containerWidth={containerWidth}
-          />
-        </div>
-      </div>
+    <div className={`relative w-full h-screen ${bgColor} transition-colors duration-500 overflow-hidden flex flex-col items-center justify-start font-sans`}>
+      
+      {/* Top Visualizer Area - Scaled 1/2 and Sticky Top */}
+      <div className="relative w-full flex justify-center transform scale-50 origin-top pointer-events-none z-0">
+         <div className="relative h-[640px] w-full flex items-center justify-center">
+            
+            {/* Visualizer Canvas Area */}
+            <div className="relative h-[640px] shrink-0 transform scale-90 transition-all duration-300" style={{ width: `${containerWidth}px` }}>
+              <VisualizerCanvas 
+                isListening={isListening} 
+                getMetrics={getMetrics} 
+                mode={mode} 
+                theme={theme}
+                sensitivity={sensitivity} 
+                color={color}
+                palette={activePalette}
+                verticalShift={verticalShift} 
+                numWaves={numWaves} 
+                barWidth={barWidth} 
+                barSpacing={barSpacing}
+                barAmplitude={barAmplitude}
+                sinoAmplitude={sinoAmplitude} 
+                sinoWavelength={sinoWavelength} 
+                sinoSpeed={sinoSpeed}
+                springStrands={springStrands} 
+                springAmplitude={springAmplitude}
+                envelopeAmplitude={envelopeAmplitude}
+                envelopeSpeed={envelopeSpeed}
+                envelopePoints={envelopePoints}
+                envelopeFillOpacity={envelopeFillOpacity}
+                waveAmplitude={waveAmplitude} 
+                waveNoise={waveNoise}
+                paperAmount={paperAmount}
+                paperScale={paperScale}
+                paperWaves={paperWaves}
+                paperPoints={paperPoints}
+                paperIdleAmplitude={paperIdleAmplitude}
+                containerWidth={containerWidth}
+              />
+            </div>
 
-      {showPhoneFrame && !imageError && (
-        <img key={currentPhoneFrame} src={currentPhoneFrame} alt="Phone Frame" referrerPolicy="no-referrer" onError={() => setImageError(true)} className="absolute top-0 left-1/2 -translate-x-1/2 h-1/2 w-auto z-20 pointer-events-none" />
-      )}
+            {/* Phone Frame Overlay */}
+            {showPhoneFrame && !imageError && (
+              <img 
+                key={currentPhoneFrame} 
+                src={currentPhoneFrame} 
+                alt="Phone Frame" 
+                referrerPolicy="no-referrer" 
+                onError={() => setImageError(true)} 
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[640px] w-auto max-w-none z-20" 
+              />
+            )}
+         </div>
+      </div>
 
       {error && (
         <div className={`absolute top-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full z-40 flex items-center gap-3 backdrop-blur-md border ${isSimulated ? 'bg-yellow-900/40 border-yellow-500/50 text-yellow-100' : 'bg-red-900/50 border-red-500/50 text-red-100'}`}>
@@ -169,7 +200,7 @@ const App: React.FC = () => {
         theme={theme} onThemeToggle={toggleTheme}
         sensitivity={sensitivity} onSensitivityChange={setSensitivity} verticalShift={verticalShift} onVerticalShiftChange={setVerticalShift}
         containerWidth={containerWidth} onContainerWidthChange={setContainerWidth} rms={currentRms * sensitivity}
-        colors={VISUALIZER_COLORS} selectedColor={color} onColorChange={setColor}
+        colors={activePalette} selectedColor={color} onColorChange={setColor}
         numWaves={numWaves} onNumWavesChange={setNumWaves} barWidth={barWidth} onBarWidthChange={setBarWidth}
         barSpacing={barSpacing} onBarSpacingChange={setBarSpacing} barAmplitude={barAmplitude} onBarAmplitudeChange={setBarAmplitude}
         sinoAmplitude={sinoAmplitude} onSinoAmplitudeChange={setSinoAmplitude}

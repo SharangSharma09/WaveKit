@@ -104,7 +104,6 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
         canvas.height = canvas.parentElement.clientHeight;
       }
     };
-    window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
     const render = () => {
@@ -150,9 +149,8 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
     requestRef.current = requestAnimationFrame(render);
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      window.removeEventListener('resize', resizeCanvas);
     };
-  }, [isListening, mode, theme, sensitivity, color, palette, verticalShift, getMetrics, numWaves, barWidth, barSpacing, barAmplitude, sinoAmplitude, sinoWavelength, sinoSpeed, springStrands, springAmplitude, envelopeAmplitude, envelopeSpeed, envelopePoints, envelopeFillOpacity, waveAmplitude, waveNoise, paperAmount, paperScale, paperWaves, paperPoints, paperIdleAmplitude]);
+  }, [isListening, mode, theme, sensitivity, color, palette, verticalShift, getMetrics, numWaves, barWidth, barSpacing, barAmplitude, sinoAmplitude, sinoWavelength, sinoSpeed, springStrands, springAmplitude, envelopeAmplitude, envelopeSpeed, envelopePoints, envelopeFillOpacity, waveAmplitude, waveNoise, paperAmount, paperScale, paperWaves, paperPoints, paperIdleAmplitude, containerWidth]);
 
   const getCenterY = (height: number) => (height / 2) + (height * (verticalShift / 100));
 

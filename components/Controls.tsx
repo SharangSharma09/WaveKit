@@ -1,6 +1,7 @@
 import React from 'react';
 import { Mic, MicOff, Waves, BarChart2, Settings2, Sliders, Palette, MoveHorizontal, MoveVertical, Spline, Layers, Eye, EyeOff, Zap, Activity, Hash, Origami, Waypoints, Moon, Sun, Droplets, Volume2, Code2, AlertTriangle } from 'lucide-react';
 import { VisualizerMode, Theme } from '../types';
+import CustomColorPicker from './CustomColorPicker';
 
 interface ControlsProps {
   isListening: boolean;
@@ -82,7 +83,7 @@ const Controls: React.FC<ControlsProps> = ({
   showPhoneFrame, onTogglePhoneFrame, onOpenExport
 }) => {
   return (
-    <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl px-4">
+    <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50 w-[672px]">
       <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-4 shadow-2xl flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
         
         {/* Row 1: Input Status, Frame Toggle and Theme Slider */}
@@ -179,7 +180,7 @@ const Controls: React.FC<ControlsProps> = ({
              <div className="flex items-center gap-2 flex-1">
                 <MoveHorizontal size={14} className="text-white/40 shrink-0" />
                 <span className="text-[9px] font-bold text-white/40 uppercase tracking-wider w-8 shrink-0">WIDTH</span>
-                <input type="range" min="300" max="620" value={containerWidth} onChange={(e) => onContainerWidthChange(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer" />
+                <input type="range" min="400" max="1000" value={containerWidth} onChange={(e) => onContainerWidthChange(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer" />
                 <span className="text-[10px] text-white/40 w-8 text-right font-mono">{containerWidth}</span>
              </div>
              <div className="flex items-center gap-2 flex-1">
@@ -325,7 +326,7 @@ const Controls: React.FC<ControlsProps> = ({
             {mode !== VisualizerMode.SPRING_BAND && (
               <>
                 <Palette size={16} className="text-white/40" />
-                <div className="flex gap-3">
+                <div className="flex gap-3 items-center">
                   {colors.map((c) => (
                     <button 
                       key={c} 
@@ -334,6 +335,8 @@ const Controls: React.FC<ControlsProps> = ({
                       style={{ backgroundColor: c }} 
                     />
                   ))}
+                  {/* Custom Color Picker */}
+                  <CustomColorPicker color={selectedColor} onChange={onColorChange} />
                 </div>
               </>
             )}
