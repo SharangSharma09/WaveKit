@@ -13,7 +13,7 @@ export const generateThreeJSCode = (config: VisualizerConfig): string => {
     <style>
         body { 
             margin: 0; 
-            background: #0F1118; 
+            background: #1C1C1C; 
             overflow: hidden; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: white;
@@ -55,7 +55,7 @@ export const generateThreeJSCode = (config: VisualizerConfig): string => {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: rgba(15, 17, 24, 0.9);
+            background: rgba(28, 28, 28, 0.9);
             backdrop-filter: blur(20px);
             z-index: 100;
             transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -152,7 +152,7 @@ export const generateThreeJSCode = (config: VisualizerConfig): string => {
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.setClearColor(0x0f1118, 1);
+            renderer.setClearColor(0x1C1C1C, 1);
             container.appendChild(renderer.domElement);
 
             // Lighting

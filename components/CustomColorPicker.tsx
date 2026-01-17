@@ -5,9 +5,10 @@ import { hexToHsv, hsvToHex, isValidHex, HSV } from '../utils/colorUtils';
 interface CustomColorPickerProps {
   color: string;
   onChange: (color: string) => void;
+  variant?: 'add' | 'swatch';
 }
 
-const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange }) => {
+const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, variant = 'add' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hsv, setHsv] = useState<HSV>(hexToHsv(color));
   const [hexInput, setHexInput] = useState(color);
@@ -112,10 +113,13 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange }
     <div className="relative" ref={popoverRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-6 h-6 rounded-full border border-white/20 flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 ${isOpen ? 'ring-2 ring-white/50' : ''}`}
+        className={`w-6 h-6 rounded-full border border-white/20 flex items-center justify-center transition-all ${
+           variant === 'swatch' ? 'shadow-sm' : 'bg-white/5 hover:bg-white/10'
+        } ${isOpen ? 'ring-2 ring-white/50' : ''}`}
+        style={variant === 'swatch' ? { backgroundColor: color } : {}}
         title="Custom Color"
       >
-        <Plus size={12} className="text-white/60" />
+        {variant === 'add' && <Plus size={12} className="text-white/60" />}
       </button>
 
       {isOpen && (

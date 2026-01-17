@@ -13,12 +13,17 @@ interface VisualizerCanvasProps {
   // Bar props
   numWaves: number;
   barWidth: number;
+  barHeight: number;
   barSpacing: number;
   barAmplitude: number;
+  barRoundness: number;
+  barMoving: boolean;
+  barSpeed: number;
   // Sino props
   sinoAmplitude: number;
   sinoWavelength: number;
   sinoSpeed: number;
+  sinoMoving: boolean;
   // Spring Band props
   springStrands: number;
   springAmplitude: number;
@@ -27,15 +32,23 @@ interface VisualizerCanvasProps {
   envelopeSpeed: number;
   envelopePoints: number;
   envelopeFillOpacity: number;
+  envelopeStrokeWidth: number;
+  envelopeMoving: boolean;
   // Wave props
   waveAmplitude: number;
   waveNoise: number;
+  waveSpeed: number;
+  waveMoving: boolean;
   // Paper Band props
   paperAmount: number;
   paperScale: number;
   paperWaves: number;
   paperPoints: number;
   paperIdleAmplitude: number;
+  paperStrokeWidth: number;
+  paperWaveColors: string[];
+  paperMoving: boolean;
+  paperSpeed: number;
   // Layout
   containerWidth: number;
 }
@@ -56,36 +69,55 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
   getMetrics, 
   mode,
   theme,
-  sensitivity,
+  sensitivity, 
   color,
   palette,
   verticalShift,
   numWaves,
   barWidth,
+  barHeight,
   barSpacing,
   barAmplitude,
+  barRoundness,
+  barMoving,
+  barSpeed,
   sinoAmplitude,
   sinoWavelength,
   sinoSpeed,
+  sinoMoving,
   springStrands,
   springAmplitude,
   envelopeAmplitude,
   envelopeSpeed,
   envelopePoints,
   envelopeFillOpacity,
+  envelopeStrokeWidth,
+  envelopeMoving,
   waveAmplitude,
   waveNoise,
+  waveSpeed,
+  waveMoving,
   paperAmount,
   paperScale,
   paperWaves,
   paperPoints,
   paperIdleAmplitude,
+  paperStrokeWidth,
+  paperWaveColors,
+  paperMoving,
+  paperSpeed,
   containerWidth
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number>(0);
   const phaseRef = useRef<number>(0);
   const envelopePhaseRef = useRef<number>(0);
+  const paperPhaseRef = useRef<number>(0);
+  const waveAccumulatorRef = useRef<number>(0);
+  
+  // Bars Mode State
+  const barHistoryRef = useRef<number[]>([]);
+  const barScrollRef = useRef<number>(0);
   
   const smoothRmsRef = useRef(0);
   const springStateRef = useRef<{ pos: number; vel: number }[]>([]);
@@ -119,9 +151,18 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
       smoothRmsRef.current += (rms * sensitivity - smoothRmsRef.current) * 0.12; 
       const smoothedRms = smoothRmsRef.current;
 
-      // Update phases for modes that should move (Envelope and Sino)
-      phaseRef.current += sinoSpeed * 0.05;
-      envelopePhaseRef.current += envelopeSpeed;
+      // Update phases for modes that should move
+      if (sinoMoving) {
+        phaseRef.current += sinoSpeed * 0.05;
+      }
+      
+      if (envelopeMoving) {
+        envelopePhaseRef.current += envelopeSpeed * 0.04;
+      }
+
+      if (paperMoving) {
+        paperPhaseRef.current += paperSpeed * 0.04; 
+      }
 
       switch (mode) {
         case VisualizerMode.ENVELOPE:
@@ -150,7 +191,7 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [isListening, mode, theme, sensitivity, color, palette, verticalShift, getMetrics, numWaves, barWidth, barSpacing, barAmplitude, sinoAmplitude, sinoWavelength, sinoSpeed, springStrands, springAmplitude, envelopeAmplitude, envelopeSpeed, envelopePoints, envelopeFillOpacity, waveAmplitude, waveNoise, paperAmount, paperScale, paperWaves, paperPoints, paperIdleAmplitude, containerWidth]);
+  }, [isListening, mode, theme, sensitivity, color, palette, verticalShift, getMetrics, numWaves, barWidth, barHeight, barSpacing, barAmplitude, barRoundness, barMoving, barSpeed, sinoAmplitude, sinoWavelength, sinoSpeed, sinoMoving, springStrands, springAmplitude, envelopeAmplitude, envelopeSpeed, envelopePoints, envelopeFillOpacity, envelopeStrokeWidth, envelopeMoving, waveAmplitude, waveNoise, waveSpeed, waveMoving, paperAmount, paperScale, paperWaves, paperPoints, paperIdleAmplitude, paperStrokeWidth, paperWaveColors, paperMoving, paperSpeed, containerWidth]);
 
   const getCenterY = (height: number) => (height / 2) + (height * (verticalShift / 100));
 
@@ -228,7 +269,8 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
             const voiceModulation = intensity * paperScale * sensitivity * 2.5;
             const magnitude = voiceModulation + paperIdleAmplitude;
             
-            const individualPhase = wavePhase + (i * 0.3) + breathing;
+            // Reversing movement: changed - paperPhaseRef.current to + paperPhaseRef.current
+            const individualPhase = wavePhase + (i * 0.3) + breathing + paperPhaseRef.current;
             const yOffset = -magnitude * Math.sin(individualPhase);
             points.push({ x, y: centerY + yOffset });
         }
@@ -249,11 +291,12 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
         const last = points[points.length - 1];
         ctx.lineTo(last.x, last.y);
         
-        const waveColor = palette[waveIndex % palette.length];
+        // Use per-wave colors
+        const waveColor = paperWaveColors[waveIndex % paperWaveColors.length] || palette[waveIndex % palette.length];
         const { r, g, b } = hexToRgb(waveColor);
         
         ctx.strokeStyle = waveColor;
-        ctx.lineWidth = 4;
+        ctx.lineWidth = paperStrokeWidth;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
@@ -303,28 +346,30 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
     ctx.fill();
 
     // Draw solid stroke
-    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 1.0)`;
-    ctx.lineWidth = 4;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    
-    // Stroke Top
-    ctx.beginPath();
-    ctx.moveTo(upperPoints[0].x, upperPoints[0].y);
-    for (let i = 1; i < upperPoints.length; i++) ctx.lineTo(upperPoints[i].x, upperPoints[i].y);
-    ctx.stroke();
+    if (envelopeStrokeWidth > 0) {
+      ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 1.0)`;
+      ctx.lineWidth = envelopeStrokeWidth;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      
+      // Stroke Top
+      ctx.beginPath();
+      ctx.moveTo(upperPoints[0].x, upperPoints[0].y);
+      for (let i = 1; i < upperPoints.length; i++) ctx.lineTo(upperPoints[i].x, upperPoints[i].y);
+      ctx.stroke();
 
-    // Stroke Bottom
-    ctx.beginPath();
-    ctx.moveTo(lowerPoints[0].x, lowerPoints[0].y);
-    for (let i = 1; i < lowerPoints.length; i++) ctx.lineTo(lowerPoints[i].x, lowerPoints[i].y);
-    ctx.stroke();
+      // Stroke Bottom
+      ctx.beginPath();
+      ctx.moveTo(lowerPoints[0].x, lowerPoints[0].y);
+      for (let i = 1; i < lowerPoints.length; i++) ctx.lineTo(lowerPoints[i].x, lowerPoints[i].y);
+      ctx.stroke();
 
-    // Glow effect
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+      // Glow effect
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
   };
 
   const drawSpringBand = (ctx: CanvasRenderingContext2D, width: number, height: number, rms: number) => {
@@ -388,15 +433,24 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
     // Number of points in the scrolling wave
     const maxPoints = 120;
     
-    // Add current frame sample to history
-    // We add noise based on rms and user setting
-    const noiseVal = (Math.random() - 0.5) * waveNoise * (0.2 + rms);
-    const signalVal = rms * waveAmplitude;
-    const currentYOffset = signalVal + noiseVal;
-    
-    waveHistoryRef.current.push(currentYOffset);
-    if (waveHistoryRef.current.length > maxPoints) {
-      waveHistoryRef.current.shift();
+    if (waveMoving) {
+      waveAccumulatorRef.current += waveSpeed;
+      // Cap updates per frame to avoid freezing if speed is very high (though max 3 is safe)
+      let updates = 0;
+      while (waveAccumulatorRef.current >= 1 && updates < 10) {
+        // Add current frame sample to history
+        // We add noise based on rms and user setting
+        const noiseVal = (Math.random() - 0.5) * waveNoise * (0.2 + rms);
+        const signalVal = rms * waveAmplitude;
+        const currentYOffset = signalVal + noiseVal;
+        
+        waveHistoryRef.current.push(currentYOffset);
+        if (waveHistoryRef.current.length > maxPoints) {
+          waveHistoryRef.current.shift();
+        }
+        waveAccumulatorRef.current -= 1;
+        updates++;
+      }
     }
 
     const step = width / (maxPoints - 1);
@@ -412,7 +466,6 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
     for (let i = 0; i < waveHistoryRef.current.length; i++) {
       const x = i * step;
       // Fade out older samples slightly
-      const alpha = (i / waveHistoryRef.current.length);
       const yOffset = waveHistoryRef.current[i];
       
       const y = centerY - yOffset;
@@ -431,40 +484,107 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
   const drawBars = (ctx: CanvasRenderingContext2D, width: number, height: number, data: Uint8Array, rms: number) => {
     const centerY = getCenterY(height);
     const { r, g, b } = hexToRgb(color);
-    const totalContentWidth = (numWaves * barWidth) + ((numWaves - 1) * barSpacing);
-    const startX = (width - totalContentWidth) / 2;
     
-    const mid = (numWaves - 1) / 2;
+    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.5)`; 
+    ctx.lineWidth = 2;
 
-    for (let i = 0; i < numWaves; i++) {
-      const dist = Math.abs(i - mid);
-      
-      const spectrumLimit = Math.floor(data.length * 0.5); 
-      const sampleIdx = Math.floor((dist / (numWaves / 2)) * spectrumLimit) % data.length;
-      const rawVal = data[sampleIdx] / 255.0;
-      
-      const gateThreshold = 0.005;
-      const isQuiet = rms < gateThreshold;
-      const dampening = isQuiet ? 0 : Math.max(0, Math.min(1, (rms - gateThreshold) * 20));
-      
-      const val = rawVal * dampening;
-      
-      const baseHeight = isQuiet ? 8 : 12;
-      const reactivity = (val + (isQuiet ? 0 : rms)) * barAmplitude * 2;
-      const finalHeight = baseHeight + reactivity;
-      
-      const x = startX + i * (barWidth + barSpacing);
-      const y = centerY - (finalHeight / 2);
-      
-      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-      ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.5)`; 
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      // @ts-ignore
-      if (ctx.roundRect) ctx.roundRect(x, y, barWidth, finalHeight, 999);
-      else ctx.rect(x, y, barWidth, finalHeight);
-      ctx.fill();
-      ctx.stroke(); 
+    // Calculate max radius based on width
+    const maxRadius = barWidth / 2;
+    const cornerRadius = (barRoundness / 100) * maxRadius;
+
+    // Height scaling factor: Default max 50px creates a 1.25x multiplier.
+    // Normalized so that 40px input ~ 1.0x scale of the previous logic.
+    const heightScale = barHeight / 40;
+
+    if (barMoving) {
+        // --- SCROLLING MODE (Streaming right-to-left) ---
+        const totalBarWidth = barWidth + barSpacing;
+        
+        // Update scroll position (pixels per frame based on speed)
+        barScrollRef.current += barSpeed * 2;
+
+        // Spawn new bar if gap is large enough
+        while (barScrollRef.current >= totalBarWidth) {
+            barScrollRef.current -= totalBarWidth;
+            
+            // Calculate height driven by current audio input (RMS) at spawn time
+            const gateThreshold = 0.005;
+            const isQuiet = rms < gateThreshold;
+            const baseHeight = isQuiet ? 8 : 12;
+            
+            // Use current RMS scaled by sensitivity as the driver
+            const normalizedRms = Math.min(1, rms * sensitivity * 1.5);
+            const reactivity = normalizedRms * barAmplitude * 2.5; 
+            const calculatedHeight = baseHeight + reactivity;
+            
+            // Apply new Height slider scaling
+            const finalHeight = calculatedHeight * heightScale;
+            
+            // Add to history (Newest first)
+            barHistoryRef.current.unshift(finalHeight);
+        }
+
+        // Prune history to keep only visible bars
+        const maxBarsNeeded = Math.ceil(width / totalBarWidth) + 2;
+        if (barHistoryRef.current.length > maxBarsNeeded) {
+            barHistoryRef.current = barHistoryRef.current.slice(0, maxBarsNeeded);
+        }
+
+        // Render Bars
+        // i=0 is newest (Right side). We want them to originate from right edge.
+        // x = width + barSpacing - (i * totalBarWidth) - barScrollRef.current
+        for (let i = 0; i < barHistoryRef.current.length; i++) {
+            const h = barHistoryRef.current[i];
+            const drawX = width + barSpacing - (i * totalBarWidth) - barScrollRef.current;
+            const drawY = centerY - (h / 2);
+            
+            // Only draw if roughly onscreen
+            if (drawX + barWidth > 0 && drawX < width) {
+                ctx.beginPath();
+                // @ts-ignore
+                if (ctx.roundRect) ctx.roundRect(drawX, drawY, barWidth, h, cornerRadius);
+                else ctx.rect(drawX, drawY, barWidth, h);
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+
+    } else {
+        // --- FIXED MODE (Standard Spectrum Analyzer) ---
+        const totalContentWidth = (numWaves * barWidth) + ((numWaves - 1) * barSpacing);
+        const startX = (width - totalContentWidth) / 2;
+        const mid = (numWaves - 1) / 2;
+
+        for (let i = 0; i < numWaves; i++) {
+          const dist = Math.abs(i - mid);
+          const spectrumLimit = Math.floor(data.length * 0.5); 
+          const sampleIdx = Math.floor((dist / (numWaves / 2)) * spectrumLimit) % data.length;
+          const rawVal = data[sampleIdx] / 255.0;
+          
+          const gateThreshold = 0.005;
+          const isQuiet = rms < gateThreshold;
+          const dampening = isQuiet ? 0 : Math.max(0, Math.min(1, (rms - gateThreshold) * 20));
+          
+          const val = rawVal * dampening;
+          
+          const baseHeight = isQuiet ? 8 : 12;
+          const reactivity = (val + (isQuiet ? 0 : rms)) * barAmplitude * 2;
+          const calculatedHeight = baseHeight + reactivity;
+
+          // Apply new Height slider scaling
+          const finalHeight = calculatedHeight * heightScale;
+          
+          const x = startX + i * (barWidth + barSpacing);
+          const y = centerY - (finalHeight / 2);
+          
+          ctx.beginPath();
+          // @ts-ignore
+          if (ctx.roundRect) ctx.roundRect(x, y, barWidth, finalHeight, cornerRadius);
+          else ctx.rect(x, y, barWidth, finalHeight);
+          ctx.fill();
+          ctx.stroke(); 
+        }
     }
   };
 

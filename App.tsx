@@ -10,6 +10,8 @@ const DARK_MODE_COLORS = ['#4DA3FF', '#5CE1B6', '#9B8CFF', '#A6A6A6', '#F2C94C',
 // Light mode presets as requested
 const LIGHT_MODE_COLORS = ['#4DA3FF', '#5CE1B6', '#9B8CFF', '#F08BC3', '#F2C94C', '#D1D1D1', '#000000'];
 
+const DEFAULT_PAPER_COLORS = ['#4DA3FF', '#5CE1B6', '#9B8CFF', '#F08BC3', '#F2C94C'];
+
 const PHONE_FRAME_DARK = "https://drive.google.com/thumbnail?id=1YtgNRD5bhsW_JhFOfvscWU0nLmFGkXyd&sz=w2000";
 const PHONE_FRAME_LIGHT = "https://drive.google.com/thumbnail?id=1a4gwZ_bfhzv61f6Q2o3l8oekIGwixWQv&sz=w2000";
 
@@ -32,9 +34,11 @@ const App: React.FC = () => {
 
   // Envelope Config
   const [envelopeAmplitude, setEnvelopeAmplitude] = useState(40); 
-  const [envelopeSpeed, setEnvelopeSpeed] = useState(0.04);
+  const [envelopeSpeed, setEnvelopeSpeed] = useState(1);
   const [envelopePoints, setEnvelopePoints] = useState(20);
-  const [envelopeFillOpacity, setEnvelopeFillOpacity] = useState(85);
+  const [envelopeFillOpacity, setEnvelopeFillOpacity] = useState(20);
+  const [envelopeStrokeWidth, setEnvelopeStrokeWidth] = useState(6);
+  const [envelopeMoving, setEnvelopeMoving] = useState(false);
 
   // Paper Band Config
   const [paperAmount, setPaperAmount] = useState(12);
@@ -45,19 +49,33 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('paperIdleAmplitude');
     return saved !== null ? parseFloat(saved) : 2;
   });
+  const [paperStrokeWidth, setPaperStrokeWidth] = useState(6);
+  const [paperWaveColors, setPaperWaveColors] = useState<string[]>(DEFAULT_PAPER_COLORS);
+  const [paperMoving, setPaperMoving] = useState(false);
+  const [paperSpeed, setPaperSpeed] = useState(1);
 
   // Wave Config
   const [waveAmplitude, setWaveAmplitude] = useState(150);
   const [waveNoise, setWaveNoise] = useState(20);
+  const [waveSpeed, setWaveSpeed] = useState(1);
+  const [waveMoving, setWaveMoving] = useState(true);
 
-  // Other mode defaults
+  // Bars Config
   const [numWaves, setNumWaves] = useState(10);
   const [barWidth, setBarWidth] = useState(32); 
+  const [barHeight, setBarHeight] = useState(50);
   const [barSpacing, setBarSpacing] = useState(10);
   const [barAmplitude, setBarAmplitude] = useState(100);
+  const [barRoundness, setBarRoundness] = useState(100); // Percentage 0-100
+  const [barMoving, setBarMoving] = useState(false);
+  const [barSpeed, setBarSpeed] = useState(1);
+
+  // Sino Config
   const [sinoAmplitude, setSinoAmplitude] = useState(40);
   const [sinoWavelength, setSinoWavelength] = useState(300);
   const [sinoSpeed, setSinoSpeed] = useState(1.0);
+  const [sinoMoving, setSinoMoving] = useState(false);
+
   const [springStrands, setSpringStrands] = useState(3);
   const [springAmplitude, setSpringAmplitude] = useState(60);
   const [imageError, setImageError] = useState(false);
@@ -77,6 +95,18 @@ const App: React.FC = () => {
     return () => cancelAnimationFrame(raf);
   }, [isListening, getMetrics]);
 
+  const handlePaperWaveColorChange = (index: number, newColor: string) => {
+    setPaperWaveColors(prev => {
+      const next = [...prev];
+      // Extend if necessary (though UI usually binds within range)
+      while (next.length <= index) {
+        next.push(DEFAULT_PAPER_COLORS[next.length % DEFAULT_PAPER_COLORS.length]);
+      }
+      next[index] = newColor;
+      return next;
+    });
+  };
+
   // Ensure currentConfig uses the activePalette so exports match the visible theme
   const currentConfig: VisualizerConfig = useMemo(() => ({
     mode,
@@ -89,24 +119,43 @@ const App: React.FC = () => {
       amplitude: envelopeAmplitude,
       speed: envelopeSpeed,
       points: envelopePoints,
-      opacity: envelopeFillOpacity
+      opacity: envelopeFillOpacity,
+      strokeWidth: envelopeStrokeWidth,
+      moving: envelopeMoving
     },
     wave: {
       amplitude: waveAmplitude,
-      noise: waveNoise
+      noise: waveNoise,
+      speed: waveSpeed,
+      moving: waveMoving
     },
     sino: {
       amplitude: sinoAmplitude,
       wavelength: sinoWavelength,
-      speed: sinoSpeed
+      speed: sinoSpeed,
+      moving: sinoMoving
     },
     paper: {
       amount: paperAmount,
       waves: paperWaves,
       points: paperPoints,
-      idle: paperIdleAmplitude
+      idle: paperIdleAmplitude,
+      strokeWidth: paperStrokeWidth,
+      colors: paperWaveColors,
+      moving: paperMoving,
+      speed: paperSpeed
+    },
+    bars: {
+      waves: numWaves,
+      width: barWidth,
+      height: barHeight,
+      spacing: barSpacing,
+      amplitude: barAmplitude,
+      roundness: barRoundness,
+      moving: barMoving,
+      speed: barSpeed
     }
-  }), [mode, sensitivity, color, activePalette, containerWidth, verticalShift, envelopeAmplitude, envelopeSpeed, envelopePoints, envelopeFillOpacity, waveAmplitude, waveNoise, sinoAmplitude, sinoWavelength, sinoSpeed, paperAmount, paperWaves, paperPoints, paperIdleAmplitude]);
+  }), [mode, sensitivity, color, activePalette, containerWidth, verticalShift, envelopeAmplitude, envelopeSpeed, envelopePoints, envelopeFillOpacity, envelopeStrokeWidth, envelopeMoving, waveAmplitude, waveNoise, waveSpeed, waveMoving, sinoAmplitude, sinoWavelength, sinoSpeed, sinoMoving, paperAmount, paperWaves, paperPoints, paperIdleAmplitude, paperStrokeWidth, paperWaveColors, paperMoving, paperSpeed, numWaves, barWidth, barHeight, barSpacing, barAmplitude, barRoundness, barMoving, barSpeed]);
 
   const toggleTheme = () => {
     setTheme(prev => {
@@ -120,10 +169,11 @@ const App: React.FC = () => {
   };
 
   const currentPhoneFrame = theme === Theme.DARK ? PHONE_FRAME_DARK : PHONE_FRAME_LIGHT;
-  const bgColor = theme === Theme.DARK ? 'bg-[#1C1C1C]' : 'bg-[#F2F2F2]';
+  // Updated dark background color to #1C1C1C
+  const bgColor = theme === Theme.DARK ? 'bg-[#1C1C1C]' : 'bg-[#e4e4e7]';
 
   return (
-    <div className={`relative w-full h-screen ${bgColor} transition-colors duration-500 overflow-hidden flex flex-col items-center justify-start font-sans`}>
+    <div className={`relative w-full h-screen ${bgColor} transition-colors duration-500 overflow-hidden flex flex-col items-center justify-start font-sans select-none`}>
       
       {/* Top Visualizer Area - Scaled 1/2 and Sticky Top */}
       <div className="relative w-full flex justify-center transform scale-50 origin-top pointer-events-none z-0">
@@ -142,24 +192,37 @@ const App: React.FC = () => {
                 verticalShift={verticalShift} 
                 numWaves={numWaves} 
                 barWidth={barWidth} 
+                barHeight={barHeight}
                 barSpacing={barSpacing}
                 barAmplitude={barAmplitude}
+                barRoundness={barRoundness}
+                barMoving={barMoving}
+                barSpeed={barSpeed}
                 sinoAmplitude={sinoAmplitude} 
                 sinoWavelength={sinoWavelength} 
                 sinoSpeed={sinoSpeed}
+                sinoMoving={sinoMoving}
                 springStrands={springStrands} 
                 springAmplitude={springAmplitude}
                 envelopeAmplitude={envelopeAmplitude}
                 envelopeSpeed={envelopeSpeed}
                 envelopePoints={envelopePoints}
                 envelopeFillOpacity={envelopeFillOpacity}
+                envelopeStrokeWidth={envelopeStrokeWidth}
+                envelopeMoving={envelopeMoving}
                 waveAmplitude={waveAmplitude} 
                 waveNoise={waveNoise}
+                waveSpeed={waveSpeed}
+                waveMoving={waveMoving}
                 paperAmount={paperAmount}
                 paperScale={paperScale}
                 paperWaves={paperWaves}
                 paperPoints={paperPoints}
                 paperIdleAmplitude={paperIdleAmplitude}
+                paperStrokeWidth={paperStrokeWidth}
+                paperWaveColors={paperWaveColors}
+                paperMoving={paperMoving}
+                paperSpeed={paperSpeed}
                 containerWidth={containerWidth}
               />
             </div>
@@ -179,14 +242,14 @@ const App: React.FC = () => {
       </div>
 
       {error && (
-        <div className={`absolute top-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full z-40 flex items-center gap-3 backdrop-blur-md border ${isSimulated ? 'bg-yellow-900/40 border-yellow-500/50 text-yellow-100' : 'bg-red-900/50 border-red-500/50 text-red-100'}`}>
-          <span className="text-sm font-medium">{error}</span>
+        <div className={`absolute top-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg border shadow-xl z-40 flex items-center gap-3 ${isSimulated ? 'bg-[#2a1c05] border-yellow-800 text-yellow-200' : 'bg-[#2a0505] border-red-800 text-red-200'}`}>
+          <span className="text-xs font-bold uppercase tracking-wide">{error}</span>
           {!isListening && (
             <button 
               onClick={() => start(true)}
-              className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold transition-all"
+              className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded border border-white/10 text-[10px] font-bold uppercase tracking-wider transition-all"
             >
-              Try Again
+              Retry
             </button>
           )}
         </div>
@@ -202,20 +265,32 @@ const App: React.FC = () => {
         containerWidth={containerWidth} onContainerWidthChange={setContainerWidth} rms={currentRms * sensitivity}
         colors={activePalette} selectedColor={color} onColorChange={setColor}
         numWaves={numWaves} onNumWavesChange={setNumWaves} barWidth={barWidth} onBarWidthChange={setBarWidth}
+        barHeight={barHeight} onBarHeightChange={setBarHeight}
         barSpacing={barSpacing} onBarSpacingChange={setBarSpacing} barAmplitude={barAmplitude} onBarAmplitudeChange={setBarAmplitude}
+        barRoundness={barRoundness} onBarRoundnessChange={setBarRoundness}
+        barMoving={barMoving} onBarMovingChange={setBarMoving} barSpeed={barSpeed} onBarSpeedChange={setBarSpeed}
         sinoAmplitude={sinoAmplitude} onSinoAmplitudeChange={setSinoAmplitude}
         sinoWavelength={sinoWavelength} onSinoWavelengthChange={setSinoWavelength} sinoSpeed={sinoSpeed} onSinoSpeedChange={setSinoSpeed}
+        sinoMoving={sinoMoving} onSinoMovingChange={setSinoMoving}
         springStrands={springStrands} onSpringStrandsChange={setSpringStrands} springAmplitude={springAmplitude} onSpringAmplitudeChange={setSpringAmplitude}
         envelopeAmplitude={envelopeAmplitude} onEnvelopeAmplitudeChange={setEnvelopeAmplitude} 
         envelopeSpeed={envelopeSpeed} onEnvelopeSpeedChange={setEnvelopeSpeed}
         envelopePoints={envelopePoints} onEnvelopePointsChange={setEnvelopePoints}
         envelopeFillOpacity={envelopeFillOpacity} onEnvelopeFillOpacityChange={setEnvelopeFillOpacity}
+        envelopeStrokeWidth={envelopeStrokeWidth} onEnvelopeStrokeWidthChange={setEnvelopeStrokeWidth}
+        envelopeMoving={envelopeMoving} onEnvelopeMovingChange={setEnvelopeMoving}
         waveAmplitude={waveAmplitude} onWaveAmplitudeChange={setWaveAmplitude}
         waveNoise={waveNoise} onWaveNoiseChange={setWaveNoise}
+        waveSpeed={waveSpeed} onWaveSpeedChange={setWaveSpeed}
+        waveMoving={waveMoving} onWaveMovingChange={setWaveMoving}
         paperAmount={paperAmount} onPaperAmountChange={setPaperAmount}
         paperWaves={paperWaves} onPaperWavesChange={setPaperWaves}
         paperPoints={paperPoints} onPaperPointsChange={setPaperPoints}
         paperIdleAmplitude={paperIdleAmplitude} onPaperIdleAmplitudeChange={setPaperIdleAmplitude}
+        paperStrokeWidth={paperStrokeWidth} onPaperStrokeWidthChange={setPaperStrokeWidth}
+        paperWaveColors={paperWaveColors} onPaperWaveColorChange={handlePaperWaveColorChange}
+        paperMoving={paperMoving} onPaperMovingChange={setPaperMoving}
+        paperSpeed={paperSpeed} onPaperSpeedChange={setPaperSpeed}
         showPhoneFrame={showPhoneFrame} onTogglePhoneFrame={() => setShowPhoneFrame(!showPhoneFrame)}
         onOpenExport={() => setIsExportModalOpen(true)}
       />
