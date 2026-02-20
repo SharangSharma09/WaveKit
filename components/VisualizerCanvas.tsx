@@ -432,7 +432,14 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
 
     // Number of points in the scrolling wave
     const maxPoints = 120;
+    const step = width / (maxPoints - 1);
     
+    ctx.beginPath();
+    ctx.lineWidth = 4 + (rms * 4);
+    ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
     if (waveMoving) {
       waveAccumulatorRef.current += waveSpeed;
       // Cap updates per frame to avoid freezing if speed is very high (though max 3 is safe)
@@ -451,27 +458,38 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({
         waveAccumulatorRef.current -= 1;
         updates++;
       }
-    }
 
-    const step = width / (maxPoints - 1);
-    
-    ctx.beginPath();
-    ctx.lineWidth = 4 + (rms * 4);
-    ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-
-    // Draw from left to right, but since we want it to "move" right-to-left,
-    // we iterate through history. Oldest is left, newest is right.
-    for (let i = 0; i < waveHistoryRef.current.length; i++) {
-      const x = i * step;
-      // Fade out older samples slightly
-      const yOffset = waveHistoryRef.current[i];
-      
-      const y = centerY - yOffset;
-      
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+      // Draw from left to right, but since we want it to "move" right-to-left,
+      // we iterate through history. Oldest is left, newest is right.
+      for (let i = 0; i < waveHistoryRef.current.length; i++) {
+        const x = i * step;
+        // Fade out older samples slightly
+        const yOffset = waveHistoryRef.current[i];
+        
+        const y = centerY - yOffset;
+        
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+    } else {
+      // Live Reactive Mode (Not scrolling)
+      // Generates a fresh jagged line every frame to create an electric/static effect
+      for (let i = 0; i < maxPoints; i++) {
+        const x = i * step;
+        
+        // Random jitter for the static effect
+        const noise = (Math.random() - 0.5);
+        
+        // Magnitude based on user settings and audio input
+        // waveNoise provides a baseline jitter, waveAmplitude scales with volume
+        const magnitude = (waveNoise * 0.3) + (rms * Math.abs(waveAmplitude));
+        
+        const yOffset = noise * magnitude;
+        const y = centerY + yOffset;
+        
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
     }
     
     // Optional glow for Wave

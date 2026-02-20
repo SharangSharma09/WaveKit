@@ -88,15 +88,16 @@ interface ControlsProps {
   showPhoneFrame: boolean;
   onTogglePhoneFrame: () => void;
   onOpenExport: () => void;
+  title?: string;
 }
 
 const ControlKnobLike = ({ label, value, onChange, min, max, step, suffix = '' }: any) => (
-  <div className="flex flex-col gap-1.5 min-w-[120px] flex-1">
+  <div className="flex flex-col gap-1 min-w-[120px] flex-1">
     <div className="flex items-center justify-between">
        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{label}</span>
        <span className="text-[9px] font-mono text-zinc-400">{typeof value === 'number' ? value.toFixed(step < 1 ? 1 : 0) : value}{suffix}</span>
     </div>
-    <div className="h-6 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
+    <div className="h-5 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
        <input 
          type="range" 
          min={min} 
@@ -139,7 +140,8 @@ const Controls: React.FC<ControlsProps> = ({
   paperWaveColors, onPaperWaveColorChange,
   paperMoving = false, onPaperMovingChange = (_val: boolean) => {},
   paperSpeed = 2, onPaperSpeedChange = (_val: number) => {},
-  showPhoneFrame, onTogglePhoneFrame, onOpenExport
+  showPhoneFrame, onTogglePhoneFrame, onOpenExport,
+  title
 }) => {
   const [showPositionMenu, setShowPositionMenu] = React.useState(false);
   const positionMenuRef = React.useRef<HTMLDivElement>(null);
@@ -159,34 +161,41 @@ const Controls: React.FC<ControlsProps> = ({
   }, [showPositionMenu]);
 
   return (
-    <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50 w-[720px]">
+    <div className="relative w-full h-auto flex flex-col items-center p-2">
       
-      {/* Hardware Chassis */}
-      <div className="bg-[#18181b] border border-[#27272a] rounded-[24px] shadow-2xl flex flex-col overflow-hidden ring-1 ring-white/5 relative">
+      {/* Page Title Placeholder */}
+      {title && (
+        <h1 className="text-center text-white/50 text-xl 2xl:text-2xl font-bold mb-3 tracking-widest uppercase font-mono selection:bg-emerald-500/30 selection:text-emerald-200 transition-all shrink-0">
+            {title}
+        </h1>
+      )}
+
+      {/* Hardware Chassis - Fully rounded for detached floating effect */}
+      <div className="bg-[#18181b] border border-[#27272a] rounded-[24px] shadow-2xl flex flex-col overflow-hidden ring-1 ring-white/5 relative w-full">
         {/* Shine effect on top edge */}
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none"></div>
 
         {/* --- Top Deck: Transport & Global Status --- */}
-        <div className="bg-[#202023] p-5 flex items-center justify-between border-b border-black/40 shadow-sm relative z-10">
-          <div className="flex items-center gap-6">
+        <div className="bg-[#202023] p-3 3xl:p-4 flex items-center justify-between border-b border-black/40 shadow-sm relative z-10 shrink-0">
+          <div className="flex items-center gap-4 3xl:gap-6">
             {/* Main Power/Mic Button */}
             <div className="relative">
               <button
                 onClick={onToggleListening}
-                className={`w-14 h-14 rounded-full flex items-center justify-center border-2 shadow-[0_4px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] active:scale-95 active:shadow-inner transition-all duration-100 ${
+                className={`w-12 h-12 3xl:w-14 3xl:h-14 rounded-full flex items-center justify-center border-2 shadow-[0_4px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] active:scale-95 active:shadow-inner transition-all duration-100 ${
                   isListening 
                     ? 'bg-[#1c1c1f] border-zinc-700' 
                     : 'bg-[#27272a] border-zinc-600 hover:bg-[#303034]'
                 }`}
               >
-                <Power size={20} className={isListening ? 'text-[#ef4444] drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'text-zinc-500'} />
+                <Power size={18} className={`3xl:w-5 3xl:h-5 ${isListening ? 'text-[#ef4444] drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'text-zinc-500'}`} />
               </button>
               {/* LED Indicator Dot */}
-              <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border border-[#18181b] ${isListening ? (isSimulated ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.8)]' : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.8)]') : 'bg-zinc-800'}`}></div>
+              <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border border-[#18181b] ${isListening ? (isSimulated ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.8)]' : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.8)]') : 'bg-zinc-800'}`}></div>
             </div>
 
             {/* LCD Info Screen */}
-            <div className="h-14 bg-[#09090b] border border-[#333] rounded-md p-3 flex flex-col justify-between shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] min-w-[180px]">
+            <div className="h-12 3xl:h-14 bg-[#09090b] border border-[#333] rounded-md p-2 px-3 flex flex-col justify-between shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] min-w-[160px] 3xl:min-w-[180px]">
               <div className="flex items-center justify-between">
                 <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Status</span>
                 <span className={`text-[9px] font-mono uppercase ${isListening ? (isSimulated ? 'text-amber-500' : 'text-emerald-500') : 'text-zinc-600'}`}>
@@ -212,20 +221,20 @@ const Controls: React.FC<ControlsProps> = ({
           </div>
           
           {/* SENSITIVITY SLIDER - Moved to Top Deck */}
-          <div className="flex-1 max-w-[200px] px-6">
+          <div className="flex-1 max-w-[200px] 3xl:max-w-[240px] px-4">
              <ControlKnobLike label="SENS" value={sensitivity} onChange={onSensitivityChange} min={0.1} max={4.0} step={0.1} />
           </div>
           
           {/* Utility Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
              {/* Position Menu Button */}
              <div className="relative" ref={positionMenuRef}>
                 <button 
                   onClick={() => setShowPositionMenu(!showPositionMenu)} 
-                  className={`h-10 w-10 rounded bg-[#27272a] border border-[#3f3f46] flex items-center justify-center text-zinc-400 hover:text-zinc-200 hover:bg-[#323236] shadow-md active:translate-y-[1px] transition-all ${showPositionMenu ? 'border-emerald-500/30 text-emerald-400 bg-[#323236]' : ''}`}
+                  className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded bg-[#27272a] border border-[#3f3f46] flex items-center justify-center text-zinc-400 hover:text-zinc-200 hover:bg-[#323236] shadow-md active:translate-y-[1px] transition-all ${showPositionMenu ? 'border-emerald-500/30 text-emerald-400 bg-[#323236]' : ''}`}
                   title="Canvas Position"
                 >
-                  <Move size={16} />
+                  <Move size={14} className="3xl:w-4 3xl:h-4" />
                 </button>
                 {showPositionMenu && (
                   <div className="absolute top-full right-0 mt-2 p-3 bg-[#1A1D27] border border-white/10 rounded-xl shadow-2xl z-50 w-[180px] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
@@ -255,19 +264,17 @@ const Controls: React.FC<ControlsProps> = ({
                      <div className="flex flex-col gap-1.5">
                         <div className="flex items-center justify-between">
                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Shift Y</span>
+                           <span className="text-[9px] font-mono text-zinc-400">{verticalShift.toFixed(0)}</span>
                         </div>
-                        <div className="h-8 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center pr-1 overflow-hidden">
-                           <div className="h-full w-8 bg-zinc-800 border-r border-zinc-700 flex items-center justify-center text-zinc-500">
-                              <MoveVertical size={14} />
-                           </div>
+                        <div className="h-6 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
                            <input 
-                              type="number" 
+                              type="range" 
+                              min={-20} 
+                              max={20} 
+                              step={1} 
                               value={verticalShift} 
-                              onChange={(e) => {
-                                 const val = e.target.value.slice(0, 3);
-                                 onVerticalShiftChange(Number(val));
-                              }}
-                              className="w-full bg-transparent text-right text-xs font-mono text-zinc-300 focus:outline-none px-2 appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              onChange={(e) => onVerticalShiftChange(parseFloat(e.target.value))}
+                              className="w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:bg-zinc-700 [&::-webkit-slider-runnable-track]:h-0.5 [&::-webkit-slider-runnable-track]:rounded-full"
                             />
                         </div>
                      </div>
@@ -278,22 +285,22 @@ const Controls: React.FC<ControlsProps> = ({
                 )}
              </div>
 
-             <button onClick={onTogglePhoneFrame} className={`h-10 w-10 rounded bg-[#27272a] border border-[#3f3f46] flex items-center justify-center text-zinc-400 hover:text-zinc-200 hover:bg-[#323236] shadow-md active:translate-y-[1px] transition-all ${showPhoneFrame ? 'text-emerald-400 border-emerald-900/30' : ''}`}>
-                {showPhoneFrame ? <Eye size={16} /> : <EyeOff size={16} />}
+             <button onClick={onTogglePhoneFrame} className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded bg-[#27272a] border border-[#3f3f46] flex items-center justify-center text-zinc-400 hover:text-zinc-200 hover:bg-[#323236] shadow-md active:translate-y-[1px] transition-all ${showPhoneFrame ? 'text-emerald-400 border-emerald-900/30' : ''}`}>
+                {showPhoneFrame ? <Eye size={14} className="3xl:w-4 3xl:h-4" /> : <EyeOff size={14} className="3xl:w-4 3xl:h-4" />}
              </button>
-             <button onClick={onThemeToggle} className="h-10 w-10 rounded bg-[#27272a] border border-[#3f3f46] flex items-center justify-center text-zinc-400 hover:text-zinc-200 hover:bg-[#323236] shadow-md active:translate-y-[1px] transition-all">
-                {theme === Theme.DARK ? <Moon size={16} /> : <Sun size={16} />}
+             <button onClick={onThemeToggle} className="h-9 w-9 3xl:h-10 3xl:w-10 rounded bg-[#27272a] border border-[#3f3f46] flex items-center justify-center text-zinc-400 hover:text-zinc-200 hover:bg-[#323236] shadow-md active:translate-y-[1px] transition-all">
+                {theme === Theme.DARK ? <Moon size={14} className="3xl:w-4 3xl:h-4" /> : <Sun size={14} className="3xl:w-4 3xl:h-4" />}
              </button>
-             <button onClick={onOpenExport} className="h-10 px-4 rounded bg-[#27272a] border border-[#3f3f46] flex items-center justify-center text-zinc-400 hover:text-zinc-200 hover:bg-[#323236] shadow-md active:translate-y-[1px] transition-all gap-2">
-                <Code2 size={16} />
+             <button onClick={onOpenExport} className="h-9 px-3 3xl:h-10 3xl:px-4 rounded bg-[#27272a] border border-[#3f3f46] flex items-center justify-center text-zinc-400 hover:text-zinc-200 hover:bg-[#323236] shadow-md active:translate-y-[1px] transition-all gap-2">
+                <Code2 size={14} className="3xl:w-4 3xl:h-4" />
                 <span className="text-[10px] font-bold uppercase tracking-wider">Export</span>
              </button>
           </div>
         </div>
 
         {/* --- Mode Selector Deck --- */}
-        <div className="bg-[#18181b] p-1.5 border-b border-black/40 overflow-x-auto">
-          <div className="flex items-center gap-1.5">
+        <div className="bg-[#18181b] p-1 border-b border-black/40 overflow-x-auto shrink-0">
+          <div className="flex items-center gap-1">
             {[
               { id: VisualizerMode.PAPER_BAND, icon: Origami, label: 'Paper' },
               { id: VisualizerMode.ENVELOPE, icon: Activity, label: 'Envelope' },
@@ -304,14 +311,14 @@ const Controls: React.FC<ControlsProps> = ({
               <button 
                 key={m.id}
                 onClick={() => onModeChange(m.id)} 
-                className={`flex-1 min-w-[80px] py-2 rounded flex flex-col items-center gap-1.5 border transition-all duration-100 ${
+                className={`flex-1 min-w-[70px] py-2 rounded flex flex-col items-center gap-1 border transition-all duration-100 ${
                   mode === m.id 
                     ? 'bg-[#1c1c1f] border-zinc-700 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] text-emerald-400' 
                     : 'bg-[#222225] border-transparent text-zinc-500 hover:bg-[#2a2a2d] hover:text-zinc-300'
                 }`}
                 title={m.label}
               >
-                <m.icon size={16} strokeWidth={mode === m.id ? 2.5 : 2} />
+                <m.icon size={14} className="3xl:w-5 3xl:h-5" strokeWidth={mode === m.id ? 2.5 : 2} />
                 <span className={`text-[9px] font-bold uppercase tracking-wider ${mode === m.id ? 'text-emerald-500/80' : 'text-zinc-600'}`}>{m.label}</span>
               </button>
             ))}
@@ -319,12 +326,10 @@ const Controls: React.FC<ControlsProps> = ({
         </div>
 
         {/* --- Main Controls Deck --- */}
-        <div className="p-6 bg-[#18181b] flex flex-col gap-6 max-h-[360px] overflow-y-auto custom-scrollbar">
+        <div className="p-4 3xl:p-6 bg-[#18181b] flex flex-col gap-4 3xl:gap-6 shrink-0 overflow-y-visible">
             
-            {/* Global Settings Row Removed - Inputs moved to Position Menu */}
-
             {/* Mode Specific Controls */}
-            <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+            <div className="grid grid-cols-3 gap-x-4 gap-y-4 3xl:gap-x-8 3xl:gap-y-6">
                 {mode === VisualizerMode.PAPER_BAND && (
                   <>
                     <ControlKnobLike label="Waves" value={paperWaves} onChange={onPaperWavesChange} min={1} max={5} step={1} />
@@ -334,7 +339,7 @@ const Controls: React.FC<ControlsProps> = ({
                     <ControlKnobLike label="Stroke" value={paperStrokeWidth} onChange={onPaperStrokeWidthChange} min={4} max={12} step={1} suffix="px" />
                     
                     {/* Movement Control Unit */}
-                    <div className="flex flex-col gap-1.5 min-w-[120px] flex-1">
+                    <div className="flex flex-col gap-1 min-w-[120px] flex-1">
                         <div className="flex items-center justify-between">
                           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Movement</span>
                           <span className="text-[9px] font-mono text-zinc-400">{paperMoving ? paperSpeed.toFixed(1) : 'OFF'}</span>
@@ -346,14 +351,14 @@ const Controls: React.FC<ControlsProps> = ({
                                if (!paperMoving) onPaperSpeedChange(1);
                                onPaperMovingChange(!paperMoving);
                              }}
-                             className={`h-6 w-8 rounded border border-zinc-800 shadow-inner flex items-center justify-center transition-all ${paperMoving ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900 text-zinc-600 hover:text-zinc-400'}`}
+                             className={`h-5 w-8 rounded border border-zinc-800 shadow-inner flex items-center justify-center transition-all ${paperMoving ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900 text-zinc-600 hover:text-zinc-400'}`}
                              title="Toggle Movement"
                            >
-                              <ArrowRight size={14} className={paperMoving ? "animate-pulse" : ""} />
+                              <ArrowRight size={12} className={paperMoving ? "animate-pulse" : ""} />
                            </button>
                            
                            {/* Speed Slider */}
-                           <div className="h-6 flex-1 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
+                           <div className="h-5 flex-1 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
                               <input 
                                 type="range" 
                                 min={0} 
@@ -378,7 +383,7 @@ const Controls: React.FC<ControlsProps> = ({
                      <ControlKnobLike label="Stroke" value={envelopeStrokeWidth} onChange={onEnvelopeStrokeWidthChange} min={0} max={12} step={1} suffix="px" />
                      
                      {/* Movement Control Unit for Envelope */}
-                     <div className="flex flex-col gap-1.5 min-w-[120px] flex-1">
+                     <div className="flex flex-col gap-1 min-w-[120px] flex-1">
                         <div className="flex items-center justify-between">
                           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Movement</span>
                           <span className="text-[9px] font-mono text-zinc-400">{envelopeMoving ? envelopeSpeed.toFixed(1) : 'OFF'}</span>
@@ -390,14 +395,14 @@ const Controls: React.FC<ControlsProps> = ({
                                if (!envelopeMoving) onEnvelopeSpeedChange(1);
                                onEnvelopeMovingChange(!envelopeMoving);
                              }}
-                             className={`h-6 w-8 rounded border border-zinc-800 shadow-inner flex items-center justify-center transition-all ${envelopeMoving ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900 text-zinc-600 hover:text-zinc-400'}`}
+                             className={`h-5 w-8 rounded border border-zinc-800 shadow-inner flex items-center justify-center transition-all ${envelopeMoving ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900 text-zinc-600 hover:text-zinc-400'}`}
                              title="Toggle Movement"
                            >
-                              <ArrowRight size={14} className={envelopeMoving ? "animate-pulse" : ""} />
+                              <ArrowRight size={12} className={envelopeMoving ? "animate-pulse" : ""} />
                            </button>
                            
                            {/* Speed Slider */}
-                           <div className="h-6 flex-1 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
+                           <div className="h-5 flex-1 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
                               <input 
                                 type="range" 
                                 min={0} 
@@ -420,7 +425,7 @@ const Controls: React.FC<ControlsProps> = ({
                      <ControlKnobLike label="Wavelength" value={sinoWavelength} onChange={onSinoWavelengthChange} min={2} max={500} step={1} suffix="px" />
                      
                      {/* Movement Control Unit for Sino */}
-                     <div className="flex flex-col gap-1.5 min-w-[120px] flex-1">
+                     <div className="flex flex-col gap-1 min-w-[120px] flex-1">
                         <div className="flex items-center justify-between">
                           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Movement</span>
                           <span className="text-[9px] font-mono text-zinc-400">{sinoMoving ? sinoSpeed.toFixed(1) : 'OFF'}</span>
@@ -432,14 +437,14 @@ const Controls: React.FC<ControlsProps> = ({
                                if (!sinoMoving) onSinoSpeedChange(1);
                                onSinoMovingChange(!sinoMoving);
                              }}
-                             className={`h-6 w-8 rounded border border-zinc-800 shadow-inner flex items-center justify-center transition-all ${sinoMoving ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900 text-zinc-600 hover:text-zinc-400'}`}
+                             className={`h-5 w-8 rounded border border-zinc-800 shadow-inner flex items-center justify-center transition-all ${sinoMoving ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900 text-zinc-600 hover:text-zinc-400'}`}
                              title="Toggle Movement"
                            >
-                              <ArrowRight size={14} className={sinoMoving ? "animate-pulse" : ""} />
+                              <ArrowRight size={12} className={sinoMoving ? "animate-pulse" : ""} />
                            </button>
                            
                            {/* Speed Slider */}
-                           <div className="h-6 flex-1 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
+                           <div className="h-5 flex-1 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
                               <input 
                                 type="range" 
                                 min={0} 
@@ -462,7 +467,7 @@ const Controls: React.FC<ControlsProps> = ({
                      <ControlKnobLike label="Noise" value={waveNoise} onChange={onWaveNoiseChange} min={0} max={100} step={1} />
 
                      {/* Movement Control Unit for Wave */}
-                     <div className="flex flex-col gap-1.5 min-w-[120px] flex-1">
+                     <div className="flex flex-col gap-1 min-w-[120px] flex-1">
                         <div className="flex items-center justify-between">
                           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Movement</span>
                           <span className="text-[9px] font-mono text-zinc-400">{waveMoving ? waveSpeed.toFixed(1) : 'OFF'}</span>
@@ -474,14 +479,14 @@ const Controls: React.FC<ControlsProps> = ({
                                if (!waveMoving) onWaveSpeedChange(1);
                                onWaveMovingChange(!waveMoving);
                              }}
-                             className={`h-6 w-8 rounded border border-zinc-800 shadow-inner flex items-center justify-center transition-all ${waveMoving ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900 text-zinc-600 hover:text-zinc-400'}`}
+                             className={`h-5 w-8 rounded border border-zinc-800 shadow-inner flex items-center justify-center transition-all ${waveMoving ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900 text-zinc-600 hover:text-zinc-400'}`}
                              title="Toggle Movement"
                            >
-                              <ArrowRight size={14} className={waveMoving ? "animate-pulse" : ""} />
+                              <ArrowRight size={12} className={waveMoving ? "animate-pulse" : ""} />
                            </button>
                            
                            {/* Speed Slider */}
-                           <div className="h-6 flex-1 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
+                           <div className="h-5 flex-1 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
                               <input 
                                 type="range" 
                                 min={0} 
@@ -508,7 +513,7 @@ const Controls: React.FC<ControlsProps> = ({
                      <ControlKnobLike label="Roundness" value={barRoundness} onChange={onBarRoundnessChange} min={0} max={100} step={1} suffix="%" />
 
                      {/* Movement Control Unit for Bars */}
-                     <div className="flex flex-col gap-1.5 min-w-[120px] flex-1">
+                     <div className="flex flex-col gap-1 min-w-[120px] flex-1">
                         <div className="flex items-center justify-between">
                           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Movement</span>
                           <span className="text-[9px] font-mono text-zinc-400">{barMoving ? barSpeed.toFixed(1) : 'OFF'}</span>
@@ -520,14 +525,14 @@ const Controls: React.FC<ControlsProps> = ({
                                if (!barMoving) onBarSpeedChange(1);
                                onBarMovingChange(!barMoving);
                              }}
-                             className={`h-6 w-8 rounded border border-zinc-800 shadow-inner flex items-center justify-center transition-all ${barMoving ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900 text-zinc-600 hover:text-zinc-400'}`}
+                             className={`h-5 w-8 rounded border border-zinc-800 shadow-inner flex items-center justify-center transition-all ${barMoving ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-zinc-900 text-zinc-600 hover:text-zinc-400'}`}
                              title="Toggle Movement"
                            >
-                              <ArrowRight size={14} className={barMoving ? "animate-pulse" : ""} />
+                              <ArrowRight size={12} className={barMoving ? "animate-pulse" : ""} />
                            </button>
                            
                            {/* Speed Slider */}
-                           <div className="h-6 flex-1 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
+                           <div className="h-5 flex-1 relative bg-zinc-900 rounded border border-zinc-800 shadow-inner flex items-center px-2">
                               <input 
                                 type="range" 
                                 min={0} 
@@ -548,17 +553,17 @@ const Controls: React.FC<ControlsProps> = ({
             {/* Colors */}
             {mode !== VisualizerMode.SPRING_BAND && mode !== VisualizerMode.PAPER_BAND && (
               <>
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center justify-between pt-1">
                     <div className="flex items-center gap-3">
-                        <Palette size={14} className="text-zinc-600" />
-                        <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Color Palette</span>
+                        <Palette size={14} className="text-zinc-600 3xl:w-5 3xl:h-5" />
+                        <span className="text-[9px] 3xl:text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Color Palette</span>
                     </div>
                     <div className="flex gap-2 items-center">
                         {colors.map((c) => (
                           <button 
                             key={c} 
                             onClick={() => onColorChange(c)} 
-                            className={`w-5 h-5 rounded-full transition-all shadow-sm ${
+                            className={`w-5 h-5 3xl:w-6 3xl:h-6 rounded-full transition-all shadow-sm ${
                               selectedColor === c 
                                 ? 'ring-2 ring-white scale-110 shadow-[0_0_8px_rgba(255,255,255,0.4)]' 
                                 : 'hover:scale-105 ring-1 ring-white/10'
@@ -574,10 +579,10 @@ const Controls: React.FC<ControlsProps> = ({
             )}
 
             {mode === VisualizerMode.PAPER_BAND && (
-               <div className="flex items-center justify-between pt-2">
+               <div className="flex items-center justify-between pt-1">
                     <div className="flex items-center gap-3">
-                        <Palette size={14} className="text-zinc-600" />
-                        <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Wave Colors</span>
+                        <Palette size={14} className="text-zinc-600 3xl:w-5 3xl:h-5" />
+                        <span className="text-[9px] 3xl:text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Wave Colors</span>
                     </div>
                     <div className="flex gap-2 items-center">
                         {Array.from({ length: paperWaves }).map((_, i) => (

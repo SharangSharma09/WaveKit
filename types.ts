@@ -24,6 +24,7 @@ export enum ExportType {
 }
 
 export interface VisualizerConfig {
+  name?: string;
   mode: VisualizerMode;
   sensitivity: number;
   color: string;
