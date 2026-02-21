@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { ArrowLeft } from 'lucide-react';
 import { useAudioAnalyzer } from '../hooks/useAudioAnalyzer';
 import VisualizerCanvas from './VisualizerCanvas';
 import Controls from './Controls';
@@ -33,6 +32,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
   const [containerWidth, setContainerWidth] = useState(initialConfig?.containerWidth ?? 784);
   const [verticalShift, setVerticalShift] = useState(initialConfig?.verticalShift ?? 0); 
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [selectedGridIndex, setSelectedGridIndex] = useState(2);
 
   // Derive the active palette based on theme
   const activePalette = theme === Theme.DARK ? DARK_MODE_COLORS : LIGHT_MODE_COLORS;
@@ -103,8 +103,8 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        // Padding to ensure it doesn't touch edges
-        const padding = 20; 
+        // No padding so phone frame can stick to the top edge
+        const padding = 0; 
         
         // Calculate scale to fit strictly within the height
         const availableHeight = height - padding;
@@ -214,29 +214,20 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
   return (
     <div className={`relative w-full h-screen ${bgColor} transition-colors duration-500 overflow-hidden flex flex-col font-sans select-none`}>
       
-      {/* Back Button */}
-      <button 
-        onClick={onBack}
-        className="fixed top-6 left-6 z-50 w-12 h-12 3xl:w-16 3xl:h-16 flex items-center justify-center bg-[#18181b] border border-[#27272a] rounded-xl text-white/50 hover:text-white hover:border-white/20 hover:shadow-xl transition-all active:scale-95"
-        title="Back to Presets"
-      >
-        <ArrowLeft size={20} className="3xl:w-6 3xl:h-6" strokeWidth={2.5} />
-      </button>
-
       {/* Main Column Layout - No Scrolling */}
       <div className="flex flex-col h-full w-full items-center">
 
         {/* Top Section: 40% Height Preview Area - Aligns content to bottom */}
         <div 
           ref={topSectionRef}
-          className="h-[40vh] w-full relative flex flex-col justify-end items-center overflow-hidden shrink-0"
+          className="h-[40vh] w-full relative flex flex-col justify-start items-center overflow-hidden shrink-0 pt-0"
         >
              <div 
                 className="relative flex items-center justify-center transition-opacity duration-300 shrink-0"
                 style={{ 
                   height: `${VIRTUAL_HEIGHT}px`, 
                   transform: `scale(${previewScale})`,
-                  transformOrigin: 'bottom center', // Scale from bottom to stay attached to controls
+                  transformOrigin: 'top center',
                   opacity: isReady ? 1 : 0
                 }}
               >
@@ -302,7 +293,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                         alt="Phone Frame" 
                         referrerPolicy="no-referrer" 
                         onError={() => setImageError(true)} 
-                        className="relative h-full w-auto object-contain pointer-events-none z-20 select-none block -mt-4" 
+                        className="relative h-full w-auto object-contain pointer-events-none z-20 select-none block" 
                       />
                     )}
                  </div>
@@ -327,9 +318,53 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
         {/* 10px Spacer/Placeholder */}
         <div className="h-[10px] w-full shrink-0" />
 
-        {/* Controls Section: Fixed at bottom */}
-        <div className="shrink-0 w-full flex items-center justify-end pb-8 pr-12 pl-4 z-30">
-             <div className="w-[60%]">
+        {/* Controls Section: 900px total width, center-aligned — button grid + Control Panel */}
+        <div className="shrink-0 w-full flex justify-center pb-4 px-4 z-30">
+             <div className="w-full max-w-[900px] flex items-start gap-6">
+             {/* Left: Theme labels + numbered button grid (Wave visualisation editor) */}
+             <div className="flex flex-col gap-3 items-start shrink-0">
+                <div className="flex gap-4 items-center">
+                  <button
+                    type="button"
+                    onClick={() => setTheme(Theme.DARK)}
+                    className={`text-sm font-bold uppercase tracking-widest transition-colors ${
+                      theme === Theme.DARK ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'
+                    }`}
+                  >
+                    DARK
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme(Theme.LIGHT)}
+                    className={`text-sm font-bold uppercase tracking-widest transition-colors ${
+                      theme === Theme.LIGHT ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'
+                    }`}
+                  >
+                    LIGHT
+                  </button>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {Array.from({ length: 16 }, (_, i) => i + 1).map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setSelectedGridIndex(n)}
+                      className={`w-10 h-10 rounded-lg border flex items-center justify-center text-sm font-mono transition-all ${
+                        theme === Theme.DARK
+                          ? selectedGridIndex === n
+                            ? 'bg-[#27272a] border-white text-white'
+                            : 'bg-[#27272a] border-[#3f3f46] text-zinc-400 hover:text-zinc-300'
+                          : selectedGridIndex === n
+                            ? 'bg-zinc-300 border-zinc-600 text-zinc-900'
+                            : 'bg-zinc-200 border-zinc-300 text-zinc-600 hover:text-zinc-800'
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+             </div>
+             <div className="flex-1 min-w-0">
                  <Controls 
                     title={undefined} // Removed title "Paper 1"
                     isListening={isListening} 
@@ -371,7 +406,37 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                     onOpenExport={() => setIsExportModalOpen(true)}
                  />
              </div>
+             </div>
         </div>
+
+        {/* Dynamic Spacer */}
+        <div className="flex-1" />
+
+        {/* Footer */}
+        <footer className={`w-full shrink-0 pt-4 pb-8 px-4 ${theme === Theme.DARK ? 'bg-[#1A1A1A]' : bgColor}`}>
+          <div className="w-full max-w-[900px] mx-auto flex justify-between items-start">
+            {/* Left Section - 60% width */}
+            <div className="flex flex-col gap-3 w-[60%]">
+              <h2 className={`text-4xl font-bold italic font-mono ${theme === Theme.DARK ? 'text-white' : 'text-black'}`}>WAVEKIT</h2>
+              <p className={`text-[0.8rem] font-mono leading-relaxed ${theme === Theme.DARK ? 'text-[#AAAAAA]' : 'text-[#555555]'}`}>
+                Experimental audio-reactive presets. Preview distinct visual styles, customize them in the editor, or export production-ready code.
+              </p>
+            </div>
+            
+            {/* Right Section - 20% width, aligned with description (title height + gap-3) */}
+            <div className="flex flex-col items-end gap-1 w-[20%] pt-[52px]">
+              <p className={`text-[0.8rem] font-mono ${theme === Theme.DARK ? 'text-[#AAAAAA]' : 'text-[#555555]'}`}>Made by Sharang Sharma</p>
+              <a 
+                href="https://www.sharangsharma.in" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={`text-[0.8rem] font-mono transition-colors ${theme === Theme.DARK ? 'text-[#AAAAAA] hover:text-white' : 'text-[#555555] hover:text-black'}`}
+              >
+                www.sharangsharma.in
+              </a>
+            </div>
+          </div>
+        </footer>
 
       </div>
 
