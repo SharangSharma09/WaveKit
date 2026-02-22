@@ -370,7 +370,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                   </button>
                 ))}
                 {/* Empty placeholder for 2x3 alignment if needed */}
-                <div className="aspect-square" />
+                <div className="w-[80px] h-[40px]" />
               </div>
 
               {/* Separator Line */}
