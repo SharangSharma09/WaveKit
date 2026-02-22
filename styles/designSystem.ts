@@ -18,26 +18,26 @@ export const DS = {
             bgPanel: "bg-[#1C1C1C]",
             border: "border-[#37373B]",
             textPrimary: "text-white",
-            textSecondary: "text-zinc-500",
+            textSecondary: "text-[#71717a]",
             textHoverPrimary: "hover:text-white",
-            textHoverSecondary: "hover:text-zinc-400",
+            textHoverSecondary: "hover:text-[#a1a1aa]",
             outlineSelected: "outline outline-1 outline-white/80 -outline-offset-1",
             hoverPanelBg: "hover:bg-[#37373B1A]",
             sliderTrack: "bg-[#37373B]",
-            sliderThumb: "bg-zinc-400 border-black/50"
+            sliderThumb: "bg-[#a1a1aa] border-black/50"
         },
         light: {
-            bgMain: "bg-zinc-50",
-            bgPanel: "bg-zinc-200",
-            border: "border-zinc-300",
+            bgMain: "bg-[#FCFCFD]",
+            bgPanel: "bg-[#e4e4e7]",
+            border: "border-[#d4d4d8]",
             textPrimary: "text-black",
-            textSecondary: "text-[#555555]",
+            textSecondary: "text-[#9A9A9A]",
             textHoverPrimary: "hover:text-black",
-            textHoverSecondary: "hover:text-zinc-700",
+            textHoverSecondary: "hover:text-[#3f3f46]",
             outlineSelected: "outline outline-1 outline-white/40 -outline-offset-1",
-            hoverPanelBg: "hover:bg-zinc-200",
-            sliderTrack: "bg-zinc-400",
-            sliderThumb: "bg-zinc-600 border-white/50"
+            hoverPanelBg: "hover:bg-[#e4e4e7]",
+            sliderTrack: "bg-[#a1a1aa]",
+            sliderThumb: "bg-[#52525b] border-white/50"
         }
     }
 };
