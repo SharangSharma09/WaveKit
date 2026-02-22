@@ -6,6 +6,7 @@ import ExportModal from './ExportModal';
 import { VisualizerMode, VisualizerConfig, Theme } from '../types';
 import { PRESETS_BY_MODE } from '../data/presets';
 import { Origami, Activity, Spline, Waves, BarChart2 } from 'lucide-react';
+import { DS, getThemeColor } from '../styles/designSystem';
 
 // Sorted lexicographically: 4 -> 5 -> 9 -> A -> F2 -> F6 -> FF
 const DARK_MODE_COLORS = ['#4DA3FF', '#5CE1B6', '#9B8CFF', '#A6A6A6', '#F2C94C', '#F65CB1', '#FFFFFF'];
@@ -400,7 +401,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                 <button
                   type="button"
                   onClick={() => setTheme(Theme.DARK)}
-                  className={`text-[11px] font-bold uppercase tracking-widest transition-colors ${theme === Theme.DARK ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'
+                  className={`${DS.typography.toggle} transition-colors ${theme === Theme.DARK ? DS.colors.dark.textPrimary : `${getThemeColor(theme, 'textSecondary')} ${getThemeColor(theme, 'textHoverPrimary')}`
                     }`}
                 >
                   DARK
@@ -408,7 +409,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                 <button
                   type="button"
                   onClick={() => setTheme(Theme.LIGHT)}
-                  className={`text-[11px] font-bold uppercase tracking-widest transition-colors ${theme === Theme.LIGHT ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'
+                  className={`${DS.typography.toggle} transition-colors ${theme === Theme.LIGHT ? DS.colors.light.textPrimary : `${getThemeColor(theme, 'textSecondary')} ${getThemeColor(theme, 'textHoverPrimary')}`
                     }`}
                 >
                   LIGHT
@@ -430,27 +431,24 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                     onClick={() => handleModeSelect(item.mode)}
                     className={`w-[80px] h-[60px] rounded-lg border flex flex-col items-center justify-center gap-2 transition-all ${theme === Theme.DARK
                       ? mode === item.mode
-                        ? 'bg-[#1C1C1C] border-[#37373B] text-white outline outline-1 outline-white/80 -outline-offset-1'
-                        : 'bg-[#1C1C1C] border-[#37373B] text-zinc-500 hover:text-zinc-400'
+                        ? `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textPrimary} ${DS.colors.dark.outlineSelected}`
+                        : `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textSecondary} ${DS.colors.dark.textHoverPrimary}`
                       : mode === item.mode
-                        ? 'bg-zinc-300 border-zinc-600 text-zinc-900 outline outline-1 outline-white/40 -outline-offset-1'
-                        : 'bg-zinc-200 border-zinc-300 text-zinc-500 hover:text-zinc-700'
+                        ? `${DS.colors.light.bgPanel} border-zinc-600 ${DS.colors.light.textPrimary} ${DS.colors.light.outlineSelected}`
+                        : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary} ${DS.colors.light.textHoverPrimary}`
                       }`}
                   >
                     <item.icon size={16} strokeWidth={mode === item.mode ? 2.5 : 2} />
-                    <span className="text-[9px] font-bold uppercase tracking-widest leading-none">{item.label}</span>
+                    <span className={DS.typography.modeLabel}>{item.label}</span>
                   </button>
                 ))}
                 {/* Empty placeholder for 2x3 alignment if needed */}
                 <div className="w-[80px] h-[60px]" />
               </div>
 
-              {/* Separator Line */}
-              <div className={`w-full h-[1px] ${theme === Theme.DARK ? 'bg-[#37373B]' : 'bg-zinc-300'}`} />
-
               {/* Preset ButtonGrid */}
               <div className="w-full flex flex-col gap-3">
-                <span className={`text-[9px] font-bold uppercase tracking-widest ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-500'}`}>Saved Presets</span>
+                <span className={`${DS.typography.sectionHeader} ${getThemeColor(theme, 'textSecondary')}`}>Saved Presets</span>
                 <div className="grid grid-cols-5 gap-2 w-full">
                   {PRESETS_BY_MODE[mode]?.map((preset, index) => {
                     const n = index + 1;
@@ -459,13 +457,13 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                         key={preset.id}
                         type="button"
                         onClick={() => handlePresetSelect(n)}
-                        className={`aspect-square rounded-lg border flex items-center justify-center text-[12px] font-mono transition-all ${theme === Theme.DARK
+                        className={`aspect-square rounded-lg border flex items-center justify-center ${DS.typography.preset} transition-all ${theme === Theme.DARK
                           ? selectedGridIndex === n
-                            ? 'bg-[#1C1C1C] border-[#37373B] text-white outline outline-1 outline-white/80 -outline-offset-1'
-                            : 'bg-[#1C1C1C] border-[#37373B] text-zinc-500 hover:text-zinc-300'
+                            ? `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textPrimary} ${DS.colors.dark.outlineSelected}`
+                            : `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textSecondary} ${DS.colors.dark.textHoverPrimary}`
                           : selectedGridIndex === n
-                            ? 'bg-zinc-300 border-zinc-600 text-zinc-900 outline outline-1 outline-white/40 -outline-offset-1'
-                            : 'bg-zinc-200 border-zinc-300 text-zinc-600 hover:text-zinc-800'
+                            ? `${DS.colors.light.bgPanel} border-zinc-600 ${DS.colors.light.textPrimary} ${DS.colors.light.outlineSelected}`
+                            : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary} ${DS.colors.light.textHoverPrimary}`
                           }`}
                         title={preset.name}
                       >
@@ -529,20 +527,20 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
           <div className="w-full max-w-[900px] mx-auto flex justify-between items-start">
             {/* Left Section - 60% width */}
             <div className="flex flex-col gap-3 w-[60%]">
-              <h2 className={`text-4xl font-bold italic font-mono ${theme === Theme.DARK ? 'text-white' : 'text-black'}`}>WAVEKIT</h2>
-              <p className={`text-[0.8rem] font-mono leading-relaxed ${theme === Theme.DARK ? 'text-[#AAAAAA]' : 'text-[#555555]'}`}>
+              <h2 className={`${DS.typography.footerLogo} ${theme === Theme.DARK ? DS.colors.dark.textPrimary : DS.colors.light.textPrimary}`}>WAVEKIT</h2>
+              <p className={`${DS.typography.footerText} leading-relaxed ${getThemeColor(theme, 'textSecondary')}`}>
                 Experimental audio-reactive presets. Preview distinct visual styles, customize them in the editor, or export production-ready code.
               </p>
             </div>
 
             {/* Right Section - 20% width, aligned with description (title height + gap-3) */}
             <div className="flex flex-col items-end gap-1 w-[20%] pt-[52px]">
-              <p className={`text-[0.8rem] font-mono ${theme === Theme.DARK ? 'text-[#AAAAAA]' : 'text-[#555555]'}`}>Made by Sharang Sharma</p>
+              <p className={`${DS.typography.footerText} ${getThemeColor(theme, 'textSecondary')}`}>Made by Sharang Sharma</p>
               <a
                 href="https://www.sharangsharma.in"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`text-[0.8rem] font-mono transition-colors ${theme === Theme.DARK ? 'text-[#AAAAAA] hover:text-white' : 'text-[#555555] hover:text-black'}`}
+                className={`${DS.typography.footerText} transition-colors ${getThemeColor(theme, 'textSecondary')} ${getThemeColor(theme, 'textHoverPrimary')}`}
               >
                 www.sharangsharma.in
               </a>

@@ -1,9 +1,10 @@
 import React from 'react';
 import { Mic, MicOff, Waves, BarChart2, Settings2, Sliders, Palette, MoveHorizontal, MoveVertical, Spline, Layers, Eye, EyeOff, Zap, Activity, Hash, Origami, Waypoints, Moon, Sun, Droplets, Volume2, Code2, AlertTriangle, Power, ArrowRight, Move } from 'lucide-react';
-import { VisualizerMode, Theme } from '../types';
+import { VisualizerMode, Theme, VisualizerConfig } from '../types';
 import CustomColorPicker from './CustomColorPicker';
+import { DS, getThemeColor } from '../styles/designSystem';
 
-interface ControlsProps {
+export interface ControlsProps {
   isListening: boolean;
   isSimulated: boolean;
   onToggleListening: () => void;
@@ -96,8 +97,8 @@ const ControlKnobLike = ({ label, value, onChange, min, max, step, suffix = '', 
   return (
     <div className="flex flex-col gap-1 min-w-[120px] flex-1">
       <div className="flex items-center justify-between">
-        <span className={`text-[9px] font-bold uppercase tracking-widest ${isDark ? 'text-zinc-500' : 'text-zinc-600'}`}>{label}</span>
-        <span className={`text-[9px] font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-600'}`}>{typeof value === 'number' ? value.toFixed(step < 1 ? 1 : 0) : value}{suffix}</span>
+        <span className={`${DS.typography.label} ${isDark ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>{label}</span>
+        <span className={`${DS.typography.value} ${isDark ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>{typeof value === 'number' ? value.toFixed(step < 1 ? 1 : 0) : value}{suffix}</span>
       </div>
       <div className={`h-5 relative rounded shadow-inner flex items-center px-2 ${isDark ? '' : 'bg-zinc-200 border border-zinc-300'}`}>
         <input
@@ -199,13 +200,13 @@ const Controls: React.FC<ControlsProps> = ({
             {/* LCD Info Screen */}
             <div className={`h-12 3xl:h-14 border rounded-md p-2 px-3 flex flex-col justify-between min-w-[160px] 3xl:min-w-[180px] ${theme === Theme.DARK ? 'border-[#37373B]' : 'bg-zinc-200 border-zinc-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]'}`}>
               <div className="flex items-center justify-between">
-                <span className={`text-[9px] font-bold uppercase tracking-widest ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>Status</span>
-                <span className={`text-[9px] font-mono uppercase ${isListening ? (isSimulated ? 'text-amber-500' : 'text-emerald-500') : theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>
+                <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>Status</span>
+                <span className={`${DS.typography.value} uppercase ${isListening ? (isSimulated ? 'text-amber-500' : 'text-emerald-500') : theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>
                   {isListening ? (isSimulated ? 'Simulating' : 'Live Input') : 'Standby'}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`text-[9px] font-bold uppercase tracking-widest w-6 ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>RMS</span>
+                <span className={`${DS.typography.label} w-6 ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>RMS</span>
                 <div className={`flex-1 h-1.5 rounded-sm overflow-hidden flex gap-[1px] ${theme === Theme.DARK ? 'bg-[#1a1a1a]' : 'bg-zinc-300'}`}>
                   {Array.from({ length: 20 }).map((_, i) => (
                     <div
@@ -266,8 +267,8 @@ const Controls: React.FC<ControlsProps> = ({
                   {/* Vertical Shift */}
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center justify-between">
-                      <span className={`text-[9px] font-bold uppercase tracking-widest ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>Shift Y</span>
-                      <span className={`text-[9px] font-mono ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>{verticalShift.toFixed(0)}</span>
+                      <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>Shift Y</span>
+                      <span className={`${DS.typography.value} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>{verticalShift.toFixed(0)}</span>
                     </div>
                     <div className={`h-6 relative rounded shadow-inner flex items-center px-2 ${theme === Theme.DARK ? '' : 'bg-zinc-200 border border-zinc-300'}`}>
                       <input
@@ -298,7 +299,7 @@ const Controls: React.FC<ControlsProps> = ({
               : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-zinc-800 hover:bg-zinc-200'
               }`}>
               <Code2 size={14} className="3xl:w-4 3xl:h-4" />
-              <span className={`text-[9px] font-bold uppercase tracking-wider ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-700'}`}>Export</span>
+              <span className={`${DS.typography.exportBtn} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-700'}`}>Export</span>
             </button>
           </div>
         </div>
@@ -320,8 +321,8 @@ const Controls: React.FC<ControlsProps> = ({
                 {/* Movement Control Unit */}
                 <div className="flex flex-col gap-1 min-w-[120px] flex-1">
                   <div className="flex items-center justify-between">
-                    <span className={`text-[9px] font-bold uppercase tracking-widest ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>Movement</span>
-                    <span className={`text-[9px] font-mono ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>{paperMoving ? paperSpeed.toFixed(1) : 'OFF'}</span>
+                    <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>Movement</span>
+                    <span className={`${DS.typography.value} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>{paperMoving ? paperSpeed.toFixed(1) : 'OFF'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {/* Toggle */}
@@ -533,7 +534,7 @@ const Controls: React.FC<ControlsProps> = ({
           {mode !== VisualizerMode.SPRING_BAND && mode !== VisualizerMode.PAPER_BAND && (
             <>
               <div className="flex items-center gap-6 pt-1">
-                <span className={`text-[9px] 3xl:text-[10px] font-bold uppercase tracking-widest whitespace-nowrap ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>Colour</span>
+                <span className={`${DS.typography.label} whitespace-nowrap ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>Colour</span>
                 <div className="flex gap-2 items-center">
                   {colors.map((c) => (
                     <button
@@ -555,7 +556,7 @@ const Controls: React.FC<ControlsProps> = ({
 
           {mode === VisualizerMode.PAPER_BAND && (
             <div className="flex items-center gap-6 pt-1">
-              <span className={`text-[9px] 3xl:text-[10px] font-bold uppercase tracking-widest whitespace-nowrap ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>Change colour</span>
+              <span className={`${DS.typography.label} whitespace-nowrap ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>Change colour</span>
               <div className="flex gap-2 items-center">
                 {Array.from({ length: paperWaves }).map((_, i) => (
                   <CustomColorPicker
