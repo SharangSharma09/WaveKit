@@ -356,7 +356,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                     key={item.mode}
                     type="button"
                     onClick={() => setMode(item.mode)}
-                    className={`aspect-square rounded-lg border flex flex-col items-center justify-center gap-2 transition-all ${theme === Theme.DARK
+                    className={`w-[80px] h-[60px] rounded-lg border flex flex-col items-center justify-center gap-2 transition-all ${theme === Theme.DARK
                       ? mode === item.mode
                         ? 'bg-[#27272a] border-white text-white'
                         : 'bg-[#27272a] border-[#3f3f46] text-zinc-500 hover:text-zinc-400'
@@ -365,12 +365,12 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                         : 'bg-zinc-200 border-zinc-300 text-zinc-500 hover:text-zinc-700'
                       }`}
                   >
-                    <item.icon size={24} strokeWidth={mode === item.mode ? 2.5 : 2} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
+                    <item.icon size={16} strokeWidth={mode === item.mode ? 2.5 : 2} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest leading-none">{item.label}</span>
                   </button>
                 ))}
                 {/* Empty placeholder for 2x3 alignment if needed */}
-                <div className="w-[80px] h-[40px]" />
+                <div className="w-[80px] h-[60px]" />
               </div>
 
               {/* Separator Line */}
