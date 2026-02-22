@@ -4,6 +4,7 @@ import VisualizerCanvas from './VisualizerCanvas';
 import Controls from './Controls';
 import ExportModal from './ExportModal';
 import { VisualizerMode, VisualizerConfig, Theme } from '../types';
+import { PRESETS_BY_MODE } from '../data/presets';
 import { Origami, Activity, Spline, Waves, BarChart2 } from 'lucide-react';
 
 // Sorted lexicographically: 4 -> 5 -> 9 -> A -> F2 -> F6 -> FF
@@ -33,7 +34,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
   const [containerWidth, setContainerWidth] = useState(initialConfig?.containerWidth ?? 784);
   const [verticalShift, setVerticalShift] = useState(initialConfig?.verticalShift ?? 0);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [selectedGridIndex, setSelectedGridIndex] = useState(2);
+  const [selectedGridIndex, setSelectedGridIndex] = useState(1);
 
   // Derive the active palette based on theme
   const activePalette = theme === Theme.DARK ? DARK_MODE_COLORS : LIGHT_MODE_COLORS;
@@ -97,6 +98,77 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
 
   // Reference height for the "virtual" phone frame (unscaled)
   const VIRTUAL_HEIGHT = 640;
+
+  const applyConfig = (config: VisualizerConfig) => {
+    setMode(config.mode);
+    if (config.sensitivity !== undefined) setSensitivity(config.sensitivity);
+    if (config.color !== undefined) setColor(config.color);
+    if (config.containerWidth !== undefined) setContainerWidth(config.containerWidth);
+    if (config.verticalShift !== undefined) setVerticalShift(config.verticalShift);
+
+    if (config.envelope) {
+      if (config.envelope.amplitude !== undefined) setEnvelopeAmplitude(config.envelope.amplitude);
+      if (config.envelope.speed !== undefined) setEnvelopeSpeed(config.envelope.speed);
+      if (config.envelope.points !== undefined) setEnvelopePoints(config.envelope.points);
+      if (config.envelope.opacity !== undefined) setEnvelopeFillOpacity(config.envelope.opacity);
+      if (config.envelope.strokeWidth !== undefined) setEnvelopeStrokeWidth(config.envelope.strokeWidth);
+      if (config.envelope.moving !== undefined) setEnvelopeMoving(config.envelope.moving);
+    }
+
+    if (config.paper) {
+      if (config.paper.amount !== undefined) setPaperAmount(config.paper.amount);
+      if (config.paper.waves !== undefined) setPaperWaves(config.paper.waves);
+      if (config.paper.points !== undefined) setPaperPoints(config.paper.points);
+      if (config.paper.idle !== undefined) setPaperIdleAmplitude(config.paper.idle);
+      if (config.paper.strokeWidth !== undefined) setPaperStrokeWidth(config.paper.strokeWidth);
+      if (config.paper.colors !== undefined) setPaperWaveColors(config.paper.colors);
+      if (config.paper.moving !== undefined) setPaperMoving(config.paper.moving);
+      if (config.paper.speed !== undefined) setPaperSpeed(config.paper.speed);
+    }
+
+    if (config.wave) {
+      if (config.wave.amplitude !== undefined) setWaveAmplitude(config.wave.amplitude);
+      if (config.wave.noise !== undefined) setWaveNoise(config.wave.noise);
+      if (config.wave.speed !== undefined) setWaveSpeed(config.wave.speed);
+      if (config.wave.moving !== undefined) setWaveMoving(config.wave.moving);
+    }
+
+    if (config.bars) {
+      if (config.bars.waves !== undefined) setNumWaves(config.bars.waves);
+      if (config.bars.width !== undefined) setBarWidth(config.bars.width);
+      if (config.bars.height !== undefined) setBarHeight(config.bars.height);
+      if (config.bars.spacing !== undefined) setBarSpacing(config.bars.spacing);
+      if (config.bars.amplitude !== undefined) setBarAmplitude(config.bars.amplitude);
+      if (config.bars.roundness !== undefined) setBarRoundness(config.bars.roundness);
+      if (config.bars.moving !== undefined) setBarMoving(config.bars.moving);
+      if (config.bars.speed !== undefined) setBarSpeed(config.bars.speed);
+    }
+
+    if (config.sino) {
+      if (config.sino.amplitude !== undefined) setSinoAmplitude(config.sino.amplitude);
+      if (config.sino.wavelength !== undefined) setSinoWavelength(config.sino.wavelength);
+      if (config.sino.speed !== undefined) setSinoSpeed(config.sino.speed);
+      if (config.sino.moving !== undefined) setSinoMoving(config.sino.moving);
+    }
+  };
+
+  const handleModeSelect = (newMode: VisualizerMode) => {
+    setMode(newMode);
+    setSelectedGridIndex(1);
+    const presetsForMode = PRESETS_BY_MODE[newMode];
+    if (presetsForMode && presetsForMode.length > 0) {
+      applyConfig(presetsForMode[0].config);
+    }
+  };
+
+  const handlePresetSelect = (index: number) => {
+    setSelectedGridIndex(index);
+    const presetsForMode = PRESETS_BY_MODE[mode];
+    if (presetsForMode && presetsForMode.length >= index) {
+      applyConfig(presetsForMode[index - 1].config);
+    }
+  };
+
 
   useEffect(() => {
     if (!topSectionRef.current) return;
@@ -355,7 +427,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                   <button
                     key={item.mode}
                     type="button"
-                    onClick={() => setMode(item.mode)}
+                    onClick={() => handleModeSelect(item.mode)}
                     className={`w-[80px] h-[60px] rounded-lg border flex flex-col items-center justify-center gap-2 transition-all ${theme === Theme.DARK
                       ? mode === item.mode
                         ? 'bg-[#27272a] border-white text-white'
@@ -378,23 +450,27 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
 
               {/* Preset ButtonGrid */}
               <div className="grid grid-cols-5 gap-2 w-full">
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setSelectedGridIndex(n)}
-                    className={`aspect-square rounded-lg border flex items-center justify-center text-sm font-mono transition-all ${theme === Theme.DARK
-                      ? selectedGridIndex === n
-                        ? 'bg-[#27272a] border-white text-white'
-                        : 'bg-[#27272a] border-[#3f3f46] text-zinc-400 hover:text-zinc-300'
-                      : selectedGridIndex === n
-                        ? 'bg-zinc-300 border-zinc-600 text-zinc-900'
-                        : 'bg-zinc-200 border-zinc-300 text-zinc-600 hover:text-zinc-800'
-                      }`}
-                  >
-                    {n}
-                  </button>
-                ))}
+                {PRESETS_BY_MODE[mode]?.map((preset, index) => {
+                  const n = index + 1;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => handlePresetSelect(n)}
+                      className={`aspect-square rounded-lg border flex items-center justify-center text-sm font-mono transition-all ${theme === Theme.DARK
+                        ? selectedGridIndex === n
+                          ? 'bg-[#27272a] border-white text-white'
+                          : 'bg-[#27272a] border-[#3f3f46] text-zinc-400 hover:text-zinc-300'
+                        : selectedGridIndex === n
+                          ? 'bg-zinc-300 border-zinc-600 text-zinc-900'
+                          : 'bg-zinc-200 border-zinc-300 text-zinc-600 hover:text-zinc-800'
+                        }`}
+                      title={preset.name}
+                    >
+                      {n}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div className="flex-1 min-w-0">
@@ -403,7 +479,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                 isListening={isListening}
                 isSimulated={isSimulated}
                 onToggleListening={isListening ? stop : () => start(true)}
-                mode={mode} onModeChange={setMode}
+                mode={mode} onModeChange={handleModeSelect}
                 theme={theme} onThemeToggle={toggleTheme}
                 sensitivity={sensitivity} onSensitivityChange={setSensitivity} verticalShift={verticalShift} onVerticalShiftChange={setVerticalShift}
                 containerWidth={containerWidth} onContainerWidthChange={setContainerWidth} rms={currentRms * sensitivity}
