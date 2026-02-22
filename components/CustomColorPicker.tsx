@@ -12,7 +12,7 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
   const [isOpen, setIsOpen] = useState(false);
   const [hsv, setHsv] = useState<HSV>(hexToHsv(color));
   const [hexInput, setHexInput] = useState(color);
-  
+
   const popoverRef = useRef<HTMLDivElement>(null);
   const saturationRef = useRef<HTMLDivElement>(null);
   const hueRef = useRef<HTMLDivElement>(null);
@@ -22,9 +22,9 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
   // Sync internal state when external prop changes, but only if not currently dragging/editing
   useEffect(() => {
     if (!isOpen) {
-       const newHsv = hexToHsv(color);
-       setHsv(newHsv);
-       setHexInput(color);
+      const newHsv = hexToHsv(color);
+      setHsv(newHsv);
+      setHexInput(color);
     }
   }, [color, isOpen]);
 
@@ -60,7 +60,7 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
 
     const s = x * 100;
     const v = (1 - y) * 100;
-    
+
     updateColorFromHsv({ ...hsv, s, v });
   }, [hsv, updateColorFromHsv]);
 
@@ -68,7 +68,7 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
     if (!hueRef.current) return;
     const rect = hueRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    
+
     const h = x * 360;
     updateColorFromHsv({ ...hsv, h });
   }, [hsv, updateColorFromHsv]);
@@ -111,11 +111,10 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
 
   return (
     <div className="relative" ref={popoverRef}>
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-6 h-6 rounded-full border border-white/20 flex items-center justify-center transition-all ${
-           variant === 'swatch' ? 'shadow-sm' : 'bg-white/5 hover:bg-white/10'
-        } ${isOpen ? 'ring-2 ring-white/50' : ''}`}
+        className={`w-6 h-6 rounded-full border border-white/20 flex items-center justify-center transition-all ${variant === 'swatch' ? 'shadow-sm' : 'bg-white/5 hover:bg-white/10'
+          } ${isOpen ? 'ring-2 ring-white/50' : ''}`}
         style={variant === 'swatch' ? { backgroundColor: color } : {}}
         title="Custom Color"
       >
@@ -124,76 +123,76 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
 
       {isOpen && (
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-[#1A1D27] border border-white/10 rounded-xl p-3 w-[240px] shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200">
-           
-           {/* Visual Picker Area */}
-           <div className="space-y-3">
-              
-              {/* Saturation/Value Box */}
-              <div 
-                ref={saturationRef}
-                className="w-full h-32 rounded-lg cursor-crosshair relative overflow-hidden"
-                style={{
-                  backgroundColor: `hsl(${hsv.h}, 100%, 50%)`,
-                  backgroundImage: `
+
+          {/* Visual Picker Area */}
+          <div className="space-y-3">
+
+            {/* Saturation/Value Box */}
+            <div
+              ref={saturationRef}
+              className="w-full h-32 rounded-lg cursor-crosshair relative overflow-hidden"
+              style={{
+                backgroundColor: `hsl(${hsv.h}, 100%, 50%)`,
+                backgroundImage: `
                     linear-gradient(to top, #000, transparent), 
                     linear-gradient(to right, #fff, transparent)
                   `
-                }}
-                onMouseDown={(e) => {
-                  isDraggingSaturation.current = true;
-                  handleSaturationMove(e);
-                }}
-              >
-                <div 
-                  className="absolute w-3 h-3 border-2 border-white rounded-full shadow-sm -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                  style={{
-                    left: `${hsv.s}%`,
-                    top: `${100 - hsv.v}%`,
-                    boxShadow: '0 0 2px rgba(0,0,0,0.5)'
-                  }}
-                />
-              </div>
-
-              {/* Hue Slider */}
-              <div 
-                ref={hueRef}
-                className="w-full h-3 rounded-full cursor-pointer relative"
+              }}
+              onMouseDown={(e) => {
+                isDraggingSaturation.current = true;
+                handleSaturationMove(e);
+              }}
+            >
+              <div
+                className="absolute w-3 h-3 border border-white rounded-full shadow-sm -translate-x-1/2 -translate-y-1/2 pointer-events-none"
                 style={{
-                  background: 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)'
+                  left: `${hsv.s}%`,
+                  top: `${100 - hsv.v}%`,
+                  boxShadow: '0 0 2px rgba(0,0,0,0.5)'
                 }}
-                onMouseDown={(e) => {
-                  isDraggingHue.current = true;
-                  handleHueMove(e);
-                }}
-              >
-                <div 
-                  className="absolute top-0 w-3 h-3 bg-white rounded-full border border-black/20 shadow-sm -translate-x-1/2 pointer-events-none"
-                  style={{ left: `${(hsv.h / 360) * 100}%` }}
+              />
+            </div>
+
+            {/* Hue Slider */}
+            <div
+              ref={hueRef}
+              className="w-full h-3 rounded-full cursor-pointer relative"
+              style={{
+                background: 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)'
+              }}
+              onMouseDown={(e) => {
+                isDraggingHue.current = true;
+                handleHueMove(e);
+              }}
+            >
+              <div
+                className="absolute top-0 w-3 h-3 bg-white rounded-full border border-black/20 shadow-sm -translate-x-1/2 pointer-events-none"
+                style={{ left: `${(hsv.h / 360) * 100}%` }}
+              />
+            </div>
+
+            {/* Hex Input & Preview */}
+            <div className="flex items-center gap-2 pt-1">
+              <div
+                className="w-8 h-8 rounded-lg border border-white/10 shrink-0 shadow-inner"
+                style={{ backgroundColor: hsvToHex(hsv.h, hsv.s, hsv.v) }}
+              />
+              <div className="relative flex-1">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-white/40 font-mono">HEX</span>
+                <input
+                  type="text"
+                  value={hexInput}
+                  onChange={handleHexChange}
+                  className="w-full bg-black/20 border border-white/10 rounded-lg py-1.5 pl-10 pr-2 text-xs font-mono text-white focus:outline-none focus:border-white/30 uppercase"
+                  placeholder="#FFFFFF"
+                  maxLength={7}
                 />
               </div>
+            </div>
+          </div>
 
-              {/* Hex Input & Preview */}
-              <div className="flex items-center gap-2 pt-1">
-                 <div 
-                   className="w-8 h-8 rounded-lg border border-white/10 shrink-0 shadow-inner" 
-                   style={{ backgroundColor: hsvToHex(hsv.h, hsv.s, hsv.v) }}
-                 />
-                 <div className="relative flex-1">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-white/40 font-mono">HEX</span>
-                    <input 
-                      type="text" 
-                      value={hexInput} 
-                      onChange={handleHexChange}
-                      className="w-full bg-black/20 border border-white/10 rounded-lg py-1.5 pl-10 pr-2 text-xs font-mono text-white focus:outline-none focus:border-white/30 uppercase"
-                      placeholder="#FFFFFF"
-                      maxLength={7}
-                    />
-                 </div>
-              </div>
-           </div>
-
-           {/* Arrow Indicator */}
-           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#1A1D27] border-r border-b border-white/10 rotate-45"></div>
+          {/* Arrow Indicator */}
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#1A1D27] border-r border-b border-white/10 rotate-45"></div>
         </div>
       )}
     </div>

@@ -103,5 +103,7 @@ export const PRESETS_BY_MODE: Record<VisualizerMode, Preset[]> = {
   [VisualizerMode.SPRING_BAND]: [] // Handle properly if spring band is added
 };
 
+export const PRESETS = Object.values(PRESETS_BY_MODE).flat();
+
 
 

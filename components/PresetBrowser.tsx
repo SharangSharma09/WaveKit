@@ -14,7 +14,7 @@ const PresetBrowser: React.FC<PresetBrowserProps> = ({ onSelectPreset }) => {
     e.stopPropagation();
     const code = generateThreeJSCode(preset.config);
     navigator.clipboard.writeText(code);
-    
+
     // Simple visual feedback
     const btn = e.currentTarget as HTMLButtonElement;
     const originalText = btn.innerHTML;
@@ -26,12 +26,12 @@ const PresetBrowser: React.FC<PresetBrowserProps> = ({ onSelectPreset }) => {
 
   return (
     <div className="h-screen w-full bg-[#1C1C1C] text-[#e4e4e7] font-sans flex flex-col items-center py-20 px-6 3xl:py-32 overflow-y-auto">
-      
+
       {/* Header */}
       <header className="text-center mb-16 3xl:mb-24 max-w-2xl 4xl:max-w-3xl transform 3xl:scale-110 transition-transform shrink-0">
         <h1 className="text-4xl 4xl:text-5xl font-bold tracking-tight text-white mb-4">Wave Visualisation</h1>
         <p className="text-white/40 text-sm 4xl:text-base leading-relaxed max-w-md 4xl:max-w-xl mx-auto">
-          Experimental audio-reactive presets. Preview distinct visual styles, 
+          Experimental audio-reactive presets. Preview distinct visual styles,
           customize them in the editor, or export production-ready code.
         </p>
       </header>
@@ -39,21 +39,21 @@ const PresetBrowser: React.FC<PresetBrowserProps> = ({ onSelectPreset }) => {
       {/* Grid - Fixed 2 columns, scaled max-width */}
       <div className="grid grid-cols-2 gap-8 3xl:gap-12 4xl:gap-16 w-full max-w-5xl 3xl:max-w-6xl 4xl:max-w-7xl pb-20">
         {PRESETS.map((preset) => (
-          <div 
+          <div
             key={preset.id}
-            className="group relative bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden hover:border-zinc-600 transition-all duration-300 hover:shadow-2xl hover:shadow-black/50"
+            className="group relative bg-[#18181b] border border-[#37373B] rounded-2xl overflow-hidden hover:border-zinc-600 transition-all duration-300 hover:shadow-2xl hover:shadow-black/50"
           >
             {/* Video Container */}
-            <div className="relative aspect-[16/10] bg-black overflow-hidden border-b border-[#27272a] group-hover:border-zinc-700 transition-colors">
-              <video 
+            <div className="relative aspect-[16/10] bg-black overflow-hidden border-b border-[#37373B] group-hover:border-zinc-700 transition-colors">
+              <video
                 src={preset.videoUrl}
-                autoPlay 
-                muted 
-                loop 
+                autoPlay
+                muted
+                loop
                 playsInline
                 className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
               />
-              
+
               {/* Overlay Gradient */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#18181b] via-transparent to-transparent opacity-60"></div>
             </div>
@@ -67,17 +67,17 @@ const PresetBrowser: React.FC<PresetBrowserProps> = ({ onSelectPreset }) => {
               </div>
 
               <div className="flex items-center gap-3 mt-2 3xl:mt-4">
-                <button 
+                <button
                   onClick={() => onSelectPreset({ ...preset.config, name: preset.name })}
                   className="flex-1 flex items-center justify-center gap-2 bg-white text-black h-10 3xl:h-12 4xl:h-14 rounded-full text-xs 3xl:text-sm font-bold uppercase tracking-wider hover:bg-zinc-200 transition-colors active:scale-95"
                 >
                   <Edit3 size={14} className="3xl:w-4 3xl:h-4" />
                   Edit Preset
                 </button>
-                
-                <button 
+
+                <button
                   onClick={(e) => handleCopyCode(e, preset)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-[#27272a] text-zinc-400 border border-transparent h-10 3xl:h-12 4xl:h-14 rounded-full text-xs 3xl:text-sm font-bold uppercase tracking-wider hover:text-white hover:border-zinc-600 transition-all active:scale-95"
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#37373B] text-zinc-400 border border-transparent h-10 3xl:h-12 4xl:h-14 rounded-full text-xs 3xl:text-sm font-bold uppercase tracking-wider hover:text-white hover:border-zinc-600 transition-all active:scale-95"
                 >
                   <Copy size={14} className="3xl:w-4 3xl:h-4" />
                   Copy Code

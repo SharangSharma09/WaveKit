@@ -400,7 +400,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                 <button
                   type="button"
                   onClick={() => setTheme(Theme.DARK)}
-                  className={`text-sm font-bold uppercase tracking-widest transition-colors ${theme === Theme.DARK ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'
+                  className={`text-[11px] font-bold uppercase tracking-widest transition-colors ${theme === Theme.DARK ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'
                     }`}
                 >
                   DARK
@@ -408,7 +408,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                 <button
                   type="button"
                   onClick={() => setTheme(Theme.LIGHT)}
-                  className={`text-sm font-bold uppercase tracking-widest transition-colors ${theme === Theme.LIGHT ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'
+                  className={`text-[11px] font-bold uppercase tracking-widest transition-colors ${theme === Theme.LIGHT ? 'text-white' : 'text-zinc-500 hover:text-zinc-400'
                     }`}
                 >
                   LIGHT
@@ -430,15 +430,15 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                     onClick={() => handleModeSelect(item.mode)}
                     className={`w-[80px] h-[60px] rounded-lg border flex flex-col items-center justify-center gap-2 transition-all ${theme === Theme.DARK
                       ? mode === item.mode
-                        ? 'bg-[#27272a] border-white text-white'
-                        : 'bg-[#27272a] border-[#3f3f46] text-zinc-500 hover:text-zinc-400'
+                        ? 'bg-[#1C1C1C] border-[#37373B] text-white outline outline-1 outline-white/80 -outline-offset-1'
+                        : 'bg-[#1C1C1C] border-[#37373B] text-zinc-500 hover:text-zinc-400'
                       : mode === item.mode
-                        ? 'bg-zinc-300 border-zinc-600 text-zinc-900'
+                        ? 'bg-zinc-300 border-zinc-600 text-zinc-900 outline outline-1 outline-white/40 -outline-offset-1'
                         : 'bg-zinc-200 border-zinc-300 text-zinc-500 hover:text-zinc-700'
                       }`}
                   >
                     <item.icon size={16} strokeWidth={mode === item.mode ? 2.5 : 2} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest leading-none">{item.label}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest leading-none">{item.label}</span>
                   </button>
                 ))}
                 {/* Empty placeholder for 2x3 alignment if needed */}
@@ -446,31 +446,34 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
               </div>
 
               {/* Separator Line */}
-              <div className={`w-full h-[1px] ${theme === Theme.DARK ? 'bg-zinc-800' : 'bg-zinc-300'}`} />
+              <div className={`w-full h-[1px] ${theme === Theme.DARK ? 'bg-[#37373B]' : 'bg-zinc-300'}`} />
 
               {/* Preset ButtonGrid */}
-              <div className="grid grid-cols-5 gap-2 w-full">
-                {PRESETS_BY_MODE[mode]?.map((preset, index) => {
-                  const n = index + 1;
-                  return (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      onClick={() => handlePresetSelect(n)}
-                      className={`aspect-square rounded-lg border flex items-center justify-center text-sm font-mono transition-all ${theme === Theme.DARK
-                        ? selectedGridIndex === n
-                          ? 'bg-[#27272a] border-white text-white'
-                          : 'bg-[#27272a] border-[#3f3f46] text-zinc-400 hover:text-zinc-300'
-                        : selectedGridIndex === n
-                          ? 'bg-zinc-300 border-zinc-600 text-zinc-900'
-                          : 'bg-zinc-200 border-zinc-300 text-zinc-600 hover:text-zinc-800'
-                        }`}
-                      title={preset.name}
-                    >
-                      {n}
-                    </button>
-                  );
-                })}
+              <div className="w-full flex flex-col gap-3">
+                <span className={`text-[9px] font-bold uppercase tracking-widest ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-500'}`}>Saved Presets</span>
+                <div className="grid grid-cols-5 gap-2 w-full">
+                  {PRESETS_BY_MODE[mode]?.map((preset, index) => {
+                    const n = index + 1;
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => handlePresetSelect(n)}
+                        className={`aspect-square rounded-lg border flex items-center justify-center text-[12px] font-mono transition-all ${theme === Theme.DARK
+                          ? selectedGridIndex === n
+                            ? 'bg-[#1C1C1C] border-[#37373B] text-white outline outline-1 outline-white/80 -outline-offset-1'
+                            : 'bg-[#1C1C1C] border-[#37373B] text-zinc-500 hover:text-zinc-300'
+                          : selectedGridIndex === n
+                            ? 'bg-zinc-300 border-zinc-600 text-zinc-900 outline outline-1 outline-white/40 -outline-offset-1'
+                            : 'bg-zinc-200 border-zinc-300 text-zinc-600 hover:text-zinc-800'
+                          }`}
+                        title={preset.name}
+                      >
+                        {n}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
             <div className="flex-1 min-w-0">
