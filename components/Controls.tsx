@@ -97,10 +97,10 @@ const ControlKnobLike = ({ label, value, onChange, min, max, step, suffix = '', 
   return (
     <div className="flex flex-col gap-1 min-w-[120px] flex-1">
       <div className="flex items-center justify-between">
-        <span className={`${DS.typography.label} ${isDark ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>{label}</span>
-        <span className={`${DS.typography.value} ${isDark ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>{typeof value === 'number' ? value.toFixed(step < 1 ? 1 : 0) : value}{suffix}</span>
+        <span className={`${DS.typography.label} ${isDark ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>{label}</span>
+        <span className={`${DS.typography.value} ${isDark ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>{typeof value === 'number' ? value.toFixed(step < 1 ? 1 : 0) : value}{suffix}</span>
       </div>
-      <div className={`h-5 relative rounded shadow-inner flex items-center px-2 ${isDark ? '' : 'bg-zinc-200 border border-zinc-300'}`}>
+      <div className={`h-5 relative rounded flex items-center px-2 ${isDark ? '' : ''}`}>
         <input
           type="range"
           min={min}
@@ -112,6 +112,26 @@ const ControlKnobLike = ({ label, value, onChange, min, max, step, suffix = '', 
         />
       </div>
     </div>
+  );
+};
+
+const SlidingToggle = ({ isOn, onToggle, theme }: { isOn: boolean; onToggle: () => void; theme: Theme }) => {
+  const isDark = theme === Theme.DARK;
+  return (
+    <button
+      onClick={onToggle}
+      className={`relative w-7 h-3.5 rounded-full transition-all duration-200 border ${isOn
+        ? (isDark ? 'bg-white border-white' : 'bg-black border-black')
+        : (isDark ? 'bg-transparent border-[#37373B]' : 'bg-transparent border-[#9A9A9A]')
+        }`}
+    >
+      <div
+        className={`absolute top-[1.5px] w-[8px] h-[8px] rounded-full transition-all duration-200 ${isOn
+          ? (isDark ? 'left-[15px] bg-black' : 'left-[15px] bg-white')
+          : (isDark ? 'left-[2px] bg-zinc-600' : 'left-[2px] bg-[#9A9A9A]')
+          }`}
+      />
+    </button>
   );
 };
 
@@ -175,20 +195,20 @@ const Controls: React.FC<ControlsProps> = ({
       )}
 
       {/* Hardware Chassis - Fully rounded for detached floating effect */}
-      <div className={`${theme === Theme.DARK ? 'bg-[#1C1C1C] border-[#37373B] ring-white/5' : 'bg-zinc-100 border-zinc-300 ring-black/5'} border rounded-[24px] flex flex-col overflow-hidden ring-1 relative w-full`}>
+      <div className={`${theme === Theme.DARK ? `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ring-white/5` : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ring-[#d4d4d8]`} border rounded-[24px] flex flex-col overflow-hidden ring-1 relative w-full`}>
         {/* Shine effect on top edge */}
-        <div className={`absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent to-transparent pointer-events-none ${theme === Theme.DARK ? 'via-white/10' : 'via-black/10'}`}></div>
+        <div className={`absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent to-transparent pointer-events-none ${theme === Theme.DARK ? 'via-white/10' : ''}`}></div>
 
         {/* --- Top Deck: Transport & Global Status --- */}
-        <div className={`${theme === Theme.DARK ? 'bg-[#1C1C1C] border-[#37373B]' : 'bg-zinc-50 border-zinc-200'} p-3 3xl:p-4 flex items-center justify-between border-b shadow-sm relative z-10 shrink-0`}>
+        <div className={`${theme === Theme.DARK ? 'bg-[#1C1C1C] border-[#37373B]' : `${DS.colors.light.bgPanel} ${DS.colors.light.border}`} p-3 3xl:p-4 flex items-center justify-between border-b relative z-10 shrink-0`}>
           <div className="flex items-center gap-4 3xl:gap-6">
             {/* Main Power/Mic Button */}
             <div className="relative">
               <button
                 onClick={onToggleListening}
-                className={`w-12 h-12 3xl:w-14 3xl:h-14 rounded-full flex items-center justify-center border active:scale-95 active:shadow-inner transition-all duration-100 ${theme === Theme.DARK
+                className={`w-12 h-12 3xl:w-14 3xl:h-14 rounded-full flex items-center justify-center border active:scale-95 transition-all duration-100 ${theme === Theme.DARK
                   ? (isListening ? 'shadow-[0_4px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] bg-[#1c1c1f] border-[#37373B]' : 'shadow-[0_4px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] bg-transparent border-[#37373B] hover:bg-[#37373B1A]')
-                  : (isListening ? 'shadow-[0_4px_8px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(0,0,0,0.05)] bg-zinc-200 border-zinc-400' : 'shadow-[0_4px_8px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(0,0,0,0.05)] bg-zinc-100 border-zinc-300 hover:bg-zinc-200')
+                  : (isListening ? `bg-transparent border-[#d4d4d8] shadow-sm opacity-90` : `${DS.colors.light.bgMain} border-[#d4d4d8] hover:opacity-80`)
                   }`}
               >
                 <Power size={18} className={`3xl:w-5 3xl:h-5 ${isListening ? 'text-[#ef4444] drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]' : theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`} />
@@ -198,15 +218,15 @@ const Controls: React.FC<ControlsProps> = ({
             </div>
 
             {/* LCD Info Screen */}
-            <div className={`h-12 3xl:h-14 border rounded-md p-2 px-3 flex flex-col justify-between min-w-[160px] 3xl:min-w-[180px] ${theme === Theme.DARK ? 'border-[#37373B]' : 'bg-zinc-200 border-zinc-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]'}`}>
+            <div className={`h-12 3xl:h-14 border rounded-md p-2 px-3 flex flex-col justify-between min-w-[160px] 3xl:min-w-[180px] ${theme === Theme.DARK ? 'border-[#37373B]' : DS.colors.light.border}`}>
               <div className="flex items-center justify-between">
-                <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>Status</span>
-                <span className={`${DS.typography.value} uppercase ${isListening ? (isSimulated ? 'text-amber-500' : 'text-emerald-500') : theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>
+                <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>Status</span>
+                <span className={`${DS.typography.value} uppercase ${isListening ? (isSimulated ? 'text-amber-500' : 'text-emerald-500') : theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>
                   {isListening ? (isSimulated ? 'Simulating' : 'Live Input') : 'Standby'}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`${DS.typography.label} w-6 ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>RMS</span>
+                <span className={`${DS.typography.label} w-6 ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>RMS</span>
                 <div className={`flex-1 h-1.5 rounded-sm overflow-hidden flex gap-[1px] ${theme === Theme.DARK ? 'bg-[#1a1a1a]' : 'bg-zinc-300'}`}>
                   {Array.from({ length: 20 }).map((_, i) => (
                     <div
@@ -233,22 +253,22 @@ const Controls: React.FC<ControlsProps> = ({
             <div className="relative" ref={positionMenuRef}>
               <button
                 onClick={() => setShowPositionMenu(!showPositionMenu)}
-                className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded border flex items-center justify-center shadow-md active:translate-y-[1px] transition-all ${showPositionMenu ? 'border-emerald-500/30 text-emerald-400 outline outline-1 outline-white/80 -outline-offset-1' : ''} ${theme === Theme.DARK
-                  ? `bg-transparent border-[#37373B] text-zinc-400 hover:text-zinc-200 hover:bg-[#37373B1A] ${showPositionMenu ? 'bg-[#37373B1A]' : ''}`
-                  : `bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-zinc-800 hover:bg-zinc-200 ${showPositionMenu ? 'bg-zinc-200' : ''}`
+                className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded border flex items-center justify-center transition-all ${theme === Theme.DARK
+                  ? `bg-transparent border-[#37373B] text-zinc-400 hover:text-zinc-200 hover:bg-[#37373B1A] ${showPositionMenu ? 'text-emerald-400 border-emerald-900/30 outline outline-1 outline-white/80 -outline-offset-1 bg-[#37373B1A]' : ''}`
+                  : `${showPositionMenu ? 'bg-black border-black text-white' : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary} ${DS.colors.light.textHoverPrimary}`}`
                   }`}
                 title="Canvas Position"
               >
                 <Move size={14} className="3xl:w-4 3xl:h-4" />
               </button>
               {showPositionMenu && (
-                <div className={`absolute top-full right-0 mt-2 p-3 border rounded-xl shadow-2xl z-50 w-[180px] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 ${theme === Theme.DARK ? 'bg-[#1C1C1C] border-[#37373B]' : 'bg-white border-zinc-300'}`}>
+                <div className={`absolute top-full right-0 mt-2 p-3 border rounded-xl shadow-2xl z-50 w-[180px] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 ${theme === Theme.DARK ? 'bg-[#1C1C1C] border-[#37373B]' : 'bg-[#fafafa] border-[#d4d4d8]'}`}>
 
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center justify-between">
-                      <span className={`text-[9px] font-bold uppercase tracking-widest ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>Width</span>
+                      <span className={`text-[9px] font-bold uppercase tracking-widest ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>Width</span>
                     </div>
-                    <div className={`h-8 relative rounded shadow-inner flex items-center pr-1 overflow-hidden ${theme === Theme.DARK ? '' : 'bg-zinc-200 border border-zinc-300'}`}>
+                    <div className={`h-8 relative rounded flex items-center pr-1 overflow-hidden ${theme === Theme.DARK ? 'shadow-inner' : ''}`}>
                       <div className={`h-full w-8 border-r flex items-center justify-center ${theme === Theme.DARK ? 'bg-zinc-800 border-[#37373B] text-zinc-500' : 'bg-zinc-300 border-zinc-400 text-zinc-600'}`}>
                         <MoveHorizontal size={14} />
                       </div>
@@ -267,10 +287,10 @@ const Controls: React.FC<ControlsProps> = ({
                   {/* Vertical Shift */}
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center justify-between">
-                      <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>Shift Y</span>
-                      <span className={`${DS.typography.value} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>{verticalShift.toFixed(0)}</span>
+                      <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>Shift Y</span>
+                      <span className={`${DS.typography.value} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>{verticalShift.toFixed(0)}</span>
                     </div>
-                    <div className={`h-6 relative rounded shadow-inner flex items-center px-2 ${theme === Theme.DARK ? '' : 'bg-zinc-200 border border-zinc-300'}`}>
+                    <div className={`h-6 relative rounded flex items-center px-2 ${theme === Theme.DARK ? '' : ''}`}>
                       <input
                         type="range"
                         min={-20}
@@ -283,30 +303,33 @@ const Controls: React.FC<ControlsProps> = ({
                     </div>
                   </div>
                   {/* Arrow */}
-                  <div className={`absolute -top-1 right-3 w-2 h-2 border-l border-t rotate-45 ${theme === Theme.DARK ? 'bg-[#1C1C1C] border-[#37373B]' : 'bg-white border-zinc-300'}`}></div>
+                  <div className={`absolute -top-1 right-3 w-2 h-2 border-l border-t rotate-45 ${theme === Theme.DARK ? 'bg-[#1C1C1C] border-[#37373B]' : 'bg-[#fafafa] border-[#d4d4d8]'}`}></div>
                 </div>
               )}
             </div>
 
-            <button onClick={onTogglePhoneFrame} className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded border flex items-center justify-center shadow-md active:translate-y-[1px] transition-all ${showPhoneFrame ? 'text-emerald-400 border-emerald-900/30 outline outline-1 outline-white/80 -outline-offset-1' : ''} ${theme === Theme.DARK
-              ? 'bg-transparent border-[#37373B] text-zinc-400 hover:text-zinc-200 hover:bg-[#37373B1A]'
-              : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-zinc-800 hover:bg-zinc-200'
-              }`}>
+            <button
+              onClick={onTogglePhoneFrame}
+              className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded border flex items-center justify-center transition-all ${theme === Theme.DARK
+                ? `${showPhoneFrame ? 'text-emerald-400 border-emerald-900/30 outline outline-1 outline-white/80 -outline-offset-1' : 'bg-transparent border-[#37373B] text-zinc-400 hover:text-zinc-200 hover:bg-[#37373B1A]'}`
+                : `${showPhoneFrame ? `text-black border-black` : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary} ${DS.colors.light.textHoverPrimary}`}`
+                }`}
+            >
               {showPhoneFrame ? <Eye size={14} className="3xl:w-4 3xl:h-4" /> : <EyeOff size={14} className="3xl:w-4 3xl:h-4" />}
             </button>
-            <button onClick={onOpenExport} className={`h-9 px-3 3xl:h-10 3xl:px-4 rounded border flex items-center justify-center shadow-md active:translate-y-[1px] transition-all gap-2 ${theme === Theme.DARK
+            <button onClick={onOpenExport} className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded border flex items-center justify-center transition-all ${theme === Theme.DARK
               ? 'bg-transparent border-[#37373B] text-zinc-400 hover:text-zinc-200 hover:bg-[#37373B1A]'
-              : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-zinc-800 hover:bg-zinc-200'
-              }`}>
+              : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary} ${DS.colors.light.textHoverPrimary}`
+              }`}
+              title="Export">
               <Code2 size={14} className="3xl:w-4 3xl:h-4" />
-              <span className={`${DS.typography.exportBtn} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-700'}`}>Export</span>
             </button>
           </div>
         </div>
 
 
         {/* --- Main Controls Deck --- */}
-        <div className={`p-4 3xl:p-6 flex flex-col gap-4 3xl:gap-6 shrink-0 overflow-y-visible ${theme === Theme.DARK ? 'bg-[#1C1C1C]' : 'bg-zinc-50'}`}>
+        <div className={`p-4 3xl:p-6 flex flex-col gap-4 3xl:gap-6 shrink-0 overflow-y-visible ${theme === Theme.DARK ? 'bg-[#1C1C1C]' : DS.colors.light.bgPanel}`}>
 
           {/* Mode Specific Controls */}
           <div className="grid grid-cols-3 gap-x-4 gap-y-4 3xl:gap-x-8 3xl:gap-y-6">
@@ -321,24 +344,23 @@ const Controls: React.FC<ControlsProps> = ({
                 {/* Movement Control Unit */}
                 <div className="flex flex-col gap-1 min-w-[120px] flex-1">
                   <div className="flex items-center justify-between">
-                    <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>Movement</span>
-                    <span className={`${DS.typography.value} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>{paperMoving ? paperSpeed.toFixed(1) : 'OFF'}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>Movement</span>
+                      <SlidingToggle
+                        isOn={paperMoving}
+                        onToggle={() => {
+                          if (!paperMoving) onPaperSpeedChange(1);
+                          onPaperMovingChange(!paperMoving);
+                        }}
+                        theme={theme}
+                      />
+                    </div>
+                    <span className={`${DS.typography.value} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>{paperMoving ? paperSpeed.toFixed(1) : 'OFF'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {/* Toggle */}
-                    <button
-                      onClick={() => {
-                        if (!paperMoving) onPaperSpeedChange(1);
-                        onPaperMovingChange(!paperMoving);
-                      }}
-                      className={`h-5 w-8 rounded border shadow-inner flex items-center justify-center transition-all ${paperMoving ? 'border-white text-white' : theme === Theme.DARK ? 'border-[#37373B] text-[#37373B] hover:border-zinc-500 hover:text-zinc-500' : 'bg-zinc-200 border-zinc-300 text-zinc-600 hover:text-zinc-800'}`}
-                      title="Toggle Movement"
-                    >
-                      <ArrowRight size={12} className={paperMoving ? "animate-pulse" : ""} />
-                    </button>
 
                     {/* Speed Slider */}
-                    <div className={`h-5 flex-1 relative rounded shadow-inner flex items-center px-2 ${theme === Theme.DARK ? '' : 'bg-zinc-200 border border-zinc-300'}`}>
+                    <div className={`h-5 flex-1 relative rounded flex items-center px-2 ${theme === Theme.DARK ? 'shadow-inner' : ''}`}>
                       <input
                         type="range"
                         min={0}
@@ -347,7 +369,7 @@ const Controls: React.FC<ControlsProps> = ({
                         value={paperSpeed}
                         onChange={(e) => onPaperSpeedChange(parseFloat(e.target.value))}
                         disabled={!paperMoving}
-                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:h-0.5 [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'} ${!paperMoving ? 'opacity-30 pointer-events-none' : ''}`}
+                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-runnable-track]:h-0.5 [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : `[&::-webkit-slider-thumb]:bg-[#52525b] [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-[#a1a1aa]`} ${!paperMoving ? 'opacity-30 pointer-events-none' : ''}`}
                       />
                     </div>
                   </div>
@@ -365,24 +387,23 @@ const Controls: React.FC<ControlsProps> = ({
                 {/* Movement Control Unit for Envelope */}
                 <div className="flex flex-col gap-1 min-w-[120px] flex-1">
                   <div className="flex items-center justify-between">
-                    <span className={`text-[9px] font-bold uppercase tracking-widest ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>Movement</span>
-                    <span className={`text-[9px] font-mono ${theme === Theme.DARK ? 'text-zinc-400' : 'text-zinc-600'}`}>{envelopeMoving ? envelopeSpeed.toFixed(1) : 'OFF'}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>Movement</span>
+                      <SlidingToggle
+                        isOn={envelopeMoving}
+                        onToggle={() => {
+                          if (!envelopeMoving) onEnvelopeSpeedChange(1);
+                          onEnvelopeMovingChange(!envelopeMoving);
+                        }}
+                        theme={theme}
+                      />
+                    </div>
+                    <span className={`${DS.typography.value} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>{envelopeMoving ? envelopeSpeed.toFixed(1) : 'OFF'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {/* Toggle */}
-                    <button
-                      onClick={() => {
-                        if (!envelopeMoving) onEnvelopeSpeedChange(1);
-                        onEnvelopeMovingChange(!envelopeMoving);
-                      }}
-                      className={`h-5 w-8 rounded border shadow-inner flex items-center justify-center transition-all ${envelopeMoving ? 'border-white text-white' : theme === Theme.DARK ? 'border-[#37373B] text-[#37373B] hover:border-zinc-500 hover:text-zinc-500' : 'bg-zinc-200 border-zinc-300 text-zinc-600 hover:text-zinc-800'}`}
-                      title="Toggle Movement"
-                    >
-                      <ArrowRight size={12} className={envelopeMoving ? "animate-pulse" : ""} />
-                    </button>
 
                     {/* Speed Slider */}
-                    <div className={`h-5 flex-1 relative rounded shadow-inner flex items-center px-2 ${theme === Theme.DARK ? '' : 'bg-zinc-200 border border-zinc-300'}`}>
+                    <div className={`h-5 flex-1 relative rounded flex items-center px-2 ${theme === Theme.DARK ? 'shadow-inner' : ''}`}>
                       <input
                         type="range"
                         min={0}
@@ -407,24 +428,23 @@ const Controls: React.FC<ControlsProps> = ({
                 {/* Movement Control Unit for Sino */}
                 <div className="flex flex-col gap-1 min-w-[120px] flex-1">
                   <div className="flex items-center justify-between">
-                    <span className={`text-[9px] font-bold uppercase tracking-widest ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>Movement</span>
-                    <span className={`text-[9px] font-mono ${theme === Theme.DARK ? 'text-zinc-400' : 'text-zinc-600'}`}>{sinoMoving ? sinoSpeed.toFixed(1) : 'OFF'}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>Movement</span>
+                      <SlidingToggle
+                        isOn={sinoMoving}
+                        onToggle={() => {
+                          if (!sinoMoving) onSinoSpeedChange(1);
+                          onSinoMovingChange(!sinoMoving);
+                        }}
+                        theme={theme}
+                      />
+                    </div>
+                    <span className={`${DS.typography.value} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>{sinoMoving ? sinoSpeed.toFixed(1) : 'OFF'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {/* Toggle */}
-                    <button
-                      onClick={() => {
-                        if (!sinoMoving) onSinoSpeedChange(1);
-                        onSinoMovingChange(!sinoMoving);
-                      }}
-                      className={`h-5 w-8 rounded border shadow-inner flex items-center justify-center transition-all ${sinoMoving ? 'border-white text-white' : theme === Theme.DARK ? 'border-[#37373B] text-[#37373B] hover:border-zinc-500 hover:text-zinc-500' : 'bg-zinc-200 border-zinc-300 text-zinc-600 hover:text-zinc-800'}`}
-                      title="Toggle Movement"
-                    >
-                      <ArrowRight size={12} className={sinoMoving ? "animate-pulse" : ""} />
-                    </button>
 
                     {/* Speed Slider */}
-                    <div className={`h-5 flex-1 relative rounded shadow-inner flex items-center px-2 ${theme === Theme.DARK ? '' : 'bg-zinc-200 border border-zinc-300'}`}>
+                    <div className={`h-5 flex-1 relative rounded flex items-center px-2 ${theme === Theme.DARK ? 'shadow-inner' : ''}`}>
                       <input
                         type="range"
                         min={0}
@@ -449,24 +469,23 @@ const Controls: React.FC<ControlsProps> = ({
                 {/* Movement Control Unit for Wave */}
                 <div className="flex flex-col gap-1 min-w-[120px] flex-1">
                   <div className="flex items-center justify-between">
-                    <span className={`text-[9px] font-bold uppercase tracking-widest ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>Movement</span>
-                    <span className={`text-[9px] font-mono ${theme === Theme.DARK ? 'text-zinc-400' : 'text-zinc-600'}`}>{waveMoving ? waveSpeed.toFixed(1) : 'OFF'}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>Movement</span>
+                      <SlidingToggle
+                        isOn={waveMoving}
+                        onToggle={() => {
+                          if (!waveMoving) onWaveSpeedChange(1);
+                          onWaveMovingChange(!waveMoving);
+                        }}
+                        theme={theme}
+                      />
+                    </div>
+                    <span className={`${DS.typography.value} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>{waveMoving ? waveSpeed.toFixed(1) : 'OFF'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {/* Toggle */}
-                    <button
-                      onClick={() => {
-                        if (!waveMoving) onWaveSpeedChange(1);
-                        onWaveMovingChange(!waveMoving);
-                      }}
-                      className={`h-5 w-8 rounded border shadow-inner flex items-center justify-center transition-all ${waveMoving ? 'border-white text-white' : theme === Theme.DARK ? 'border-[#37373B] text-[#37373B] hover:border-zinc-500 hover:text-zinc-500' : 'bg-zinc-200 border-zinc-300 text-zinc-600 hover:text-zinc-800'}`}
-                      title="Toggle Movement"
-                    >
-                      <ArrowRight size={12} className={waveMoving ? "animate-pulse" : ""} />
-                    </button>
 
                     {/* Speed Slider */}
-                    <div className={`h-5 flex-1 relative rounded shadow-inner flex items-center px-2 ${theme === Theme.DARK ? '' : 'bg-zinc-200 border border-zinc-300'}`}>
+                    <div className={`h-5 flex-1 relative rounded flex items-center px-2 ${theme === Theme.DARK ? 'shadow-inner' : ''}`}>
                       <input
                         type="range"
                         min={0}
@@ -495,24 +514,23 @@ const Controls: React.FC<ControlsProps> = ({
                 {/* Movement Control Unit for Bars */}
                 <div className="flex flex-col gap-1 min-w-[120px] flex-1">
                   <div className="flex items-center justify-between">
-                    <span className={`text-[9px] font-bold uppercase tracking-widest ${theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`}>Movement</span>
-                    <span className={`text-[9px] font-mono ${theme === Theme.DARK ? 'text-zinc-400' : 'text-zinc-600'}`}>{barMoving ? barSpeed.toFixed(1) : 'OFF'}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>Movement</span>
+                      <SlidingToggle
+                        isOn={barMoving}
+                        onToggle={() => {
+                          if (!barMoving) onBarSpeedChange(1);
+                          onBarMovingChange(!barMoving);
+                        }}
+                        theme={theme}
+                      />
+                    </div>
+                    <span className={`${DS.typography.value} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>{barMoving ? barSpeed.toFixed(1) : 'OFF'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {/* Toggle */}
-                    <button
-                      onClick={() => {
-                        if (!barMoving) onBarSpeedChange(1);
-                        onBarMovingChange(!barMoving);
-                      }}
-                      className={`h-5 w-8 rounded border shadow-inner flex items-center justify-center transition-all ${barMoving ? 'border-white text-white' : theme === Theme.DARK ? 'border-[#37373B] text-[#37373B] hover:border-zinc-500 hover:text-zinc-500' : 'bg-zinc-200 border-zinc-300 text-zinc-600 hover:text-zinc-800'}`}
-                      title="Toggle Movement"
-                    >
-                      <ArrowRight size={12} className={barMoving ? "animate-pulse" : ""} />
-                    </button>
 
                     {/* Speed Slider */}
-                    <div className={`h-5 flex-1 relative rounded shadow-inner flex items-center px-2 ${theme === Theme.DARK ? '' : 'bg-zinc-200 border border-zinc-300'}`}>
+                    <div className={`h-5 flex-1 relative rounded flex items-center px-2 ${theme === Theme.DARK ? 'shadow-inner' : ''}`}>
                       <input
                         type="range"
                         min={0}
@@ -540,15 +558,15 @@ const Controls: React.FC<ControlsProps> = ({
                     <button
                       key={c}
                       onClick={() => onColorChange(c)}
-                      className={`w-5 h-5 3xl:w-6 3xl:h-6 rounded-full transition-all shadow-sm ${selectedColor === c
-                        ? 'ring-2 ring-white scale-110 shadow-[0_0_8px_rgba(255,255,255,0.4)]'
+                      className={`w-5 h-5 3xl:w-6 3xl:h-6 rounded-full transition-all ${selectedColor === c
+                        ? 'ring-2 ring-white scale-110'
                         : 'hover:scale-105 ring-1 ring-white/10'
                         }`}
                       style={{ backgroundColor: c }}
                     />
                   ))}
                   <div className={`w-[1px] h-4 mx-1 ${theme === Theme.DARK ? 'bg-[#37373B]' : 'bg-zinc-300'}`}></div>
-                  <CustomColorPicker color={selectedColor} onChange={onColorChange} />
+                  <CustomColorPicker color={selectedColor} onChange={onColorChange} theme={theme} />
                 </div>
               </div>
             </>
@@ -556,7 +574,7 @@ const Controls: React.FC<ControlsProps> = ({
 
           {mode === VisualizerMode.PAPER_BAND && (
             <div className="flex items-center gap-6 pt-1">
-              <span className={`${DS.typography.label} whitespace-nowrap ${theme === Theme.DARK ? DS.colors.dark.textSecondary : 'text-zinc-600'}`}>Change colour</span>
+              <span className={`${DS.typography.label} whitespace-nowrap ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>Change colour</span>
               <div className="flex gap-2 items-center">
                 {Array.from({ length: paperWaves }).map((_, i) => (
                   <CustomColorPicker
@@ -564,6 +582,7 @@ const Controls: React.FC<ControlsProps> = ({
                     variant="swatch"
                     color={paperWaveColors[i] || paperWaveColors[i % paperWaveColors.length]}
                     onChange={(c) => onPaperWaveColorChange(i, c)}
+                    theme={theme}
                   />
                 ))}
               </div>

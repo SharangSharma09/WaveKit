@@ -286,7 +286,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
   const bgColor = theme === Theme.DARK ? 'bg-[#1C1C1C]' : 'bg-[#e4e4e7]';
 
   return (
-    <div className={`relative w-full h-screen ${bgColor} transition-colors duration-500 overflow-hidden flex flex-col font-sans select-none`}>
+    <div className={`relative w-full h-screen ${bgColor} overflow-hidden flex flex-col font-sans select-none`}>
 
       {/* Main Column Layout - No Scrolling */}
       <div className="flex flex-col h-full w-full items-center">
@@ -448,7 +448,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
 
               {/* Preset ButtonGrid */}
               <div className="w-full flex flex-col gap-3">
-                <span className={`${DS.typography.sectionHeader} ${getThemeColor(theme, 'textSecondary')}`}>Saved Presets</span>
+                <span className={`${DS.typography.sectionHeader} ${getThemeColor(theme, 'textPrimary')}`}>Saved Presets</span>
                 <div className="grid grid-cols-5 gap-2 w-full">
                   {PRESETS_BY_MODE[mode]?.map((preset, index) => {
                     const n = index + 1;

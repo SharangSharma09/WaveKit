@@ -2,15 +2,15 @@ import { Theme } from '../types';
 
 export const DS = {
     typography: {
-        label: "text-[9px] font-bold uppercase tracking-widest",
-        value: "text-[9px] font-mono",
+        label: "text-[10px] font-bold uppercase tracking-widest",
+        value: "text-[10px] font-mono",
         toggle: "text-[11px] font-bold uppercase tracking-widest",
-        preset: "text-[12px] font-mono",
+        preset: "text-[10px] font-mono",
         footerLogo: "text-[32px] font-bold italic font-mono",
         footerText: "text-[11px] font-mono",
-        exportBtn: "text-[9px] font-bold uppercase tracking-wider",
-        modeLabel: "text-[9px] font-bold uppercase tracking-widest leading-none",
-        sectionHeader: "text-[9px] font-bold uppercase tracking-widest"
+        exportBtn: "text-[10px] font-bold uppercase tracking-wider",
+        modeLabel: "text-[10px] font-bold uppercase tracking-widest leading-none",
+        sectionHeader: "text-[10px] font-bold uppercase tracking-widest"
     },
     colors: {
         dark: {
@@ -27,7 +27,7 @@ export const DS = {
             sliderThumb: "bg-[#a1a1aa] border-black/50"
         },
         light: {
-            bgMain: "bg-[#FCFCFD]",
+            bgMain: "bg-[#fafafa]",
             bgPanel: "bg-[#e4e4e7]",
             border: "border-[#d4d4d8]",
             textPrimary: "text-black",

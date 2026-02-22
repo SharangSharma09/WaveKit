@@ -1,14 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Plus, Pipette } from 'lucide-react';
 import { hexToHsv, hsvToHex, isValidHex, HSV } from '../utils/colorUtils';
+import { DS } from '../styles/designSystem';
+import { Theme } from '../types';
 
 interface CustomColorPickerProps {
   color: string;
   onChange: (color: string) => void;
   variant?: 'add' | 'swatch';
+  theme?: Theme;
 }
 
-const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, variant = 'add' }) => {
+const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, variant = 'add', theme = Theme.DARK }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hsv, setHsv] = useState<HSV>(hexToHsv(color));
   const [hexInput, setHexInput] = useState(color);
@@ -113,12 +116,13 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
     <div className="relative" ref={popoverRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-6 h-6 rounded-full border border-white/20 flex items-center justify-center transition-all ${variant === 'swatch' ? 'shadow-sm' : 'bg-white/5 hover:bg-white/10'
-          } ${isOpen ? 'ring-2 ring-white/50' : ''}`}
+        className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all ${theme === Theme.DARK ? 'border-white/20' : 'border-[#d4d4d8]'
+          } ${variant === 'swatch' ? 'shadow-sm' : (theme === Theme.DARK ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10')
+          } ${isOpen ? (theme === Theme.DARK ? 'ring-2 ring-white/50' : 'ring-2 ring-black/50') : ''}`}
         style={variant === 'swatch' ? { backgroundColor: color } : {}}
         title="Custom Color"
       >
-        {variant === 'add' && <Plus size={12} className="text-white/60" />}
+        {variant === 'add' && <Plus size={12} className={theme === Theme.DARK ? "text-white/60" : "text-zinc-600"} />}
       </button>
 
       {isOpen && (
