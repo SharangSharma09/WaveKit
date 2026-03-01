@@ -18,6 +18,9 @@ const DEFAULT_PAPER_COLORS = ['#4DA3FF', '#5CE1B6', '#9B8CFF', '#F08BC3', '#F2C9
 const PHONE_FRAME_DARK = "https://drive.google.com/thumbnail?id=1YtgNRD5bhsW_JhFOfvscWU0nLmFGkXyd&sz=w2000";
 const PHONE_FRAME_LIGHT = "https://drive.google.com/thumbnail?id=1a4gwZ_bfhzv61f6Q2o3l8oekIGwixWQv&sz=w2000";
 
+const FULL_MOBILE_DARK = "https://drive.google.com/thumbnail?id=1rRH5zxcEyCJOH-jlSjzanpNnzf53625S&sz=w2000";
+const FULL_MOBILE_LIGHT = "https://drive.google.com/thumbnail?id=1sJ_w_UQJDbtQvM6fn1f_d12AxyZqxVcB&sz=w2000";
+
 interface VisualizerEditorProps {
   initialConfig?: VisualizerConfig;
   onBack: () => void;
@@ -35,6 +38,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
   const [containerWidth, setContainerWidth] = useState(initialConfig?.containerWidth ?? 784);
   const [verticalShift, setVerticalShift] = useState(initialConfig?.verticalShift ?? 0);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isFullMobilePreview, setIsFullMobilePreview] = useState(false);
   const [selectedGridIndex, setSelectedGridIndex] = useState(1);
 
   // Derive the active palette based on theme
@@ -514,6 +518,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                 paperSpeed={paperSpeed} onPaperSpeedChange={setPaperSpeed}
                 showPhoneFrame={showPhoneFrame} onTogglePhoneFrame={() => setShowPhoneFrame(!showPhoneFrame)}
                 onOpenExport={() => setIsExportModalOpen(true)}
+                onOpenFullscreenPreview={() => setIsFullMobilePreview(true)}
               />
             </div>
           </div>
@@ -555,6 +560,87 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
         onClose={() => setIsExportModalOpen(false)}
         config={currentConfig}
       />
+
+      {/* Full Mobile Preview Overlay */}
+      <div
+        className={`fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-300 ${isFullMobilePreview ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      >
+        {/* Fullscreen click-to-close backdrop */}
+        <div
+          className="absolute inset-0 bg-black/70 cursor-pointer"
+          onClick={() => setIsFullMobilePreview(false)}
+        />
+
+        {/* Overlay Layout Container */}
+        <div className="relative pointer-events-none flex items-center justify-center" style={{ width: '396px', height: '802px' }}>
+          {/* Visualizer Div Container (Behind PNG) */}
+          <div
+            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden flex items-center justify-center rounded-[40px] ${bgColor}`}
+            style={{ width: '354px', height: '766px' }}
+          >
+            {/* Exactly centered internal content */}
+            <div className="relative h-full flex items-center justify-center w-full">
+              <div
+                className="relative transition-all duration-300 transform origin-center flex items-center justify-center"
+                style={{ width: `${containerWidth}px` }}
+              >
+                <VisualizerCanvas
+                  isListening={isListening}
+                  getMetrics={getMetrics}
+                  mode={mode}
+                  theme={theme}
+                  sensitivity={sensitivity}
+                  color={color}
+                  palette={activePalette}
+                  verticalShift={verticalShift}
+                  numWaves={numWaves}
+                  barWidth={barWidth}
+                  barHeight={barHeight}
+                  barSpacing={barSpacing}
+                  barAmplitude={barAmplitude}
+                  barRoundness={barRoundness}
+                  barMoving={barMoving}
+                  barSpeed={barSpeed}
+                  sinoAmplitude={sinoAmplitude}
+                  sinoWavelength={sinoWavelength}
+                  sinoSpeed={sinoSpeed}
+                  sinoMoving={sinoMoving}
+                  springStrands={springStrands}
+                  springAmplitude={springAmplitude}
+                  envelopeAmplitude={envelopeAmplitude}
+                  envelopeSpeed={envelopeSpeed}
+                  envelopePoints={envelopePoints}
+                  envelopeFillOpacity={envelopeFillOpacity}
+                  envelopeStrokeWidth={envelopeStrokeWidth}
+                  envelopeMoving={envelopeMoving}
+                  waveAmplitude={waveAmplitude}
+                  waveNoise={waveNoise}
+                  waveSpeed={waveSpeed}
+                  waveMoving={waveMoving}
+                  paperAmount={paperAmount}
+                  paperScale={paperScale}
+                  paperWaves={paperWaves}
+                  paperPoints={paperPoints}
+                  paperIdleAmplitude={paperIdleAmplitude}
+                  paperStrokeWidth={paperStrokeWidth}
+                  paperWaveColors={paperWaveColors}
+                  paperMoving={paperMoving}
+                  paperSpeed={paperSpeed}
+                  containerWidth={containerWidth}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Theme-based Mobile Frame PNG */}
+          <img
+            src={theme === Theme.DARK ? FULL_MOBILE_DARK : FULL_MOBILE_LIGHT}
+            alt="Full Mobile Frame"
+            className="relative z-10 select-none block max-w-none w-full h-full"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+      </div>
     </div>
   );
 };

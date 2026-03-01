@@ -89,6 +89,7 @@ export interface ControlsProps {
   showPhoneFrame: boolean;
   onTogglePhoneFrame: () => void;
   onOpenExport: () => void;
+  onOpenFullscreenPreview: () => void;
   title?: string;
 }
 
@@ -164,7 +165,7 @@ const Controls: React.FC<ControlsProps> = ({
   paperWaveColors, onPaperWaveColorChange,
   paperMoving = false, onPaperMovingChange = (_val: boolean) => { },
   paperSpeed = 2, onPaperSpeedChange = (_val: number) => { },
-  showPhoneFrame, onTogglePhoneFrame, onOpenExport,
+  showPhoneFrame, onTogglePhoneFrame, onOpenExport, onOpenFullscreenPreview,
   title
 }) => {
   const [showPositionMenu, setShowPositionMenu] = React.useState(false);
@@ -316,6 +317,13 @@ const Controls: React.FC<ControlsProps> = ({
                 }`}
             >
               {showPhoneFrame ? <Eye size={14} className="3xl:w-4 3xl:h-4" /> : <EyeOff size={14} className="3xl:w-4 3xl:h-4" />}
+            </button>
+            <button onClick={onOpenFullscreenPreview} className={`px-3 h-9 3xl:h-10 rounded border flex items-center justify-center transition-all ${theme === Theme.DARK
+              ? 'bg-transparent border-[#37373B] text-zinc-300 hover:text-white hover:bg-[#37373B1A]'
+              : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textPrimary} hover:bg-zinc-100`
+              }`}
+              title="Full Mobile Preview">
+              <span className="text-[10px] 3xl:text-xs font-bold uppercase tracking-wider">Full Mobile Preview</span>
             </button>
             <button onClick={onOpenExport} className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded border flex items-center justify-center transition-all ${theme === Theme.DARK
               ? 'bg-transparent border-[#37373B] text-zinc-400 hover:text-zinc-200 hover:bg-[#37373B1A]'
