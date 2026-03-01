@@ -40,6 +40,9 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isFullMobilePreview, setIsFullMobilePreview] = useState(false);
   const [selectedGridIndex, setSelectedGridIndex] = useState(1);
+  const [mockupImageDark, setMockupImageDark] = useState<string | null>(null);
+  const [mockupImageLight, setMockupImageLight] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Derive the active palette based on theme
   const activePalette = theme === Theme.DARK ? DARK_MODE_COLORS : LIGHT_MODE_COLORS;
@@ -284,6 +287,43 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
       setColor(newPalette[0]);
       return newTheme;
     });
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file (png, jpg, jpeg).');
+        return;
+      }
+
+      const isDark = theme === Theme.DARK;
+      const currentMockup = isDark ? mockupImageDark : mockupImageLight;
+
+      if (currentMockup) {
+        URL.revokeObjectURL(currentMockup);
+      }
+
+      const imageUrl = URL.createObjectURL(file);
+      if (isDark) setMockupImageDark(imageUrl);
+      else setMockupImageLight(imageUrl);
+    }
+  };
+
+  const handleClearImage = () => {
+    const isDark = theme === Theme.DARK;
+    const currentMockup = isDark ? mockupImageDark : mockupImageLight;
+
+    if (currentMockup) {
+      URL.revokeObjectURL(currentMockup);
+    }
+
+    if (isDark) setMockupImageDark(null);
+    else setMockupImageLight(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const currentPhoneFrame = theme === Theme.DARK ? PHONE_FRAME_DARK : PHONE_FRAME_LIGHT;
@@ -567,78 +607,135 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
       >
         {/* Fullscreen click-to-close backdrop */}
         <div
-          className="absolute inset-0 bg-black/70 cursor-pointer"
+          className="absolute inset-0 bg-black/85 cursor-pointer"
           onClick={() => setIsFullMobilePreview(false)}
         />
 
         {/* Overlay Layout Container */}
-        <div className="relative pointer-events-none flex items-center justify-center" style={{ width: '396px', height: '802px' }}>
-          {/* Visualizer Div Container (Behind PNG) */}
-          <div
-            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden flex items-center justify-center rounded-[40px] ${bgColor}`}
-            style={{ width: '354px', height: '766px' }}
-          >
-            {/* Exactly centered internal content */}
-            <div className="relative h-full flex items-center justify-center w-full">
-              <div
-                className="relative transition-all duration-300 transform origin-center flex items-center justify-center"
-                style={{ width: `${containerWidth}px` }}
-              >
-                <VisualizerCanvas
-                  isListening={isListening}
-                  getMetrics={getMetrics}
-                  mode={mode}
-                  theme={theme}
-                  sensitivity={sensitivity}
-                  color={color}
-                  palette={activePalette}
-                  verticalShift={verticalShift}
-                  numWaves={numWaves}
-                  barWidth={barWidth}
-                  barHeight={barHeight}
-                  barSpacing={barSpacing}
-                  barAmplitude={barAmplitude}
-                  barRoundness={barRoundness}
-                  barMoving={barMoving}
-                  barSpeed={barSpeed}
-                  sinoAmplitude={sinoAmplitude}
-                  sinoWavelength={sinoWavelength}
-                  sinoSpeed={sinoSpeed}
-                  sinoMoving={sinoMoving}
-                  springStrands={springStrands}
-                  springAmplitude={springAmplitude}
-                  envelopeAmplitude={envelopeAmplitude}
-                  envelopeSpeed={envelopeSpeed}
-                  envelopePoints={envelopePoints}
-                  envelopeFillOpacity={envelopeFillOpacity}
-                  envelopeStrokeWidth={envelopeStrokeWidth}
-                  envelopeMoving={envelopeMoving}
-                  waveAmplitude={waveAmplitude}
-                  waveNoise={waveNoise}
-                  waveSpeed={waveSpeed}
-                  waveMoving={waveMoving}
-                  paperAmount={paperAmount}
-                  paperScale={paperScale}
-                  paperWaves={paperWaves}
-                  paperPoints={paperPoints}
-                  paperIdleAmplitude={paperIdleAmplitude}
-                  paperStrokeWidth={paperStrokeWidth}
-                  paperWaveColors={paperWaveColors}
-                  paperMoving={paperMoving}
-                  paperSpeed={paperSpeed}
-                  containerWidth={containerWidth}
+        <div className="relative flex flex-col items-center gap-6">
+          <div className="relative pointer-events-none flex items-center justify-center" style={{ width: '396px', height: '802px' }}>
+            {/* Visualizer Div Container (Behind PNG) */}
+            <div
+              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden flex items-center justify-center rounded-[40px] ${bgColor} pointer-events-auto`}
+              style={{ width: '354px', height: '766px' }}
+            >
+              {/* Exactly centered internal content */}
+              <div className="relative h-full flex items-center justify-center w-full">
+                {/* Background Mockup Image */}
+                {(theme === Theme.DARK ? mockupImageDark : mockupImageLight) && (
+                  <img
+                    src={theme === Theme.DARK ? mockupImageDark! : mockupImageLight!}
+                    alt="Uploaded Mockup"
+                    className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none z-0"
+                  />
+                )}
+
+                {/* Upload Button */}
+                {!(theme === Theme.DARK ? mockupImageDark : mockupImageLight) && (
+                  <div className="absolute inset-0 flex items-center justify-center z-20">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                      className={`px-6 py-2 rounded-lg border transition-all ${theme === Theme.DARK
+                        ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300 hover:bg-zinc-700/80 hover:text-white'
+                        : 'bg-white/80 border-zinc-300 text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900'
+                        } text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm`}
+                    >
+                      Upload Mockup
+                    </button>
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/png, image/jpeg, image/jpg"
+                  className="hidden"
                 />
+
+                <div
+                  className="relative z-10 transition-all duration-300 transform origin-center flex items-center justify-center"
+                  style={{ width: `${containerWidth}px` }}
+                >
+                  <VisualizerCanvas
+                    isListening={isListening}
+                    getMetrics={getMetrics}
+                    mode={mode}
+                    theme={theme}
+                    sensitivity={sensitivity}
+                    color={color}
+                    palette={activePalette}
+                    verticalShift={verticalShift}
+                    numWaves={numWaves}
+                    barWidth={barWidth}
+                    barHeight={barHeight}
+                    barSpacing={barSpacing}
+                    barAmplitude={barAmplitude}
+                    barRoundness={barRoundness}
+                    barMoving={barMoving}
+                    barSpeed={barSpeed}
+                    sinoAmplitude={sinoAmplitude}
+                    sinoWavelength={sinoWavelength}
+                    sinoSpeed={sinoSpeed}
+                    sinoMoving={sinoMoving}
+                    springStrands={springStrands}
+                    springAmplitude={springAmplitude}
+                    envelopeAmplitude={envelopeAmplitude}
+                    envelopeSpeed={envelopeSpeed}
+                    envelopePoints={envelopePoints}
+                    envelopeFillOpacity={envelopeFillOpacity}
+                    envelopeStrokeWidth={envelopeStrokeWidth}
+                    envelopeMoving={envelopeMoving}
+                    waveAmplitude={waveAmplitude}
+                    waveNoise={waveNoise}
+                    waveSpeed={waveSpeed}
+                    waveMoving={waveMoving}
+                    paperAmount={paperAmount}
+                    paperScale={paperScale}
+                    paperWaves={paperWaves}
+                    paperPoints={paperPoints}
+                    paperIdleAmplitude={paperIdleAmplitude}
+                    paperStrokeWidth={paperStrokeWidth}
+                    paperWaveColors={paperWaveColors}
+                    paperMoving={paperMoving}
+                    paperSpeed={paperSpeed}
+                    containerWidth={containerWidth}
+                  />
+                </div>
               </div>
             </div>
+
+            {/* Theme-based Mobile Frame PNG */}
+            <img
+              src={theme === Theme.DARK ? FULL_MOBILE_DARK : FULL_MOBILE_LIGHT}
+              alt="Full Mobile Frame"
+              className="relative z-10 select-none block max-w-none w-full h-full"
+              referrerPolicy="no-referrer"
+            />
           </div>
 
-          {/* Theme-based Mobile Frame PNG */}
-          <img
-            src={theme === Theme.DARK ? FULL_MOBILE_DARK : FULL_MOBILE_LIGHT}
-            alt="Full Mobile Frame"
-            className="relative z-10 select-none block max-w-none w-full h-full"
-            referrerPolicy="no-referrer"
-          />
+          {/* Remove Mockup Button Below Frame (Left Aligned) */}
+          {(theme === Theme.DARK ? mockupImageDark : mockupImageLight) && (
+            <div className="w-[396px] flex justify-start pointer-events-auto">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClearImage();
+                }}
+                className={`px-3 py-1.5 rounded transition-all ${theme === Theme.DARK
+                  ? 'bg-zinc-800/40 border border-zinc-700 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/60'
+                  : 'bg-white/40 border border-zinc-300 text-zinc-500 hover:text-zinc-700 hover:bg-white/60'
+                  } text-[10px] font-bold uppercase tracking-tight backdrop-blur-sm`}
+              >
+                Remove Mockup
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

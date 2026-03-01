@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mic, MicOff, Waves, BarChart2, Settings2, Sliders, Palette, MoveHorizontal, MoveVertical, Spline, Layers, Eye, EyeOff, Zap, Activity, Hash, Origami, Waypoints, Moon, Sun, Droplets, Volume2, Code2, AlertTriangle, Power, ArrowRight, Move } from 'lucide-react';
+import { Mic, MicOff, Waves, BarChart2, Settings2, Sliders, Palette, MoveHorizontal, MoveVertical, Spline, Layers, Eye, EyeOff, Zap, Activity, Hash, Origami, Waypoints, Moon, Sun, Droplets, Volume2, Code2, AlertTriangle, Power, ArrowRight, Move, Maximize } from 'lucide-react';
 import { VisualizerMode, Theme, VisualizerConfig } from '../types';
 import CustomColorPicker from './CustomColorPicker';
 import { DS, getThemeColor } from '../styles/designSystem';
@@ -318,12 +318,12 @@ const Controls: React.FC<ControlsProps> = ({
             >
               {showPhoneFrame ? <Eye size={14} className="3xl:w-4 3xl:h-4" /> : <EyeOff size={14} className="3xl:w-4 3xl:h-4" />}
             </button>
-            <button onClick={onOpenFullscreenPreview} className={`px-3 h-9 3xl:h-10 rounded border flex items-center justify-center transition-all ${theme === Theme.DARK
+            <button onClick={onOpenFullscreenPreview} className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded border flex items-center justify-center transition-all ${theme === Theme.DARK
               ? 'bg-transparent border-[#37373B] text-zinc-300 hover:text-white hover:bg-[#37373B1A]'
-              : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textPrimary} hover:bg-zinc-100`
+              : `${DS.colors.light.bgPanel} border-[#d4d4d8] text-zinc-600 hover:bg-zinc-100`
               }`}
               title="Full Mobile Preview">
-              <span className="text-[10px] 3xl:text-xs font-bold uppercase tracking-wider">Full Mobile Preview</span>
+              <Maximize size={16} className="3xl:w-5 3xl:h-5" />
             </button>
             <button onClick={onOpenExport} className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded border flex items-center justify-center transition-all ${theme === Theme.DARK
               ? 'bg-transparent border-[#37373B] text-zinc-400 hover:text-zinc-200 hover:bg-[#37373B1A]'
