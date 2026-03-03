@@ -21,6 +21,9 @@ const PHONE_FRAME_LIGHT = "https://drive.google.com/thumbnail?id=1a4gwZ_bfhzv61f
 const FULL_MOBILE_DARK = "https://drive.google.com/thumbnail?id=1rRH5zxcEyCJOH-jlSjzanpNnzf53625S&sz=w2000";
 const FULL_MOBILE_LIGHT = "https://drive.google.com/thumbnail?id=1sJ_w_UQJDbtQvM6fn1f_d12AxyZqxVcB&sz=w2000";
 
+const FULL_MOBILE_DARK_DEFAULT = "https://drive.google.com/thumbnail?id=1nmdHMYu4v_sOK5Gs44bSjuAnoLbS_Wzi&sz=w2000";
+const FULL_MOBILE_LIGHT_DEFAULT = "https://drive.google.com/thumbnail?id=1Y45DfpXnF2aBxVGDGJtwNfVFHJheFGHa&sz=w2000";
+
 interface VisualizerEditorProps {
   initialConfig?: VisualizerConfig;
   onBack: () => void;
@@ -42,6 +45,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
   const [selectedGridIndex, setSelectedGridIndex] = useState(1);
   const [mockupImageDark, setMockupImageDark] = useState<string | null>(null);
   const [mockupImageLight, setMockupImageLight] = useState<string | null>(null);
+  const [isPreviewHovered, setIsPreviewHovered] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Derive the active palette based on theme
@@ -613,7 +617,12 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
 
         {/* Overlay Layout Container */}
         <div className="relative flex flex-col items-center gap-6">
-          <div className="relative pointer-events-none flex items-center justify-center" style={{ width: '396px', height: '802px' }}>
+          <div
+            className="relative flex items-center justify-center transition-all duration-300"
+            style={{ width: '396px', height: '802px', pointerEvents: 'auto' }}
+            onMouseEnter={() => setIsPreviewHovered(true)}
+            onMouseLeave={() => setIsPreviewHovered(false)}
+          >
             {/* Visualizer Div Container (Behind PNG) */}
             <div
               className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden flex items-center justify-center rounded-[40px] ${bgColor} pointer-events-auto`}
@@ -622,32 +631,50 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
               {/* Exactly centered internal content */}
               <div className="relative h-full flex items-center justify-center w-full">
                 {/* Background Mockup Image */}
-                {(theme === Theme.DARK ? mockupImageDark : mockupImageLight) && (
-                  <img
-                    src={theme === Theme.DARK ? mockupImageDark! : mockupImageLight!}
-                    alt="Uploaded Mockup"
-                    className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none z-0"
-                  />
-                )}
+                <img
+                  src={theme === Theme.DARK
+                    ? (mockupImageDark || FULL_MOBILE_DARK_DEFAULT)
+                    : (mockupImageLight || FULL_MOBILE_LIGHT_DEFAULT)
+                  }
+                  alt="Mockup"
+                  className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none z-0"
+                  referrerPolicy="no-referrer"
+                />
 
-                {/* Upload Button */}
-                {!(theme === Theme.DARK ? mockupImageDark : mockupImageLight) && (
-                  <div className="absolute inset-0 flex items-center justify-center z-20">
+                {/* Stacked Control Buttons (Visible on Hover) */}
+                <div
+                  className={`absolute inset-0 flex flex-col items-center justify-center gap-3 z-30 transition-opacity duration-300 ${isPreviewHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                    className={`px-6 py-2 rounded-lg border transition-all ${theme === Theme.DARK
+                      ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300 hover:bg-zinc-700/80 hover:text-white'
+                      : 'bg-white/80 border-zinc-300 text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900'
+                      } text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm`}
+                  >
+                    Upload Mockup
+                  </button>
+
+                  {(theme === Theme.DARK ? mockupImageDark : mockupImageLight) && (
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        fileInputRef.current?.click();
+                        handleClearImage();
                       }}
                       className={`px-6 py-2 rounded-lg border transition-all ${theme === Theme.DARK
                         ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300 hover:bg-zinc-700/80 hover:text-white'
                         : 'bg-white/80 border-zinc-300 text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900'
                         } text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm`}
                     >
-                      Upload Mockup
+                      Remove Mockup
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 <input
                   type="file"
@@ -713,29 +740,10 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
             <img
               src={theme === Theme.DARK ? FULL_MOBILE_DARK : FULL_MOBILE_LIGHT}
               alt="Full Mobile Frame"
-              className="relative z-10 select-none block max-w-none w-full h-full"
+              className="relative z-10 select-none block max-w-none w-full h-full pointer-events-none"
               referrerPolicy="no-referrer"
             />
           </div>
-
-          {/* Remove Mockup Button Below Frame (Left Aligned) */}
-          {(theme === Theme.DARK ? mockupImageDark : mockupImageLight) && (
-            <div className="w-[396px] flex justify-start pointer-events-auto">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClearImage();
-                }}
-                className={`px-3 py-1.5 rounded transition-all ${theme === Theme.DARK
-                  ? 'bg-zinc-800/40 border border-zinc-700 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/60'
-                  : 'bg-white/40 border border-zinc-300 text-zinc-500 hover:text-zinc-700 hover:bg-white/60'
-                  } text-[10px] font-bold uppercase tracking-tight backdrop-blur-sm`}
-              >
-                Remove Mockup
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>
