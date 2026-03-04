@@ -6,7 +6,7 @@ interface UseAudioAnalyzerReturn {
   isSimulated: boolean;
   start: (allowSimulated?: boolean) => Promise<void>;
   stop: () => void;
-  getMetrics: () => AudioMetrics; 
+  getMetrics: () => AudioMetrics;
   error: string | null;
 }
 
@@ -14,13 +14,13 @@ export const useAudioAnalyzer = (): UseAudioAnalyzerReturn => {
   const [isListening, setIsListening] = useState(false);
   const [isSimulated, setIsSimulated] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Refs to maintain state without triggering re-renders
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | OscillatorNode | null>(null);
-  
+
   // Data buffers
   const dataArrayRef = useRef<Uint8Array>(new Uint8Array(0));
   const timeDomainDataRef = useRef<Float32Array>(new Float32Array(0));
@@ -35,10 +35,10 @@ export const useAudioAnalyzer = (): UseAudioAnalyzerReturn => {
       const analyser = analyserRef.current;
       if (analyser) {
         if (dataArrayRef.current.length !== analyser.frequencyBinCount) {
-             dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
-             timeDomainDataRef.current = new Float32Array(analyser.fftSize);
+          dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
+          timeDomainDataRef.current = new Float32Array(analyser.fftSize);
         }
-        
+
         analyser.getByteFrequencyData(dataArrayRef.current);
         analyser.getFloatTimeDomainData(timeDomainDataRef.current);
 
@@ -78,7 +78,7 @@ export const useAudioAnalyzer = (): UseAudioAnalyzerReturn => {
       sourceRef.current = null;
     }
     if (audioContextRef.current && audioContextRef.current.state === 'running') {
-      audioContextRef.current.suspend().catch(() => {});
+      audioContextRef.current.suspend().catch(() => { });
     }
     setIsListening(false);
     setIsSimulated(false);
@@ -86,27 +86,31 @@ export const useAudioAnalyzer = (): UseAudioAnalyzerReturn => {
   }, []);
 
   const start = useCallback(async (allowSimulated: boolean = true) => {
+    console.log("AudioAnalyzer: Attempting to start...");
     setError(null);
     stop();
 
     try {
-      if (!window.isSecureContext) {
-        throw new Error("Application must be served over HTTPS to access microphone.");
+      // 1. Basic Support Checks
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (!window.isSecureContext && !isLocalhost) {
+        throw new Error("Microphone access requires a secure context (HTTPS or localhost).");
       }
-      
+
       const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
       if (!AudioContextClass) {
         throw new Error("Web Audio API is not supported in this browser.");
       }
 
+      // 2. Initialize Context immediately (User Gesture turn)
       let ctx = audioContextRef.current;
       if (!ctx || ctx.state === 'closed') {
         ctx = new AudioContextClass();
         audioContextRef.current = ctx;
       }
-      
+
       if (ctx.state === 'suspended') {
-        try { await ctx.resume(); } catch (e) { console.warn("Context resume failed", e); }
+        await ctx.resume();
       }
 
       const analyser = ctx.createAnalyser();
@@ -114,9 +118,16 @@ export const useAudioAnalyzer = (): UseAudioAnalyzerReturn => {
       analyser.smoothingTimeConstant = 0.3;
       analyserRef.current = analyser;
 
+      // 3. Request Microphone
       try {
-        // Attempt to get real microphone
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error("navigator.mediaDevices.getUserMedia is not supported.");
+        }
+
+        console.log("AudioAnalyzer: Requesting microphone permissions...");
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log("AudioAnalyzer: Microphone access granted.");
+
         streamRef.current = stream;
         const source = ctx.createMediaStreamSource(stream);
         sourceRef.current = source;
@@ -124,53 +135,54 @@ export const useAudioAnalyzer = (): UseAudioAnalyzerReturn => {
         setIsListening(true);
         setIsSimulated(false);
       } catch (micErr: any) {
-        console.warn("Microphone access failed, checking fallback:", micErr.name);
-        
+        console.warn("AudioAnalyzer: Microphone access failed:", micErr.name || micErr.message);
+
         if (allowSimulated) {
+          console.log("AudioAnalyzer: Falling back to simulated audio.");
           // Fallback to Synthetic Audio
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = 'sine';
           osc.frequency.setValueAtTime(440, ctx.currentTime);
-          
+
           // Modulate amplitude to simulate voice/music dynamics
           const lfo = ctx.createOscillator();
           const lfoGain = ctx.createGain();
-          lfo.frequency.setValueAtTime(2, ctx.currentTime); // 2Hz pulse
+          lfo.frequency.setValueAtTime(2, ctx.currentTime);
           lfoGain.gain.setValueAtTime(0.5, ctx.currentTime);
           lfo.connect(lfoGain);
           lfoGain.connect(gain.gain);
-          
+
           gain.gain.setValueAtTime(0.2, ctx.currentTime);
-          
+
           osc.connect(gain);
           gain.connect(analyser);
-          
+
           osc.start();
           lfo.start();
-          
+
           sourceRef.current = osc;
           setIsSimulated(true);
           setIsListening(true);
-          setError("Microphone not found. Using simulated audio.");
+          setError("Microphone not available. Using simulated audio.");
         } else {
           throw micErr;
         }
       }
 
     } catch (err: any) {
-      console.error("Audio initialization failed:", err);
+      console.error("AudioAnalyzer: Initialization failed:", err);
       stop();
 
       let msg = "Could not access microphone.";
       const errName = err.name || '';
-      
-      if (errName === 'NotAllowedError' || errName === 'PermissionDeniedError' || err.message?.includes('not allowed')) {
-         msg = "Microphone access denied. Please allow permission.";
-      } else if (errName === 'NotFoundError' || err.message?.includes('device not found')) {
-        msg = "No microphone found. Please connect an input device.";
+
+      if (errName === 'NotAllowedError' || errName === 'PermissionDeniedError' || err.message?.toLowerCase().includes('denied')) {
+        msg = "Microphone access denied. Check site settings.";
+      } else if (errName === 'NotFoundError' || err.message?.toLowerCase().includes('not found')) {
+        msg = "No microphone found. connect an input device.";
       } else {
-        msg = err.message;
+        msg = err.message || "Unknown audio error.";
       }
 
       setError(msg);

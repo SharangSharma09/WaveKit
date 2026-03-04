@@ -5,7 +5,7 @@ import Controls from './Controls';
 import ExportModal from './ExportModal';
 import { VisualizerMode, VisualizerConfig, Theme } from '../types';
 import { PRESETS_BY_MODE } from '../data/presets';
-import { Origami, Activity, Spline, Waves, BarChart2 } from 'lucide-react';
+import { Origami, Activity, Spline, Waves, BarChart2, Trash2, Upload } from 'lucide-react';
 import { DS, getThemeColor } from '../styles/designSystem';
 
 // Sorted lexicographically: 4 -> 5 -> 9 -> A -> F2 -> F6 -> FF
@@ -188,17 +188,11 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        // No padding so phone frame can stick to the top edge
         const padding = 0;
-
-        // Calculate scale to fit strictly within the height
         const availableHeight = height - padding;
         const availableWidth = width - padding;
-
-        // Scale based on height primarily, but ensure width fits too (assuming approx 2:1 aspect for landscape phone)
         const scaleH = availableHeight / VIRTUAL_HEIGHT;
-        const scaleW = availableWidth / (VIRTUAL_HEIGHT * 2.5); // Generous width assumption
-
+        const scaleW = availableWidth / (VIRTUAL_HEIGHT * 2.5);
         const newScale = Math.min(scaleH, scaleW, 1);
         setPreviewScale(newScale);
         setIsReady(true);
@@ -208,6 +202,39 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
     observer.observe(topSectionRef.current);
     return () => observer.disconnect();
   }, []);
+
+  // -- Auto-start Microphone on load/interaction --
+  useEffect(() => {
+    let hasStarted = false;
+
+    const attemptStart = async () => {
+      if (hasStarted || isListening) return;
+      try {
+        await start(true);
+        hasStarted = true;
+        // Cleanup listeners if successful
+        removeListeners();
+      } catch (err) {
+        console.log("Auto-start blocked by browser. Waiting for user interaction...");
+      }
+    };
+
+    const removeListeners = () => {
+      window.removeEventListener('click', attemptStart);
+      window.removeEventListener('touchstart', attemptStart);
+      window.removeEventListener('keydown', attemptStart);
+    };
+
+    // 1. Immediate attempt (might work if permissions are already saved)
+    attemptStart();
+
+    // 2. Add listeners for any user gesture to "unlock" audio
+    window.addEventListener('click', attemptStart, { once: true });
+    window.addEventListener('touchstart', attemptStart, { once: true });
+    window.addEventListener('keydown', attemptStart, { once: true });
+
+    return () => removeListeners();
+  }, [isListening, start]);
 
   useEffect(() => {
     localStorage.setItem('paperIdleAmplitude', paperIdleAmplitude.toString());
@@ -619,13 +646,13 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
         <div className="relative flex flex-col items-center gap-6">
           <div
             className="relative flex items-center justify-center transition-all duration-300"
-            style={{ width: '396px', height: '802px', pointerEvents: 'auto' }}
+            style={{ width: '396px', height: '802px' }}
             onMouseEnter={() => setIsPreviewHovered(true)}
             onMouseLeave={() => setIsPreviewHovered(false)}
           >
             {/* Visualizer Div Container (Behind PNG) */}
             <div
-              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden flex items-center justify-center rounded-[40px] ${bgColor} pointer-events-auto`}
+              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden flex items-center justify-center rounded-[40px] ${bgColor}`}
               style={{ width: '354px', height: '766px' }}
             >
               {/* Exactly centered internal content */}
@@ -641,9 +668,9 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                   referrerPolicy="no-referrer"
                 />
 
-                {/* Stacked Control Buttons (Visible on Hover) */}
+                {/* Stacked Control Buttons (Visible on Hover) - Now at the Top with Icons */}
                 <div
-                  className={`absolute inset-0 flex flex-col items-center justify-center gap-3 z-30 transition-opacity duration-300 ${isPreviewHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                  className={`absolute inset-0 flex flex-col items-center justify-start pt-12 gap-3 z-30 transition-opacity duration-300 ${isPreviewHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 >
                   <button
                     type="button"
@@ -651,11 +678,12 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className={`px-6 py-2 rounded-lg border transition-all ${theme === Theme.DARK
+                    className={`px-6 py-2 rounded-lg border flex items-center gap-2 transition-all ${theme === Theme.DARK
                       ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300 hover:bg-zinc-700/80 hover:text-white'
                       : 'bg-white/80 border-zinc-300 text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900'
-                      } text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm`}
+                      } text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm shadow-none`}
                   >
+                    <Upload size={14} />
                     Upload Mockup
                   </button>
 
@@ -666,11 +694,12 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                         e.stopPropagation();
                         handleClearImage();
                       }}
-                      className={`px-6 py-2 rounded-lg border transition-all ${theme === Theme.DARK
+                      className={`px-6 py-2 rounded-lg border flex items-center gap-2 transition-all ${theme === Theme.DARK
                         ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300 hover:bg-zinc-700/80 hover:text-white'
                         : 'bg-white/80 border-zinc-300 text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900'
-                        } text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm`}
+                        } text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm shadow-none`}
                     >
+                      <Trash2 size={14} />
                       Remove Mockup
                     </button>
                   )}
