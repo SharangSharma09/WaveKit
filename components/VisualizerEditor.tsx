@@ -24,6 +24,8 @@ const FULL_MOBILE_LIGHT = "https://drive.google.com/thumbnail?id=1sJ_w_UQJDbtQvM
 const FULL_MOBILE_DARK_DEFAULT = "https://drive.google.com/thumbnail?id=1nmdHMYu4v_sOK5Gs44bSjuAnoLbS_Wzi&sz=w2000";
 const FULL_MOBILE_LIGHT_DEFAULT = "https://drive.google.com/thumbnail?id=1Y45DfpXnF2aBxVGDGJtwNfVFHJheFGHa&sz=w2000";
 
+const DEBUG_MODE = false; // Toggle this to show X/Y/Height sliders and bounding boxes
+
 interface VisualizerEditorProps {
   initialConfig?: VisualizerConfig;
   onBack: () => void;
@@ -102,6 +104,10 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
   const [springStrands, setSpringStrands] = useState(3);
   const [springAmplitude, setSpringAmplitude] = useState(60);
   const [imageError, setImageError] = useState(false);
+  const [previewOffsetX, setPreviewOffsetX] = useState(0);
+  const [previewOffsetY, setPreviewOffsetY] = useState(314);
+  const [previewHeight, setPreviewHeight] = useState(766);
+  const [previewMaskHeight, setPreviewMaskHeight] = useState(150);
 
   // Layout Scaling Logic
   const topSectionRef = useRef<HTMLDivElement>(null);
@@ -642,6 +648,82 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
           onClick={() => setIsFullMobilePreview(false)}
         />
 
+        {/* Temporary XY Controls */}
+        {DEBUG_MODE && (
+          <div className="absolute top-8 left-8 z-[110] bg-zinc-900/90 p-6 rounded-2xl border border-white/10 backdrop-blur-md shadow-2xl flex flex-col gap-4 min-w-[200px]">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Debug Controls</span>
+              <h3 className="text-white font-medium text-sm">Canvas Position</h3>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] text-white/60 font-semibold uppercase">X Offset: {previewOffsetX}px</label>
+                  <button onClick={() => setPreviewOffsetX(0)} className="text-[10px] text-white/30 hover:text-white/60 transition-colors">Reset</button>
+                </div>
+                <input
+                  type="range"
+                  min="-400"
+                  max="400"
+                  value={previewOffsetX}
+                  onChange={(e) => setPreviewOffsetX(parseInt(e.target.value))}
+                  className="w-full accent-red-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] text-white/60 font-semibold uppercase">Y Offset: {previewOffsetY}px</label>
+                  <button onClick={() => setPreviewOffsetY(314)} className="text-[10px] text-white/30 hover:text-white/60 transition-colors">Default</button>
+                </div>
+                <input
+                  type="range"
+                  min="-600"
+                  max="600"
+                  value={previewOffsetY}
+                  onChange={(e) => setPreviewOffsetY(parseInt(e.target.value))}
+                  className="w-full accent-red-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] text-white/60 font-semibold uppercase">Height: {previewHeight}px</label>
+                  <button onClick={() => setPreviewHeight(766)} className="text-[10px] text-white/30 hover:text-white/60 transition-colors">Default</button>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="1200"
+                  value={previewHeight}
+                  onChange={(e) => setPreviewHeight(parseInt(e.target.value))}
+                  className="w-full accent-red-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] text-white/60 font-semibold uppercase">Mask Height: {previewMaskHeight}px</label>
+                  <button onClick={() => setPreviewMaskHeight(150)} className="text-[10px] text-white/30 hover:text-white/60 transition-colors">Default</button>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="800"
+                  value={previewMaskHeight}
+                  onChange={(e) => setPreviewMaskHeight(parseInt(e.target.value))}
+                  className="w-full accent-blue-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-white/5">
+              <p className="text-[9px] text-white/30 italic">Use these to align the visualizer within the phone frame.</p>
+            </div>
+          </div>
+        )}
+
         {/* Overlay Layout Container */}
         <div className="relative flex flex-col items-center gap-6">
           <div
@@ -714,53 +796,63 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                 />
 
                 <div
-                  className="relative z-10 transition-all duration-300 transform origin-center flex items-center justify-center"
-                  style={{ width: `${containerWidth}px` }}
+                  className={`relative z-10 transition-all duration-300 transform origin-center flex items-center justify-center ${DEBUG_MODE ? 'border-2 border-red-500 bg-red-500/5' : ''}`}
+                  style={{
+                    width: `${containerWidth}px`,
+                    height: `${previewHeight}px`,
+                    transform: `translate(${previewOffsetX}px, ${previewOffsetY}px) scale(0.8)`
+                  }}
                 >
-                  <VisualizerCanvas
-                    isListening={isListening}
-                    getMetrics={getMetrics}
-                    mode={mode}
-                    theme={theme}
-                    sensitivity={sensitivity}
-                    color={color}
-                    palette={activePalette}
-                    verticalShift={verticalShift}
-                    numWaves={numWaves}
-                    barWidth={barWidth}
-                    barHeight={barHeight}
-                    barSpacing={barSpacing}
-                    barAmplitude={barAmplitude}
-                    barRoundness={barRoundness}
-                    barMoving={barMoving}
-                    barSpeed={barSpeed}
-                    sinoAmplitude={sinoAmplitude}
-                    sinoWavelength={sinoWavelength}
-                    sinoSpeed={sinoSpeed}
-                    sinoMoving={sinoMoving}
-                    springStrands={springStrands}
-                    springAmplitude={springAmplitude}
-                    envelopeAmplitude={envelopeAmplitude}
-                    envelopeSpeed={envelopeSpeed}
-                    envelopePoints={envelopePoints}
-                    envelopeFillOpacity={envelopeFillOpacity}
-                    envelopeStrokeWidth={envelopeStrokeWidth}
-                    envelopeMoving={envelopeMoving}
-                    waveAmplitude={waveAmplitude}
-                    waveNoise={waveNoise}
-                    waveSpeed={waveSpeed}
-                    waveMoving={waveMoving}
-                    paperAmount={paperAmount}
-                    paperScale={paperScale}
-                    paperWaves={paperWaves}
-                    paperPoints={paperPoints}
-                    paperIdleAmplitude={paperIdleAmplitude}
-                    paperStrokeWidth={paperStrokeWidth}
-                    paperWaveColors={paperWaveColors}
-                    paperMoving={paperMoving}
-                    paperSpeed={paperSpeed}
-                    containerWidth={containerWidth}
-                  />
+                  {/* Masking Container */}
+                  <div
+                    className={`relative w-full overflow-hidden ${DEBUG_MODE ? 'border border-blue-400/50' : ''}`}
+                    style={{ height: `${previewMaskHeight}px` }}
+                  >
+                    <VisualizerCanvas
+                      isListening={isListening}
+                      getMetrics={getMetrics}
+                      mode={mode}
+                      theme={theme}
+                      sensitivity={sensitivity}
+                      color={color}
+                      palette={activePalette}
+                      verticalShift={verticalShift}
+                      numWaves={numWaves}
+                      barWidth={barWidth}
+                      barHeight={barHeight}
+                      barSpacing={barSpacing}
+                      barAmplitude={barAmplitude}
+                      barRoundness={barRoundness}
+                      barMoving={barMoving}
+                      barSpeed={barSpeed}
+                      sinoAmplitude={sinoAmplitude}
+                      sinoWavelength={sinoWavelength}
+                      sinoSpeed={sinoSpeed}
+                      sinoMoving={sinoMoving}
+                      springStrands={springStrands}
+                      springAmplitude={springAmplitude}
+                      envelopeAmplitude={envelopeAmplitude}
+                      envelopeSpeed={envelopeSpeed}
+                      envelopePoints={envelopePoints}
+                      envelopeFillOpacity={envelopeFillOpacity}
+                      envelopeStrokeWidth={envelopeStrokeWidth}
+                      envelopeMoving={envelopeMoving}
+                      waveAmplitude={waveAmplitude}
+                      waveNoise={waveNoise}
+                      waveSpeed={waveSpeed}
+                      waveMoving={waveMoving}
+                      paperAmount={paperAmount}
+                      paperScale={paperScale}
+                      paperWaves={paperWaves}
+                      paperPoints={paperPoints}
+                      paperIdleAmplitude={paperIdleAmplitude}
+                      paperStrokeWidth={paperStrokeWidth}
+                      paperWaveColors={paperWaveColors}
+                      paperMoving={paperMoving}
+                      paperSpeed={paperSpeed}
+                      containerWidth={containerWidth}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
