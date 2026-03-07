@@ -105,7 +105,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
   const [springAmplitude, setSpringAmplitude] = useState(60);
   const [imageError, setImageError] = useState(false);
   const [previewOffsetX, setPreviewOffsetX] = useState(0);
-  const [previewOffsetY, setPreviewOffsetY] = useState(314);
+  const [previewOffsetY, setPreviewOffsetY] = useState(307);
   const [previewHeight, setPreviewHeight] = useState(766);
   const [previewMaskHeight, setPreviewMaskHeight] = useState(150);
 
@@ -795,19 +795,30 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                   className="hidden"
                 />
 
+                {/*
+                  Mobile preview — two-div approach for clean, predictable transforms:
+                  1. Outer div: handles POSITION only (centered horizontally, offsetY px from top).
+                     Its size matches the final visual size after scaling.
+                  2. Inner div: handles SCALE only from top-left origin.
+                     Renders at containerWidth (same as editor) so pixel values are identical.
+                  This avoids the transform-origin conflict that occurred when combining
+                  translateX(-50%), translateY, and scale on a single element.
+                */}
                 <div
-                  className={`relative z-10 transition-all duration-300 transform origin-center flex items-center justify-center ${DEBUG_MODE ? 'border-2 border-red-500 bg-red-500/5' : ''}`}
+                  className={`absolute z-10 overflow-hidden ${DEBUG_MODE ? 'border border-blue-400/50' : ''}`}
                   style={{
-                    width: `${containerWidth}px`,
-                    height: `${previewHeight}px`,
-                    transform: `translate(${previewOffsetX}px, ${previewOffsetY}px) scale(0.59)`
+                    width: '354px',
+                    height: `${Math.round(previewMaskHeight * (354 / containerWidth))}px`,
+                    left: '50%',
+                    transform: `translateX(-50%) translateY(${previewOffsetY}px)`,
                   }}
                 >
-                  {/* Masking Container */}
-                  <div
-                    className={`relative w-full overflow-hidden ${DEBUG_MODE ? 'border border-blue-400/50' : ''}`}
-                    style={{ height: `${previewMaskHeight}px` }}
-                  >
+                  <div style={{
+                    width: `${containerWidth}px`,
+                    height: `${previewMaskHeight}px`,
+                    transform: `scale(${(354 / containerWidth).toFixed(4)})`,
+                    transformOrigin: 'top left',
+                  }}>
                     <VisualizerCanvas
                       isListening={isListening}
                       getMetrics={getMetrics}

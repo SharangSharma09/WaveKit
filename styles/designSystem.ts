@@ -27,7 +27,7 @@ export const DS = {
             sliderThumb: "bg-[#a1a1aa] border-black/50"
         },
         light: {
-            bgMain: "bg-[#fafafa]",
+            bgMain: "bg-[#FCFCFD]",
             bgPanel: "bg-[#e4e4e7]",
             border: "border-[#d4d4d8]",
             textPrimary: "text-black",
