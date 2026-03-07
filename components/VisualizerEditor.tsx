@@ -597,7 +597,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
           <div className="w-full max-w-[900px] mx-auto flex justify-between items-start">
             {/* Left Section - 60% width */}
             <div className="flex flex-col gap-3 w-[60%]">
-              <h2 className={`${DS.typography.footerLogo} ${theme === Theme.DARK ? DS.colors.dark.textPrimary : DS.colors.light.textPrimary}`}>WAVEKIT</h2>
+              <h2 className={`${DS.typography.footerLogo} ${theme === Theme.DARK ? DS.colors.dark.textPrimary : DS.colors.light.textPrimary}`}>Wavekit</h2>
               <p className={`${DS.typography.footerText} leading-relaxed ${getThemeColor(theme, 'textSecondary')}`}>
                 Experimental audio-reactive presets. Preview distinct visual styles, customize them in the editor, or export production-ready code.
               </p>

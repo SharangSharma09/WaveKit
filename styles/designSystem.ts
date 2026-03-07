@@ -6,7 +6,7 @@ export const DS = {
         value: "text-[10px] font-mono",
         toggle: "text-[11px] font-bold uppercase tracking-widest",
         preset: "text-[10px] font-mono",
-        footerLogo: "text-[32px] font-bold italic font-mono",
+        footerLogo: "text-[32px] font-bold font-radeil",
         footerText: "text-[11px] font-mono",
         exportBtn: "text-[10px] font-bold uppercase tracking-wider",
         modeLabel: "text-[10px] font-bold uppercase tracking-widest leading-none",
@@ -18,7 +18,7 @@ export const DS = {
     },
     colors: {
         dark: {
-            bgMain: "bg-[#000000]",
+            bgMain: "bg-[#1C1C1C]",
             bgPanel: "bg-[#1C1C1C]",
             border: "border-[#37373B]",
             textPrimary: "text-white",
