@@ -20,7 +20,8 @@ export enum VisualizerMode {
 
 export enum ExportType {
   JS_THREE = 'JS_THREE',
-  LOTTIE = 'LOTTIE'
+  LOTTIE = 'LOTTIE',
+  REACT_NATIVE = 'REACT_NATIVE'
 }
 
 export interface VisualizerConfig {

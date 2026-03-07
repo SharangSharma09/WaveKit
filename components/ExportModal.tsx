@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { X, Copy, Download, Code2, PlayCircle, CheckCircle2 } from 'lucide-react';
+import { X, Copy, Download, Code2, PlayCircle, CheckCircle2, Smartphone } from 'lucide-react';
 import { ExportType, VisualizerConfig } from '../types';
-import { generateThreeJSCode, generateLottiePreset } from '../utils/exportTemplates';
+import { generateThreeJSCode, generateLottiePreset, generateReactNativeCode } from '../utils/exportTemplates';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -16,11 +16,14 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
   const exportedContent = useMemo(() => {
     if (exportType === ExportType.JS_THREE) return generateThreeJSCode(config);
     if (exportType === ExportType.LOTTIE) return generateLottiePreset(config);
+    if (exportType === ExportType.REACT_NATIVE) return generateReactNativeCode(config);
     return '';
   }, [exportType, config]);
 
+  const scaleFactor = (390 / (config.containerWidth || 390)).toFixed(4);
+
   const handleAction = () => {
-    if (exportType === ExportType.JS_THREE) {
+    if (exportType === ExportType.JS_THREE || exportType === ExportType.REACT_NATIVE) {
       navigator.clipboard.writeText(exportedContent);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -40,7 +43,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
-      
+
       <div className="relative w-full max-w-4xl bg-[#1A1D27] border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-white/5">
@@ -59,27 +62,41 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
             <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest mb-2 px-4">Formats</span>
             <button
               onClick={() => setExportType(ExportType.JS_THREE)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                exportType === ExportType.JS_THREE ? 'bg-white text-black shadow-lg shadow-white/10' : 'text-white/40 hover:bg-white/5 hover:text-white'
-              }`}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${exportType === ExportType.JS_THREE
+                  ? 'bg-white text-black shadow-lg shadow-white/10'
+                  : 'text-white/40 hover:bg-white/5 hover:text-white'
+                }`}
             >
               <Code2 size={18} />
               <span className="font-semibold text-sm">Three.js</span>
             </button>
             <button
               onClick={() => setExportType(ExportType.LOTTIE)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                exportType === ExportType.LOTTIE ? 'bg-white text-black shadow-lg shadow-white/10' : 'text-white/40 hover:bg-white/5 hover:text-white'
-              }`}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${exportType === ExportType.LOTTIE
+                  ? 'bg-white text-black shadow-lg shadow-white/10'
+                  : 'text-white/40 hover:bg-white/5 hover:text-white'
+                }`}
             >
               <PlayCircle size={18} />
               <span className="font-semibold text-sm">Lottie JSON</span>
+            </button>
+            <button
+              onClick={() => setExportType(ExportType.REACT_NATIVE)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${exportType === ExportType.REACT_NATIVE
+                  ? 'bg-white text-black shadow-lg shadow-white/10'
+                  : 'text-white/40 hover:bg-white/5 hover:text-white'
+                }`}
+            >
+              <Smartphone size={18} />
+              <span className="font-semibold text-sm">React Native</span>
             </button>
           </div>
 
           {/* Content */}
           <div className="flex-1 flex flex-col bg-[#0F1118] overflow-hidden">
-            {exportType === ExportType.JS_THREE ? (
+
+            {/* Three.js panel */}
+            {exportType === ExportType.JS_THREE && (
               <div className="flex-1 flex flex-col overflow-hidden">
                 <div className="px-6 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
                   <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Code Preview</span>
@@ -95,7 +112,10 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
                   </pre>
                 </div>
               </div>
-            ) : (
+            )}
+
+            {/* Lottie panel */}
+            {exportType === ExportType.LOTTIE && (
               <div className="flex-1 flex items-center justify-center p-12 text-center">
                 <div className="max-w-xs">
                   <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-8">
@@ -112,22 +132,72 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
                 </div>
               </div>
             )}
+
+            {/* React Native panel */}
+            {exportType === ExportType.REACT_NATIVE && (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Info strip */}
+                <div className="px-6 py-4 bg-white/[0.03] border-b border-white/5 flex items-start gap-6 shrink-0">
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Integration</span>
+                    <span className="font-mono text-[11px] text-emerald-400/80 mt-1">
+                      npx expo install @shopify/react-native-skia expo-av
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5 shrink-0 text-right">
+                    <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Scale factor</span>
+                    <span className="font-mono text-sm text-amber-400/80">{scaleFactor}×</span>
+                    <span className="text-[10px] text-white/20">{config.containerWidth}px → 390pt</span>
+                  </div>
+                </div>
+
+                {/* Step callouts */}
+                <div className="px-6 py-3 border-b border-white/5 flex gap-4 shrink-0 overflow-x-auto">
+                  {[
+                    { n: '1', text: 'Install deps above' },
+                    { n: '2', text: 'Copy → WaveKitVisualizer.tsx' },
+                    { n: '3', text: '<WaveKitVisualizer rms={micRms} />' },
+                    { n: '4', text: 'Pass rms 0.0–1.0 from your mic' },
+                  ].map((step, idx, arr) => (
+                    <div key={step.n} className="flex items-center gap-2 shrink-0">
+                      <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white/40">
+                        {step.n}
+                      </span>
+                      <span className="text-[11px] text-white/40 whitespace-nowrap">{step.text}</span>
+                      {idx < arr.length - 1 && <span className="text-white/10 ml-2">›</span>}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Code preview */}
+                <div className="flex-1 p-6 overflow-auto custom-scrollbar">
+                  <pre className="font-mono text-xs leading-relaxed text-emerald-300/80 whitespace-pre">
+                    {exportedContent}
+                  </pre>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
 
         {/* Footer */}
         <div className="px-8 py-6 border-t border-white/5 flex items-center justify-between bg-black/30">
           <div className="text-xs text-white/20 font-mono">
-            {exportType === ExportType.JS_THREE ? 'index.html' : 'animation.json'}
+            {exportType === ExportType.JS_THREE && 'index.html'}
+            {exportType === ExportType.LOTTIE && 'animation.json'}
+            {exportType === ExportType.REACT_NATIVE && 'WaveKitVisualizer.tsx'}
           </div>
           <button
             onClick={handleAction}
             className="flex items-center gap-2 bg-white text-black px-10 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 shadow-xl shadow-white/5"
           >
-            {exportType === ExportType.JS_THREE ? (
-              copied ? <><CheckCircle2 size={18} /> Copied!</> : <><Copy size={18} /> Copy Code</>
-            ) : (
+            {exportType === ExportType.LOTTIE ? (
               <><Download size={18} /> Download Asset</>
+            ) : copied ? (
+              <><CheckCircle2 size={18} /> Copied!</>
+            ) : (
+              <><Copy size={18} /> Copy Code</>
             )}
           </button>
         </div>
