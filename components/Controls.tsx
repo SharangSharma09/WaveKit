@@ -109,7 +109,7 @@ const ControlKnobLike = ({ label, value, onChange, min, max, step, suffix = '', 
           step={step}
           value={value}
           onChange={(e) => onChange(parseFloat(e.target.value))}
-          className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:h-0.5 [&::-webkit-slider-runnable-track]:rounded-full ${isDark ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'}`}
+          className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:${DS.stroke.button} [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:${DS.stroke.slider} [&::-webkit-slider-runnable-track]:rounded-full ${isDark ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'}`}
         />
       </div>
     </div>
@@ -121,15 +121,15 @@ const SlidingToggle = ({ isOn, onToggle, theme }: { isOn: boolean; onToggle: () 
   return (
     <button
       onClick={onToggle}
-      className={`relative w-7 h-3.5 rounded-full transition-all duration-200 border ${isOn
+      className={`relative w-7 h-3.5 rounded-full transition-all duration-200 ${DS.stroke.button} ${isOn
         ? (isDark ? 'bg-white border-white' : 'bg-black border-black')
-        : (isDark ? 'bg-transparent border-[#37373B]' : 'bg-transparent border-[#9A9A9A]')
+        : (isDark ? DS.colors.dark.toggleOff : DS.colors.light.toggleOff)
         }`}
     >
       <div
         className={`absolute top-[1.5px] w-[8px] h-[8px] rounded-full transition-all duration-200 ${isOn
           ? (isDark ? 'left-[15px] bg-black' : 'left-[15px] bg-white')
-          : (isDark ? 'left-[2px] bg-zinc-600' : 'left-[2px] bg-[#9A9A9A]')
+          : (isDark ? `left-[2px] ${DS.colors.dark.toggleCircleOff}` : `left-[2px] ${DS.colors.light.toggleCircleOff}`)
           }`}
       />
     </button>
@@ -196,7 +196,7 @@ const Controls: React.FC<ControlsProps> = ({
       )}
 
       {/* Hardware Chassis - Fully rounded for detached floating effect */}
-      <div className={`${theme === Theme.DARK ? `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ring-white/5` : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ring-[#d4d4d8]`} border rounded-[24px] flex flex-col overflow-hidden ring-1 relative w-full`}>
+      <div className={`${theme === Theme.DARK ? `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ring-white/5` : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ring-[#d4d4d8]`} ${DS.stroke.button} rounded-[24px] flex flex-col overflow-hidden ring-1 relative w-full`}>
         {/* Shine effect on top edge */}
         <div className={`absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent to-transparent pointer-events-none ${theme === Theme.DARK ? 'via-white/10' : ''}`}></div>
 
@@ -207,7 +207,7 @@ const Controls: React.FC<ControlsProps> = ({
             <div className="relative">
               <button
                 onClick={onToggleListening}
-                className={`w-12 h-12 3xl:w-14 3xl:h-14 rounded-full flex items-center justify-center border active:scale-95 transition-all duration-100 ${theme === Theme.DARK
+                className={`w-12 h-12 3xl:w-14 3xl:h-14 rounded-full flex items-center justify-center ${DS.stroke.button} active:scale-95 transition-all duration-100 ${theme === Theme.DARK
                   ? (isListening ? 'shadow-[0_4px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] bg-[#1c1c1f] border-[#37373B]' : 'shadow-[0_4px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] bg-transparent border-[#37373B] hover:bg-[#37373B1A]')
                   : (isListening ? `bg-transparent border-[#d4d4d8] shadow-sm opacity-90` : `${DS.colors.light.bgMain} border-[#d4d4d8] hover:opacity-80`)
                   }`}
@@ -215,11 +215,11 @@ const Controls: React.FC<ControlsProps> = ({
                 <Power size={18} className={`3xl:w-5 3xl:h-5 ${isListening ? 'text-[#ef4444] drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]' : theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`} />
               </button>
               {/* LED Indicator Dot */}
-              <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border ${theme === Theme.DARK ? 'border-[#18181b]' : 'border-zinc-100'} ${isListening ? (isSimulated ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.8)]' : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.8)]') : theme === Theme.DARK ? 'bg-zinc-800' : 'bg-zinc-300'}`}></div>
+              <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${DS.stroke.button} ${theme === Theme.DARK ? 'border-[#18181b]' : 'border-zinc-100'} ${isListening ? (isSimulated ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.8)]' : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.8)]') : theme === Theme.DARK ? 'bg-zinc-800' : 'bg-zinc-300'}`}></div>
             </div>
 
             {/* LCD Info Screen */}
-            <div className={`h-12 3xl:h-14 border rounded-md p-2 px-3 flex flex-col justify-between min-w-[160px] 3xl:min-w-[180px] ${theme === Theme.DARK ? 'border-[#37373B]' : DS.colors.light.border}`}>
+            <div className={`h-12 3xl:h-14 ${DS.stroke.button} rounded-md p-2 px-3 flex flex-col justify-between min-w-[160px] 3xl:min-w-[180px] ${theme === Theme.DARK ? 'border-[#37373B]' : DS.colors.light.border}`}>
               <div className="flex items-center justify-between">
                 <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>Status</span>
                 <span className={`${DS.typography.value} uppercase ${isListening ? (isSimulated ? 'text-amber-500' : 'text-emerald-500') : theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>
@@ -253,17 +253,17 @@ const Controls: React.FC<ControlsProps> = ({
             {/* Position Menu Button */}
             <div className="relative" ref={positionMenuRef}>
               <button
-                onClick={() => setShowPositionMenu(!showPositionMenu)}
-                className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded border flex items-center justify-center transition-all ${theme === Theme.DARK
-                  ? `bg-transparent border-[#37373B] text-zinc-400 hover:text-zinc-200 hover:bg-[#37373B1A] ${showPositionMenu ? 'text-emerald-400 border-emerald-900/30 outline outline-1 outline-white/80 -outline-offset-1 bg-[#37373B1A]' : ''}`
-                  : `${showPositionMenu ? 'bg-black border-black text-white' : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary} ${DS.colors.light.textHoverPrimary}`}`
+                disabled
+                className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded ${DS.stroke.button} flex items-center justify-center transition-all opacity-40 cursor-not-allowed ${theme === Theme.DARK
+                  ? `bg-transparent border-[#37373B] text-zinc-400`
+                  : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary}`
                   }`}
-                title="Canvas Position"
+                title="DEBUG: Canvas Position"
               >
                 <Move size={14} className="3xl:w-4 3xl:h-4" />
               </button>
               {showPositionMenu && (
-                <div className={`absolute top-full right-0 mt-2 p-3 border rounded-xl shadow-2xl z-50 w-[180px] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 ${theme === Theme.DARK ? 'bg-[#1C1C1C] border-[#37373B]' : 'bg-[#fafafa] border-[#d4d4d8]'}`}>
+                <div className={`absolute top-full right-0 mt-2 p-3 ${DS.stroke.button} rounded-xl shadow-2xl z-50 w-[180px] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 ${theme === Theme.DARK ? 'bg-[#1C1C1C] border-[#37373B]' : 'bg-[#fafafa] border-[#d4d4d8]'}`}>
 
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center justify-between">
@@ -299,7 +299,7 @@ const Controls: React.FC<ControlsProps> = ({
                         step={1}
                         value={verticalShift}
                         onChange={(e) => onVerticalShiftChange(parseFloat(e.target.value))}
-                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:h-0.5 [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'}`}
+                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:${DS.stroke.slider} [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'}`}
                       />
                     </div>
                   </div>
@@ -310,22 +310,23 @@ const Controls: React.FC<ControlsProps> = ({
             </div>
 
             <button
-              onClick={onTogglePhoneFrame}
-              className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded border flex items-center justify-center transition-all ${theme === Theme.DARK
-                ? `${showPhoneFrame ? 'text-emerald-400 border-emerald-900/30 outline outline-1 outline-white/80 -outline-offset-1' : 'bg-transparent border-[#37373B] text-zinc-400 hover:text-zinc-200 hover:bg-[#37373B1A]'}`
-                : `${showPhoneFrame ? `text-black border-black` : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary} ${DS.colors.light.textHoverPrimary}`}`
+              disabled
+              className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded ${DS.stroke.button} flex items-center justify-center transition-all opacity-40 cursor-not-allowed ${theme === Theme.DARK
+                ? `bg-transparent border-[#37373B] text-zinc-400`
+                : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary}`
                 }`}
+              title="DEBUG: Toggle Phone Frame"
             >
               {showPhoneFrame ? <Eye size={14} className="3xl:w-4 3xl:h-4" /> : <EyeOff size={14} className="3xl:w-4 3xl:h-4" />}
             </button>
-            <button onClick={onOpenFullscreenPreview} className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded border flex items-center justify-center transition-all ${theme === Theme.DARK
+            <button onClick={onOpenFullscreenPreview} className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded ${DS.stroke.button} flex items-center justify-center transition-all ${theme === Theme.DARK
               ? 'bg-transparent border-[#37373B] text-zinc-300 hover:text-white hover:bg-[#37373B1A]'
               : `${DS.colors.light.bgPanel} border-[#d4d4d8] text-zinc-600 hover:bg-zinc-100`
               }`}
               title="Full Mobile Preview">
               <Maximize size={16} className="3xl:w-5 3xl:h-5" />
             </button>
-            <button onClick={onOpenExport} className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded border flex items-center justify-center transition-all ${theme === Theme.DARK
+            <button onClick={onOpenExport} className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded ${DS.stroke.button} flex items-center justify-center transition-all ${theme === Theme.DARK
               ? 'bg-transparent border-[#37373B] text-zinc-400 hover:text-zinc-200 hover:bg-[#37373B1A]'
               : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary} ${DS.colors.light.textHoverPrimary}`
               }`}
@@ -377,7 +378,7 @@ const Controls: React.FC<ControlsProps> = ({
                         value={paperSpeed}
                         onChange={(e) => onPaperSpeedChange(parseFloat(e.target.value))}
                         disabled={!paperMoving}
-                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-runnable-track]:h-0.5 [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : `[&::-webkit-slider-thumb]:bg-[#52525b] [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-[#a1a1aa]`} ${!paperMoving ? 'opacity-30 pointer-events-none' : ''}`}
+                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-runnable-track]:${DS.stroke.slider} [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : `[&::-webkit-slider-thumb]:bg-[#52525b] [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-[#a1a1aa]`} ${!paperMoving ? 'opacity-30 pointer-events-none' : ''}`}
                       />
                     </div>
                   </div>
@@ -418,7 +419,7 @@ const Controls: React.FC<ControlsProps> = ({
                         value={envelopeSpeed}
                         onChange={(e) => onEnvelopeSpeedChange(parseFloat(e.target.value))}
                         disabled={!envelopeMoving}
-                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:h-0.5 [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'} ${!envelopeMoving ? 'opacity-30 pointer-events-none' : ''}`}
+                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:${DS.stroke.slider} [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'} ${!envelopeMoving ? 'opacity-30 pointer-events-none' : ''}`}
                       />
                     </div>
                   </div>
@@ -459,7 +460,7 @@ const Controls: React.FC<ControlsProps> = ({
                         value={sinoSpeed}
                         onChange={(e) => onSinoSpeedChange(parseFloat(e.target.value))}
                         disabled={!sinoMoving}
-                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:h-0.5 [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'} ${!sinoMoving ? 'opacity-30 pointer-events-none' : ''}`}
+                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:${DS.stroke.slider} [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'} ${!sinoMoving ? 'opacity-30 pointer-events-none' : ''}`}
                       />
                     </div>
                   </div>
@@ -500,7 +501,7 @@ const Controls: React.FC<ControlsProps> = ({
                         value={waveSpeed}
                         onChange={(e) => onWaveSpeedChange(parseFloat(e.target.value))}
                         disabled={!waveMoving}
-                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:h-0.5 [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'} ${!waveMoving ? 'opacity-30 pointer-events-none' : ''}`}
+                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:${DS.stroke.slider} [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'} ${!waveMoving ? 'opacity-30 pointer-events-none' : ''}`}
                       />
                     </div>
                   </div>
@@ -510,7 +511,7 @@ const Controls: React.FC<ControlsProps> = ({
 
             {mode === VisualizerMode.BARS && (
               <>
-                <ControlKnobLike label="Waves" value={numWaves} onChange={onNumWavesChange} min={3} max={20} step={1} theme={theme} />
+                <ControlKnobLike label="Waves" value={numWaves} onChange={onNumWavesChange} min={3} max={40} step={1} theme={theme} />
                 <ControlKnobLike label="Width" value={barWidth} onChange={onBarWidthChange} min={2} max={100} step={1} suffix="px" theme={theme} />
                 <ControlKnobLike label="Spacing" value={barSpacing} onChange={onBarSpacingChange} min={2} max={40} step={1} suffix="px" theme={theme} />
                 <ControlKnobLike label="Amplitude" value={barAmplitude} onChange={onBarAmplitudeChange} min={2} max={140} step={1} suffix="px" theme={theme} />
@@ -545,7 +546,7 @@ const Controls: React.FC<ControlsProps> = ({
                         value={barSpeed}
                         onChange={(e) => onBarSpeedChange(parseFloat(e.target.value))}
                         disabled={!barMoving}
-                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:h-0.5 [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'} ${!barMoving ? 'opacity-30 pointer-events-none' : ''}`}
+                        className={`w-full h-1 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-runnable-track]:${DS.stroke.slider} [&::-webkit-slider-runnable-track]:rounded-full ${theme === Theme.DARK ? '[&::-webkit-slider-thumb]:bg-zinc-400 [&::-webkit-slider-thumb]:border-black/50 [&::-webkit-slider-runnable-track]:bg-[#37373B]' : '[&::-webkit-slider-thumb]:bg-zinc-600 [&::-webkit-slider-thumb]:border-white/50 [&::-webkit-slider-runnable-track]:bg-zinc-400'} ${!barMoving ? 'opacity-30 pointer-events-none' : ''}`}
                       />
                     </div>
                   </div>
@@ -571,7 +572,7 @@ const Controls: React.FC<ControlsProps> = ({
                       style={{ backgroundColor: c }}
                     />
                   ))}
-                  <div className={`w-[1px] h-4 mx-1 ${theme === Theme.DARK ? 'bg-[#37373B]' : 'bg-zinc-300'}`}></div>
+                  <div className={`w-[1px] h-4 mx-1 ${getThemeColor(theme, 'divider')}`}></div>
                   <CustomColorPicker color={selectedColor} onChange={onColorChange} theme={theme} />
                 </div>
               </div>

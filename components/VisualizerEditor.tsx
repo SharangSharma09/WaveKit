@@ -8,21 +8,9 @@ import { PRESETS_BY_MODE } from '../data/presets';
 import { Origami, Activity, Spline, Waves, BarChart2, Trash2, Upload } from 'lucide-react';
 import { DS, getThemeColor } from '../styles/designSystem';
 
-// Sorted lexicographically: 4 -> 5 -> 9 -> A -> F2 -> F6 -> FF
-const DARK_MODE_COLORS = ['#4DA3FF', '#5CE1B6', '#9B8CFF', '#A6A6A6', '#F2C94C', '#F65CB1', '#FFFFFF'];
-// Light mode presets as requested
-const LIGHT_MODE_COLORS = ['#4DA3FF', '#5CE1B6', '#9B8CFF', '#F08BC3', '#F2C94C', '#D1D1D1', '#000000'];
+// All color palettes and images are now managed in styls/designSystem.ts
 
-const DEFAULT_PAPER_COLORS = ['#4DA3FF', '#5CE1B6', '#9B8CFF', '#F08BC3', '#F2C94C'];
-
-const PHONE_FRAME_DARK = "https://drive.google.com/thumbnail?id=1YtgNRD5bhsW_JhFOfvscWU0nLmFGkXyd&sz=w2000";
-const PHONE_FRAME_LIGHT = "https://drive.google.com/thumbnail?id=1a4gwZ_bfhzv61f6Q2o3l8oekIGwixWQv&sz=w2000";
-
-const FULL_MOBILE_DARK = "https://drive.google.com/thumbnail?id=1rRH5zxcEyCJOH-jlSjzanpNnzf53625S&sz=w2000";
-const FULL_MOBILE_LIGHT = "https://drive.google.com/thumbnail?id=1sJ_w_UQJDbtQvM6fn1f_d12AxyZqxVcB&sz=w2000";
-
-const FULL_MOBILE_DARK_DEFAULT = "https://drive.google.com/thumbnail?id=1nmdHMYu4v_sOK5Gs44bSjuAnoLbS_Wzi&sz=w2000";
-const FULL_MOBILE_LIGHT_DEFAULT = "https://drive.google.com/thumbnail?id=1Y45DfpXnF2aBxVGDGJtwNfVFHJheFGHa&sz=w2000";
+// Image URLs are now managed in DS.images within styles/designSystem.ts
 
 const DEBUG_MODE = false; // Toggle this to show X/Y/Height sliders and bounding boxes
 
@@ -51,10 +39,10 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Derive the active palette based on theme
-  const activePalette = theme === Theme.DARK ? DARK_MODE_COLORS : LIGHT_MODE_COLORS;
+  const activePalette = theme === Theme.DARK ? DS.palettes.dark : DS.palettes.light;
 
   // Initialize color
-  const [color, setColor] = useState<string>(initialConfig?.color ?? DARK_MODE_COLORS[0]);
+  const [color, setColor] = useState<string>(initialConfig?.color ?? DS.palettes.dark[0]);
 
   // Envelope Config
   const [envelopeAmplitude, setEnvelopeAmplitude] = useState(initialConfig?.envelope?.amplitude ?? 40);
@@ -75,7 +63,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
     return saved !== null ? parseFloat(saved) : 2;
   });
   const [paperStrokeWidth, setPaperStrokeWidth] = useState(initialConfig?.paper?.strokeWidth ?? 6);
-  const [paperWaveColors, setPaperWaveColors] = useState<string[]>(initialConfig?.paper?.colors ?? DEFAULT_PAPER_COLORS);
+  const [paperWaveColors, setPaperWaveColors] = useState<string[]>(initialConfig?.paper?.colors ?? DS.palettes.paper);
   const [paperMoving, setPaperMoving] = useState(initialConfig?.paper?.moving ?? false);
   const [paperSpeed, setPaperSpeed] = useState(initialConfig?.paper?.speed ?? 1);
 
@@ -261,7 +249,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
     setPaperWaveColors(prev => {
       const next = [...prev];
       while (next.length <= index) {
-        next.push(DEFAULT_PAPER_COLORS[next.length % DEFAULT_PAPER_COLORS.length]);
+        next.push(DS.palettes.paper[next.length % DS.palettes.paper.length]);
       }
       next[index] = newColor;
       return next;
@@ -320,7 +308,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
   const toggleTheme = () => {
     setTheme(prev => {
       const newTheme = prev === Theme.DARK ? Theme.LIGHT : Theme.DARK;
-      const newPalette = newTheme === Theme.DARK ? DARK_MODE_COLORS : LIGHT_MODE_COLORS;
+      const newPalette = newTheme === Theme.DARK ? DS.palettes.dark : DS.palettes.light;
       setColor(newPalette[0]);
       return newTheme;
     });
@@ -363,8 +351,8 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
     }
   };
 
-  const currentPhoneFrame = theme === Theme.DARK ? PHONE_FRAME_DARK : PHONE_FRAME_LIGHT;
-  const bgColor = theme === Theme.DARK ? 'bg-[#1C1C1C]' : 'bg-[#e4e4e7]';
+  const currentPhoneFrame = theme === Theme.DARK ? DS.images.phoneFrame.dark : DS.images.phoneFrame.light;
+  const bgColor = getThemeColor(theme, 'bgMain');
 
   return (
     <div className={`relative w-full h-screen ${bgColor} overflow-hidden flex flex-col font-sans select-none`}>
@@ -456,12 +444,12 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
 
           {/* Error Toast */}
           {error && (
-            <div className={`absolute top-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg border shadow-xl z-40 flex items-center gap-3 ${isSimulated ? 'bg-[#2a1c05] border-yellow-800 text-yellow-200' : 'bg-[#2a0505] border-red-800 text-red-200'}`}>
+            <div className={`absolute top-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg ${DS.stroke.button} shadow-xl z-40 flex items-center gap-3 ${isSimulated ? `${DS.state.simulated.bg} ${DS.state.simulated.border} ${DS.state.simulated.text}` : `${DS.state.error.bg} ${DS.state.error.border} ${DS.state.error.text}`}`}>
               <span className="text-xs font-bold uppercase tracking-wide">{error}</span>
               {!isListening && (
                 <button
                   onClick={() => start(true)}
-                  className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded border border-white/10 text-[10px] font-bold uppercase tracking-wider transition-all"
+                  className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded ${DS.stroke.button} border-white/10 text-[10px] font-bold uppercase tracking-wider transition-all"
                 >
                   Retry
                 </button>
@@ -510,7 +498,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                     key={item.mode}
                     type="button"
                     onClick={() => handleModeSelect(item.mode)}
-                    className={`w-[80px] h-[60px] rounded-lg border flex flex-col items-center justify-center gap-2 transition-all ${theme === Theme.DARK
+                    className={`w-[80px] h-[60px] rounded-lg ${DS.stroke.button} flex flex-col items-center justify-center gap-2 transition-all ${theme === Theme.DARK
                       ? mode === item.mode
                         ? `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textPrimary} ${DS.colors.dark.outlineSelected}`
                         : `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textSecondary} ${DS.colors.dark.textHoverPrimary}`
@@ -538,7 +526,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                         key={preset.id}
                         type="button"
                         onClick={() => handlePresetSelect(n)}
-                        className={`aspect-square rounded-lg border flex items-center justify-center ${DS.typography.preset} transition-all ${theme === Theme.DARK
+                        className={`aspect-square rounded-lg ${DS.stroke.button} flex items-center justify-center ${DS.typography.preset} transition-all ${theme === Theme.DARK
                           ? selectedGridIndex === n
                             ? `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textPrimary} ${DS.colors.dark.outlineSelected}`
                             : `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textSecondary} ${DS.colors.dark.textHoverPrimary}`
@@ -650,7 +638,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
 
         {/* Temporary XY Controls */}
         {DEBUG_MODE && (
-          <div className="absolute top-8 left-8 z-[110] bg-zinc-900/90 p-6 rounded-2xl border border-white/10 backdrop-blur-md shadow-2xl flex flex-col gap-4 min-w-[200px]">
+          <div className="absolute top-8 left-8 z-[110] bg-zinc-900/90 p-6 rounded-2xl ${DS.stroke.button} border-white/10 backdrop-blur-md shadow-2xl flex flex-col gap-4 min-w-[200px]">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Debug Controls</span>
               <h3 className="text-white font-medium text-sm">Canvas Position</h3>
@@ -718,8 +706,8 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
               </div>
             </div>
 
-            <div className="pt-2 border-t border-white/5">
-              <p className="text-[9px] text-white/30 italic">Use these to align the visualizer within the phone frame.</p>
+            <div className={`pt-2 border-t ${getThemeColor(theme, 'border')} opacity-20`}>
+              <p className={`text-[9px] ${getThemeColor(theme, 'textSecondary')} italic opacity-60`}>Use these to align the visualizer within the phone frame.</p>
             </div>
           </div>
         )}
@@ -742,8 +730,8 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                 {/* Background Mockup Image */}
                 <img
                   src={theme === Theme.DARK
-                    ? (mockupImageDark || FULL_MOBILE_DARK_DEFAULT)
-                    : (mockupImageLight || FULL_MOBILE_LIGHT_DEFAULT)
+                    ? (mockupImageDark || DS.images.defaultMockup.dark)
+                    : (mockupImageLight || DS.images.defaultMockup.light)
                   }
                   alt="Mockup"
                   className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none z-0"
@@ -760,9 +748,9 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className={`px-6 py-2 rounded-lg border flex items-center gap-2 transition-all ${theme === Theme.DARK
-                      ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300 hover:bg-zinc-700/80 hover:text-white'
-                      : 'bg-white/80 border-zinc-300 text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900'
+                    className={`px-6 py-2 rounded-lg ${DS.stroke.button} flex items-center gap-2 transition-all ${theme === Theme.DARK
+                      ? DS.buttons.dark.floating
+                      : DS.buttons.light.floating
                       } text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm shadow-none`}
                   >
                     <Upload size={14} />
@@ -776,9 +764,9 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                         e.stopPropagation();
                         handleClearImage();
                       }}
-                      className={`px-6 py-2 rounded-lg border flex items-center gap-2 transition-all ${theme === Theme.DARK
-                        ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300 hover:bg-zinc-700/80 hover:text-white'
-                        : 'bg-white/80 border-zinc-300 text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900'
+                      className={`px-6 py-2 rounded-lg ${DS.stroke.button} flex items-center gap-2 transition-all ${theme === Theme.DARK
+                        ? DS.buttons.dark.floating
+                        : DS.buttons.light.floating
                         } text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm shadow-none`}
                     >
                       <Trash2 size={14} />
@@ -870,7 +858,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
 
             {/* Theme-based Mobile Frame PNG */}
             <img
-              src={theme === Theme.DARK ? FULL_MOBILE_DARK : FULL_MOBILE_LIGHT}
+              src={theme === Theme.DARK ? DS.images.fullMobileFrame.dark : DS.images.fullMobileFrame.light}
               alt="Full Mobile Frame"
               className="relative z-10 select-none block max-w-none w-full h-full pointer-events-none"
               referrerPolicy="no-referrer"

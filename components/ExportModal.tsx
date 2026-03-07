@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { X, Copy, Download, Code2, PlayCircle, CheckCircle2, Smartphone } from 'lucide-react';
 import { ExportType, VisualizerConfig } from '../types';
 import { generateThreeJSCode, generateLottiePreset, generateReactNativeCode } from '../utils/exportTemplates';
+import { DS } from '../styles/designSystem';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
 
-      <div className="relative w-full max-w-4xl bg-[#1A1D27] border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className={`relative w-full max-w-4xl ${DS.export.bg} ${DS.stroke.button} ${DS.export.border} rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]`}>
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-white/5">
           <div>
@@ -58,13 +59,13 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
 
         <div className="flex flex-1 overflow-hidden min-h-[400px]">
           {/* Sidebar */}
-          <div className="w-64 border-r border-white/5 p-6 flex flex-col gap-3 bg-black/10">
+          <div className={`w-64 border-r border-white/5 p-6 flex flex-col gap-3 ${DS.export.sidebarBg}`}>
             <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest mb-2 px-4">Formats</span>
             <button
               onClick={() => setExportType(ExportType.JS_THREE)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${exportType === ExportType.JS_THREE
-                  ? 'bg-white text-black shadow-lg shadow-white/10'
-                  : 'text-white/40 hover:bg-white/5 hover:text-white'
+                ? 'bg-white text-black shadow-lg shadow-white/10'
+                : 'text-white/40 hover:bg-white/5 hover:text-white'
                 }`}
             >
               <Code2 size={18} />
@@ -73,8 +74,8 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
             <button
               onClick={() => setExportType(ExportType.LOTTIE)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${exportType === ExportType.LOTTIE
-                  ? 'bg-white text-black shadow-lg shadow-white/10'
-                  : 'text-white/40 hover:bg-white/5 hover:text-white'
+                ? 'bg-white text-black shadow-lg shadow-white/10'
+                : 'text-white/40 hover:bg-white/5 hover:text-white'
                 }`}
             >
               <PlayCircle size={18} />
@@ -83,8 +84,8 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
             <button
               onClick={() => setExportType(ExportType.REACT_NATIVE)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${exportType === ExportType.REACT_NATIVE
-                  ? 'bg-white text-black shadow-lg shadow-white/10'
-                  : 'text-white/40 hover:bg-white/5 hover:text-white'
+                ? 'bg-white text-black shadow-lg shadow-white/10'
+                : 'text-white/40 hover:bg-white/5 hover:text-white'
                 }`}
             >
               <Smartphone size={18} />
@@ -93,7 +94,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
           </div>
 
           {/* Content */}
-          <div className="flex-1 flex flex-col bg-[#0F1118] overflow-hidden">
+          <div className={`flex-1 flex flex-col ${DS.export.contentBg} overflow-hidden`}>
 
             {/* Three.js panel */}
             {exportType === ExportType.JS_THREE && (
@@ -107,7 +108,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
                   </div>
                 </div>
                 <div className="flex-1 p-6 overflow-auto custom-scrollbar">
-                  <pre className="font-mono text-xs leading-relaxed text-blue-300/90 whitespace-pre">
+                  <pre className={`font-mono text-xs leading-relaxed ${DS.export.codeBlue} whitespace-pre`}>
                     {exportedContent}
                   </pre>
                 </div>
@@ -146,7 +147,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
                   </div>
                   <div className="flex flex-col gap-0.5 shrink-0 text-right">
                     <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Scale factor</span>
-                    <span className="font-mono text-sm text-amber-400/80">{scaleFactor}×</span>
+                    <span className={`font-mono text-sm ${DS.export.codeAmber}`}>{scaleFactor}×</span>
                     <span className="text-[10px] text-white/20">{config.containerWidth}px → 390pt</span>
                   </div>
                 </div>
@@ -171,7 +172,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
 
                 {/* Code preview */}
                 <div className="flex-1 p-6 overflow-auto custom-scrollbar">
-                  <pre className="font-mono text-xs leading-relaxed text-emerald-300/80 whitespace-pre">
+                  <pre className={`font-mono text-xs leading-relaxed ${DS.export.codeEmerald} whitespace-pre`}>
                     {exportedContent}
                   </pre>
                 </div>

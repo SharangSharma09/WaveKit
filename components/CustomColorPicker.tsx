@@ -116,7 +116,7 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
     <div className="relative" ref={popoverRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all ${theme === Theme.DARK ? 'border-white/20' : 'border-[#d4d4d8]'
+        className={`w-6 h-6 rounded-full ${DS.stroke.button} flex items-center justify-center transition-all ${theme === Theme.DARK ? 'border-white/20' : DS.colors.light.border
           } ${variant === 'swatch' ? 'shadow-sm' : (theme === Theme.DARK ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10')
           } ${isOpen ? (theme === Theme.DARK ? 'ring-2 ring-white/50' : 'ring-2 ring-black/50') : ''}`}
         style={variant === 'swatch' ? { backgroundColor: color } : {}}
@@ -126,7 +126,7 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
       </button>
 
       {isOpen && (
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-[#1A1D27] border border-white/10 rounded-xl p-3 w-[240px] shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200">
+        <div className={`absolute bottom-10 left-1/2 -translate-x-1/2 ${DS.picker.bg} ${DS.stroke.button} ${DS.picker.border} rounded-xl p-3 w-[240px] shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200`}>
 
           {/* Visual Picker Area */}
           <div className="space-y-3">
@@ -148,7 +148,7 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
               }}
             >
               <div
-                className="absolute w-3 h-3 border border-white rounded-full shadow-sm -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                className="absolute w-3 h-3 ${DS.stroke.button} border-white rounded-full shadow-sm -translate-x-1/2 -translate-y-1/2 pointer-events-none"
                 style={{
                   left: `${hsv.s}%`,
                   top: `${100 - hsv.v}%`,
@@ -170,7 +170,7 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
               }}
             >
               <div
-                className="absolute top-0 w-3 h-3 bg-white rounded-full border border-black/20 shadow-sm -translate-x-1/2 pointer-events-none"
+                className="absolute top-0 w-3 h-3 bg-white rounded-full ${DS.stroke.button} border-black/20 shadow-sm -translate-x-1/2 pointer-events-none"
                 style={{ left: `${(hsv.h / 360) * 100}%` }}
               />
             </div>
@@ -178,7 +178,7 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
             {/* Hex Input & Preview */}
             <div className="flex items-center gap-2 pt-1">
               <div
-                className="w-8 h-8 rounded-lg border border-white/10 shrink-0 shadow-inner"
+                className={`w-8 h-8 rounded-lg ${DS.stroke.button} ${DS.picker.border} shrink-0 shadow-inner`}
                 style={{ backgroundColor: hsvToHex(hsv.h, hsv.s, hsv.v) }}
               />
               <div className="relative flex-1">
@@ -187,8 +187,8 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
                   type="text"
                   value={hexInput}
                   onChange={handleHexChange}
-                  className="w-full bg-black/20 border border-white/10 rounded-lg py-1.5 pl-10 pr-2 text-xs font-mono text-white focus:outline-none focus:border-white/30 uppercase"
-                  placeholder="#FFFFFF"
+                  className={`w-full ${DS.picker.inputBg} ${DS.stroke.button} ${DS.picker.border} rounded-lg py-1.5 pl-10 pr-2 text-xs font-mono ${DS.picker.inputText} focus:outline-none focus:border-white/30 uppercase`}
+                  placeholder={DS.picker.inputPlaceholder}
                   maxLength={7}
                 />
               </div>
@@ -196,7 +196,7 @@ const CustomColorPicker: React.FC<CustomColorPickerProps> = ({ color, onChange, 
           </div>
 
           {/* Arrow Indicator */}
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#1A1D27] border-r border-b border-white/10 rotate-45"></div>
+          <div className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 ${DS.picker.bg} border-r border-b ${DS.picker.border} rotate-45`}></div>
         </div>
       )}
     </div>

@@ -96,10 +96,10 @@ export const PRESETS_BY_MODE: Record<VisualizerMode, Preset[]> = {
     { id: 'wave-2', name: 'Wave 2', videoUrl: '', config: createConfig({ mode: VisualizerMode.WAVE, color: '#5CE1B6', sensitivity: 4.0, wave: { amplitude: -46, noise: 0, moving: false } }) }
   ],
   [VisualizerMode.BARS]: [
-    { id: 'bars-1', name: 'Bars 1', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#4DA3FF', sensitivity: 2.1, bars: { waves: 5, width: 37, spacing: 16, amplitude: 56, height: 50, roundness: 92, moving: false } }) },
+    { id: 'bars-1', name: 'Bars 1', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#000000', sensitivity: 2.1, bars: { waves: 5, width: 25, spacing: 16, amplitude: 56, height: 25, roundness: 92, moving: false } }) },
     { id: 'bars-2', name: 'Bars 2', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#5CE1B6', sensitivity: 1.5, bars: { waves: 15, width: 20, spacing: 15, amplitude: 137, height: 29, roundness: 2, moving: true, speed: 3.0 } }) },
-    { id: 'bars-3', name: 'Bars 3', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#9B8CFF', sensitivity: 1.5, bars: { waves: 15, width: 25, spacing: 20, amplitude: 150, height: 50, roundness: 100, moving: false } }) },
-    { id: 'bars-4', name: 'Bars 4', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#F2C94C', sensitivity: 1.5, bars: { waves: 20, width: 2, spacing: 13, amplitude: 150, height: 50, roundness: 100, moving: false } }) }
+    { id: 'bars-3', name: 'Bars 3', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#4DA3FF', sensitivity: 1.5, bars: { waves: 20, width: 17, spacing: 9, amplitude: 150, height: 17, roundness: 100, moving: false } }) },
+    { id: 'bars-4', name: 'Bars 4', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#F2C94C', sensitivity: 1.5, bars: { waves: 12, width: 4, spacing: 13, amplitude: 150, height: 13, roundness: 100, moving: false } }) }
   ],
   [VisualizerMode.SPRING_BAND]: [] // Handle properly if spring band is added
 };
