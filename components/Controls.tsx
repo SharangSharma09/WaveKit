@@ -387,10 +387,8 @@ const Controls: React.FC<ControlsProps> = ({
 
             {mode === VisualizerMode.ENVELOPE && (
               <>
-                <ControlKnobLike label="Amp" value={envelopeAmplitude} onChange={onEnvelopeAmplitudeChange} min={10} max={160} step={1} theme={theme} />
-                <ControlKnobLike label="Points" value={envelopePoints} onChange={onEnvelopePointsChange} min={2} max={60} step={1} theme={theme} />
-                <ControlKnobLike label="Opacity" value={envelopeFillOpacity} onChange={onEnvelopeFillOpacityChange} min={0} max={100} step={1} suffix="%" theme={theme} />
-                <ControlKnobLike label="Stroke" value={envelopeStrokeWidth} onChange={onEnvelopeStrokeWidthChange} min={0} max={12} step={1} suffix="px" theme={theme} />
+                <ControlKnobLike label="Amplitude" value={envelopeAmplitude} onChange={onEnvelopeAmplitudeChange} min={10} max={160} step={1} suffix="px" theme={theme} />
+                <ControlKnobLike label="Wavelength" value={envelopePoints} onChange={onEnvelopePointsChange} min={2} max={60} step={1} suffix="px" theme={theme} />
 
                 {/* Movement Control Unit for Envelope */}
                 <div className="flex flex-col gap-1 min-w-[120px] flex-1">

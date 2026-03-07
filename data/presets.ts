@@ -16,7 +16,7 @@ export const BASE_CONFIG: VisualizerConfig = {
   color: DARK_MODE_COLORS[0],
   palette: DARK_MODE_COLORS,
   containerWidth: 784,
-  verticalShift: 0,
+  verticalShift: -2,
   envelope: {
     amplitude: 40,
     speed: 1,
@@ -76,29 +76,30 @@ export const createConfig = (overrides: any): VisualizerConfig => {
 
 export const PRESETS_BY_MODE: Record<VisualizerMode, Preset[]> = {
   [VisualizerMode.PAPER_BAND]: [
-    { id: 'paper-1', name: 'Paper 1', videoUrl: '', config: createConfig({ mode: VisualizerMode.PAPER_BAND }) },
-    { id: 'paper-2', name: 'Paper 2', videoUrl: '', config: createConfig({ mode: VisualizerMode.PAPER_BAND, paper: { amount: 20, waves: 4 } }) },
-    { id: 'paper-3', name: 'Paper 3', videoUrl: '', config: createConfig({ mode: VisualizerMode.PAPER_BAND, paper: { amount: 8, waves: 2, speed: 1.5 } }) }
+    { id: 'paper-1', name: 'Paper 1', videoUrl: '', config: createConfig({ mode: VisualizerMode.PAPER_BAND, paper: { waves: 3, points: 10, amount: 12, idle: 2.0, strokeWidth: 6, moving: false, colors: ['#4DA3FF', '#5CE1B6', '#9B8CFF'] } }) },
+    { id: 'paper-2', name: 'Paper 2', videoUrl: '', config: createConfig({ mode: VisualizerMode.PAPER_BAND, paper: { waves: 1, points: 42, amount: 23, idle: -5.7, strokeWidth: 8, moving: true, speed: 2.4, colors: ['#F65CB1'] } }) },
+    { id: 'paper-3', name: 'Paper 3', videoUrl: '', config: createConfig({ mode: VisualizerMode.PAPER_BAND, paper: { waves: 5, points: 42, amount: 23, idle: -5.7, strokeWidth: 8, moving: false, colors: ['#4DA3FF', '#5CE1B6', '#9B8CFF', '#F08BC3', '#F2C94C'] } }) },
+    { id: 'paper-4', name: 'Paper 4', videoUrl: '', config: createConfig({ mode: VisualizerMode.PAPER_BAND, paper: { waves: 3, points: 10, amount: 2, idle: -5.7, strokeWidth: 8, moving: true, speed: 1.4, colors: ['#4DA3FF', '#5CE1B6', '#9B8CFF'] } }) }
   ],
   [VisualizerMode.ENVELOPE]: [
-    { id: 'envelope-1', name: 'Envelope 1', videoUrl: '', config: createConfig({ mode: VisualizerMode.ENVELOPE }) },
-    { id: 'envelope-2', name: 'Envelope 2', videoUrl: '', config: createConfig({ mode: VisualizerMode.ENVELOPE, envelope: { amplitude: 60, speed: 1.5 } }) },
-    { id: 'envelope-3', name: 'Envelope 3', videoUrl: '', config: createConfig({ mode: VisualizerMode.ENVELOPE, envelope: { points: 40, opacity: 40 } }) }
+    { id: 'envelope-1', name: 'Envelope 1', videoUrl: '', config: createConfig({ mode: VisualizerMode.ENVELOPE, sensitivity: 2.9, color: '#9B8CFF', envelope: { amplitude: 40, points: 60, opacity: 0, strokeWidth: 12, moving: false } }) },
+    { id: 'envelope-2', name: 'Envelope 2', videoUrl: '', config: createConfig({ mode: VisualizerMode.ENVELOPE, sensitivity: 1.5, color: '#5CE1B6', envelope: { amplitude: 32, points: 20, opacity: 42, strokeWidth: 8, moving: true, speed: 1.0 } }) },
+    { id: 'envelope-3', name: 'Envelope 3', videoUrl: '', config: createConfig({ mode: VisualizerMode.ENVELOPE, sensitivity: 4.0, color: '#5CE1B6', envelope: { amplitude: 58, points: 49, opacity: 100, strokeWidth: 6, moving: true, speed: 0.8 } }) }
   ],
   [VisualizerMode.SINO]: [
-    { id: 'sino-1', name: 'Sino 1', videoUrl: '', config: createConfig({ mode: VisualizerMode.SINO }) },
-    { id: 'sino-2', name: 'Sino 2', videoUrl: '', config: createConfig({ mode: VisualizerMode.SINO, sino: { amplitude: 80, speed: 2.0 } }) },
-    { id: 'sino-3', name: 'Sino 3', videoUrl: '', config: createConfig({ mode: VisualizerMode.SINO, sino: { wavelength: 150, amplitude: 30 } }) }
+    { id: 'sino-1', name: 'Sino 1', videoUrl: '', config: createConfig({ mode: VisualizerMode.SINO, color: '#4DA3FF', sensitivity: 4.0, sino: { amplitude: 12, wavelength: 168, moving: false, speed: 1.0 } }) },
+    { id: 'sino-2', name: 'Sino 2', videoUrl: '', config: createConfig({ mode: VisualizerMode.SINO, color: '#9B8CFF', sensitivity: 4.0, sino: { amplitude: 53, wavelength: 317, moving: true, speed: 1.1 } }) },
+    { id: 'sino-3', name: 'Sino 3', videoUrl: '', config: createConfig({ mode: VisualizerMode.SINO, color: '#9B8CFF', sensitivity: 4.0, sino: { amplitude: 83, wavelength: 72, moving: true, speed: 0.8 } }) }
   ],
   [VisualizerMode.WAVE]: [
-    { id: 'wave-1', name: 'Wave 1', videoUrl: '', config: createConfig({ mode: VisualizerMode.WAVE }) },
-    { id: 'wave-2', name: 'Wave 2', videoUrl: '', config: createConfig({ mode: VisualizerMode.WAVE, wave: { amplitude: 200, noise: 40 } }) },
-    { id: 'wave-3', name: 'Wave 3', videoUrl: '', config: createConfig({ mode: VisualizerMode.WAVE, wave: { speed: 2.0, noise: 10 } }) }
+    { id: 'wave-1', name: 'Wave 1', videoUrl: '', config: createConfig({ mode: VisualizerMode.WAVE, color: '#4DA3FF', sensitivity: 4.0, wave: { amplitude: 150, noise: 20, moving: true, speed: 0.5 } }) },
+    { id: 'wave-2', name: 'Wave 2', videoUrl: '', config: createConfig({ mode: VisualizerMode.WAVE, color: '#5CE1B6', sensitivity: 4.0, wave: { amplitude: -46, noise: 0, moving: false } }) }
   ],
   [VisualizerMode.BARS]: [
-    { id: 'bars-1', name: 'Bars 1', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS }) },
-    { id: 'bars-2', name: 'Bars 2', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, bars: { waves: 15, width: 20, spacing: 5 } }) },
-    { id: 'bars-3', name: 'Bars 3', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, bars: { amplitude: 150, roundness: 0, speed: 1.5 } }) }
+    { id: 'bars-1', name: 'Bars 1', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#4DA3FF', sensitivity: 2.1, bars: { waves: 5, width: 37, spacing: 16, amplitude: 56, height: 50, roundness: 92, moving: false } }) },
+    { id: 'bars-2', name: 'Bars 2', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#5CE1B6', sensitivity: 1.5, bars: { waves: 15, width: 20, spacing: 15, amplitude: 137, height: 29, roundness: 2, moving: true, speed: 3.0 } }) },
+    { id: 'bars-3', name: 'Bars 3', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#9B8CFF', sensitivity: 1.5, bars: { waves: 15, width: 25, spacing: 20, amplitude: 150, height: 50, roundness: 100, moving: false } }) },
+    { id: 'bars-4', name: 'Bars 4', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#F2C94C', sensitivity: 1.5, bars: { waves: 20, width: 2, spacing: 13, amplitude: 150, height: 50, roundness: 100, moving: false } }) }
   ],
   [VisualizerMode.SPRING_BAND]: [] // Handle properly if spring band is added
 };

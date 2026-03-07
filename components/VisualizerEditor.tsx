@@ -41,7 +41,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
   const [currentRms, setCurrentRms] = useState(0);
   const [showPhoneFrame, setShowPhoneFrame] = useState(true);
   const [containerWidth, setContainerWidth] = useState(initialConfig?.containerWidth ?? 784);
-  const [verticalShift, setVerticalShift] = useState(initialConfig?.verticalShift ?? 0);
+  const [verticalShift, setVerticalShift] = useState(initialConfig?.verticalShift ?? -2);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isFullMobilePreview, setIsFullMobilePreview] = useState(false);
   const [selectedGridIndex, setSelectedGridIndex] = useState(1);
@@ -800,7 +800,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                   style={{
                     width: `${containerWidth}px`,
                     height: `${previewHeight}px`,
-                    transform: `translate(${previewOffsetX}px, ${previewOffsetY}px) scale(0.8)`
+                    transform: `translate(${previewOffsetX}px, ${previewOffsetY}px) scale(0.59)`
                   }}
                 >
                   {/* Masking Container */}
