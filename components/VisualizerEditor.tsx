@@ -391,7 +391,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
               opacity: isReady ? 1 : 0
             }}
           >
-            <div className="relative h-full flex items-start justify-center">
+            <div className="relative h-full flex items-end justify-center">
 
               {/* Visualizer Canvas Layer */}
               <div className="absolute inset-0 flex items-center justify-center z-10">
