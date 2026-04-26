@@ -391,7 +391,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
               opacity: isReady ? 1 : 0
             }}
           >
-            <div className="relative h-full flex items-end justify-center">
+            <div className="relative h-full flex items-start justify-center">
 
               {/* Visualizer Canvas Layer */}
               <div className="absolute inset-0 flex items-center justify-center z-10">
@@ -453,7 +453,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                   alt="Phone Frame"
                   referrerPolicy="no-referrer"
                   onError={() => setImageError(true)}
-                  className="relative h-full w-auto object-contain pointer-events-none z-20 select-none block"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 h-full w-auto object-cover object-top pointer-events-none z-20 select-none block"
                 />
               )}
             </div>
