@@ -29,9 +29,14 @@ const Homepage: React.FC<HomepageProps> = ({ onSelectPreset }) => {
           <div className="flex flex-col">
             {/* Header */}
             <div className="flex flex-col">
+            <div className="flex items-center gap-4">
               <h1 className="font-roboto-condensed text-[5vh] font-bold text-white leading-none tracking-tight text-stroke-sm">
                 Wavekit
               </h1>
+              <span className="px-2 py-0.5 rounded border border-emerald-500/40 text-emerald-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">
+                BETA
+              </span>
+            </div>
               <p className={`font-roboto-mono text-[1.4vh] ${DS.homepage.description} mt-[1.4vh] leading-relaxed max-w-xl`}>
                 Experimental audio-reactive presets. Preview distinct visual styles, customize them in the editor. There are five themes as Wave, Sino, Envelope
               </p>
