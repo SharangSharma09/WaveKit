@@ -163,7 +163,12 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
     setSelectedGridIndex(1);
     const presetsForMode = PRESETS_BY_MODE[newMode];
     if (presetsForMode && presetsForMode.length > 0) {
-      applyConfig(presetsForMode[0].config);
+      const config = { ...presetsForMode[0].config };
+      // Override for Bars Preset 1 to handle theme-specific defaults
+      if (newMode === VisualizerMode.BARS) {
+        config.color = theme === Theme.DARK ? '#FFFFFF' : '#000000';
+      }
+      applyConfig(config);
     }
   };
 
@@ -171,7 +176,12 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
     setSelectedGridIndex(index);
     const presetsForMode = PRESETS_BY_MODE[mode];
     if (presetsForMode && presetsForMode.length >= index) {
-      applyConfig(presetsForMode[index - 1].config);
+      const config = { ...presetsForMode[index - 1].config };
+      // Override for Bars Preset 1 to handle theme-specific defaults
+      if (mode === VisualizerMode.BARS && index === 1) {
+        config.color = theme === Theme.DARK ? '#FFFFFF' : '#000000';
+      }
+      applyConfig(config);
     }
   };
 
@@ -309,7 +319,14 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
     setTheme(prev => {
       const newTheme = prev === Theme.DARK ? Theme.LIGHT : Theme.DARK;
       const newPalette = newTheme === Theme.DARK ? DS.palettes.dark : DS.palettes.light;
-      setColor(newPalette[0]);
+
+      // Special case: Maintain high-contrast default for Bars Preset 1 across theme toggles
+      if (mode === VisualizerMode.BARS && selectedGridIndex === 1) {
+        setColor(newTheme === Theme.DARK ? '#FFFFFF' : '#000000');
+      } else {
+        setColor(newPalette[0]);
+      }
+
       return newTheme;
     });
   };
