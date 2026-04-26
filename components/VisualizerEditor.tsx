@@ -395,6 +395,16 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
 
               {/* Visualizer Canvas Layer */}
               <div className="absolute inset-0 flex items-center justify-center z-10">
+                {/* Background mockup fills the phone screen so empty areas aren't visible */}
+                <img
+                  src={theme === Theme.DARK
+                    ? (mockupImageDark || DS.images.defaultMockup.dark)
+                    : (mockupImageLight || DS.images.defaultMockup.light)
+                  }
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-0"
+                  referrerPolicy="no-referrer"
+                />
                 <div
                   className="relative h-full transition-all duration-300 transform scale-90 origin-center"
                   style={{ width: `${containerWidth}px` }}
@@ -453,7 +463,7 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                   alt="Phone Frame"
                   referrerPolicy="no-referrer"
                   onError={() => setImageError(true)}
-                  className="absolute top-0 left-1/2 -translate-x-1/2 h-full w-auto object-cover object-top pointer-events-none z-20 select-none block"
+                  className="relative h-full w-auto object-contain pointer-events-none z-20 select-none block"
                 />
               )}
             </div>
