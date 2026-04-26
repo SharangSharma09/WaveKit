@@ -219,7 +219,7 @@ const Controls: React.FC<ControlsProps> = ({
             </div>
 
             {/* LCD Info Screen */}
-            <div className={`h-12 3xl:h-14 ${DS.stroke.button} rounded-md p-2 px-3 flex flex-col justify-between min-w-[160px] 3xl:min-w-[180px] ${theme === Theme.DARK ? 'border-[#37373B]' : DS.colors.light.border}`}>
+            <div className={`h-9 3xl:h-11 ${DS.stroke.button} rounded-md p-1.5 px-2.5 flex flex-col justify-between min-w-[120px] 3xl:min-w-[140px] ${theme === Theme.DARK ? 'border-[#37373B]' : DS.colors.light.border}`}>
               <div className="flex items-center justify-between">
                 <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>Status</span>
                 <span className={`${DS.typography.value} uppercase ${isListening ? (isSimulated ? 'text-amber-500' : 'text-emerald-500') : theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>
