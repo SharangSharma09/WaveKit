@@ -400,17 +400,23 @@ const hexToRgbNormalized = (hex: string) => {
 // Works identically on iOS and Android — Skia handles device pixel ratio.
 
 const WEB_CANVAS_HEIGHT = 576; // 640 virtual * 0.9 CSS scale
-const MOBILE_WIDTH = 390;
+const DEFAULT_MOBILE_WIDTH = 390;
 
 const s = (value: number, scale: number): number =>
   parseFloat((value * scale).toFixed(2));
 
-export const generateReactNativeCode = (config: VisualizerConfig, targetHeight?: number): string => {
+export const generateReactNativeCode = (
+  config: VisualizerConfig,
+  targetHeight?: number,
+  targetWidth?: number,   // undefined = full screen (Dimensions.get)
+): string => {
   const webWidth  = config.containerWidth || 784;
   const webHeight = WEB_CANVAS_HEIGHT;
 
-  const scaleX = MOBILE_WIDTH / webWidth;
-  const CANVAS_HEIGHT = targetHeight ?? Math.round(MOBILE_WIDTH * (webHeight / webWidth));
+  // Reference width used for scaleX: either the fixed target or the default 390pt
+  const refWidth  = targetWidth ?? DEFAULT_MOBILE_WIDTH;
+  const scaleX    = refWidth / webWidth;
+  const CANVAS_HEIGHT = targetHeight ?? Math.round(refWidth * (webHeight / webWidth));
   const scaleY = CANVAS_HEIGHT / webHeight;
 
   // ── Scale every pixel-dependent value ─────────────────────────────────────
@@ -496,8 +502,8 @@ export const generateReactNativeCode = (config: VisualizerConfig, targetHeight?:
 //   \`rms\` should be a number from 0.0 → 1.0 representing microphone volume.
 //   Hook it up to expo-av or your existing audio pipeline.
 //
-// CANVAS:  ${MOBILE_WIDTH}pt wide × ${CANVAS_HEIGHT}pt tall
-//   scaleX = ${scaleX.toFixed(4)}  (web width  ${webWidth}px  → ${MOBILE_WIDTH}pt)
+// CANVAS:  ${targetWidth ? `${targetWidth}pt fixed` : 'full screen width'} × ${CANVAS_HEIGHT}pt tall
+//   scaleX = ${scaleX.toFixed(4)}  (web width  ${webWidth}px  → ${refWidth}pt)
 //   scaleY = ${scaleY.toFixed(4)}  (web height ${webHeight}px → ${CANVAS_HEIGHT}pt)
 //
 // Compatible with both iOS and Android — Skia handles device pixel density.
@@ -515,10 +521,13 @@ import {
   Shadow,
 } from '@shopify/react-native-skia';
 
-// ── Scaled config (all pixel values pre-scaled for ${MOBILE_WIDTH}pt width × ${CANVAS_HEIGHT}pt height) ──
+// ── Scaled config (all pixel values pre-scaled for ${refWidth}pt width × ${CANVAS_HEIGHT}pt height) ──
 const CONFIG = ${configComment};
 
-const CANVAS_WIDTH  = Dimensions.get('window').width;
+${targetWidth
+  ? `const CANVAS_WIDTH  = ${targetWidth}; // fixed — change to Dimensions.get('window').width to stretch full screen`
+  : `const CANVAS_WIDTH  = Dimensions.get('window').width; // stretches to fit any device`
+}
 const CANVAS_HEIGHT = ${CANVAS_HEIGHT};
 const CENTER_Y      = CANVAS_HEIGHT / 2 + CANVAS_HEIGHT * (CONFIG.verticalShift / 100);
 
