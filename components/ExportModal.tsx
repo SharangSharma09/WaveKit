@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { X, Copy, Download, Code2, PlayCircle, CheckCircle2, Smartphone } from 'lucide-react';
-import { ExportType, VisualizerConfig } from '../types';
-import { generateThreeJSCode, generateLottiePreset, generateReactNativeCode } from '../utils/exportTemplates';
+import { X, Copy, CheckCircle2 } from 'lucide-react';
+import { VisualizerConfig } from '../types';
+import { generateReactNativeCode } from '../utils/exportTemplates';
 import { DS } from '../styles/designSystem';
 
 // Web canvas reference dimensions (must match VisualizerEditor.tsx)
@@ -40,7 +40,6 @@ interface ExportModalProps {
 }
 
 const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) => {
-  const [exportType, setExportType]     = useState<ExportType>(ExportType.JS_THREE);
   const [copied, setCopied]             = useState(false);
   // Width
   const [widthMode, setWidthMode]       = useState<WidthMode>('full');
@@ -66,27 +65,15 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
   const scaleX = refWidth   / (config.containerWidth || WEB_CANVAS_WIDTH);
   const scaleY = targetHeight / WEB_CANVAS_HEIGHT;
 
-  const exportedContent = useMemo(() => {
-    if (exportType === ExportType.JS_THREE)     return generateThreeJSCode(config);
-    if (exportType === ExportType.LOTTIE)       return generateLottiePreset(config);
-    if (exportType === ExportType.REACT_NATIVE) return generateReactNativeCode(config, targetHeight, targetWidth);
-    return '';
-  }, [exportType, config, targetHeight, targetWidth]);
+  const exportedContent = useMemo(
+    () => generateReactNativeCode(config, targetHeight, targetWidth),
+    [config, targetHeight, targetWidth]
+  );
 
-  const handleAction = () => {
-    if (exportType === ExportType.JS_THREE || exportType === ExportType.REACT_NATIVE) {
-      navigator.clipboard.writeText(exportedContent);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } else {
-      const blob = new Blob([exportedContent], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `visualizer_${config.mode.toLowerCase()}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+  const handleCopy = () => {
+    navigator.clipboard.writeText(exportedContent);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (!isOpen) return null;
@@ -95,7 +82,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
 
-      <div className={`relative w-full max-w-4xl ${DS.export.bg} ${DS.stroke.button} ${DS.export.border} rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]`}>
+      <div className={`relative w-full max-w-3xl ${DS.export.bg} ${DS.stroke.button} ${DS.export.border} rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]`}>
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-white/5">
           <div>
@@ -108,85 +95,11 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
         </div>
 
         <div className="flex flex-1 overflow-hidden min-h-[400px]">
-          {/* Sidebar */}
-          <div className={`w-64 border-r border-white/5 p-6 flex flex-col gap-3 ${DS.export.sidebarBg}`}>
-            <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest mb-2 px-4">Formats</span>
-            <button
-              onClick={() => setExportType(ExportType.JS_THREE)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${exportType === ExportType.JS_THREE
-                ? 'bg-white text-black shadow-lg shadow-white/10'
-                : 'text-white/40 hover:bg-white/5 hover:text-white'
-                }`}
-            >
-              <Code2 size={18} />
-              <span className="font-semibold text-sm">Three.js</span>
-            </button>
-            <button
-              onClick={() => setExportType(ExportType.LOTTIE)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${exportType === ExportType.LOTTIE
-                ? 'bg-white text-black shadow-lg shadow-white/10'
-                : 'text-white/40 hover:bg-white/5 hover:text-white'
-                }`}
-            >
-              <PlayCircle size={18} />
-              <span className="font-semibold text-sm">Lottie JSON</span>
-            </button>
-            <button
-              onClick={() => setExportType(ExportType.REACT_NATIVE)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${exportType === ExportType.REACT_NATIVE
-                ? 'bg-white text-black shadow-lg shadow-white/10'
-                : 'text-white/40 hover:bg-white/5 hover:text-white'
-                }`}
-            >
-              <Smartphone size={18} />
-              <span className="font-semibold text-sm">React Native</span>
-            </button>
-          </div>
-
-          {/* Content */}
+          {/* Single-format content area */}
           <div className={`flex-1 flex flex-col ${DS.export.contentBg} overflow-hidden`}>
 
-            {/* Three.js panel */}
-            {exportType === ExportType.JS_THREE && (
-              <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="px-6 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
-                  <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Code Preview</span>
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 rounded-full bg-red-500/50" />
-                    <div className="w-2 h-2 rounded-full bg-yellow-500/50" />
-                    <div className="w-2 h-2 rounded-full bg-green-500/50" />
-                  </div>
-                </div>
-                <div className="flex-1 p-6 overflow-auto custom-scrollbar">
-                  <pre className={`font-mono text-xs leading-relaxed ${DS.export.codeBlue} whitespace-pre`}>
-                    {exportedContent}
-                  </pre>
-                </div>
-              </div>
-            )}
-
-            {/* Lottie panel */}
-            {exportType === ExportType.LOTTIE && (
-              <div className="flex-1 flex items-center justify-center p-12 text-center">
-                <div className="max-w-xs">
-                  <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-8">
-                    <PlayCircle size={40} className="text-white/20" />
-                  </div>
-                  <h3 className="text-white font-bold text-lg mb-3">Lottie Preset</h3>
-                  <p className="text-sm text-white/40 leading-relaxed mb-8">
-                    Generate a deterministic animation file. Perfect for web and mobile apps using the Lottie player.
-                  </p>
-                  <div className="flex items-center justify-center gap-2 text-[10px] text-green-400/60 font-mono uppercase tracking-widest">
-                    <CheckCircle2 size={12} />
-                    Ready for download
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* React Native panel */}
-            {exportType === ExportType.REACT_NATIVE && (
-              <div className="flex-1 flex flex-col overflow-hidden">
+            {/* React Native + Skia panel */}
+            <div className="flex-1 flex flex-col overflow-hidden">
 
                 {/* ── Canvas size + scale info strip ── */}
                 <div className="px-6 py-4 bg-white/[0.03] border-b border-white/5 flex items-start gap-6 shrink-0">
@@ -358,18 +271,12 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
 
         {/* Footer */}
         <div className="px-8 py-6 border-t border-white/5 flex items-center justify-between bg-black/30">
-          <div className="text-xs text-white/20 font-mono">
-            {exportType === ExportType.JS_THREE     && 'index.html'}
-            {exportType === ExportType.LOTTIE       && 'animation.json'}
-            {exportType === ExportType.REACT_NATIVE && 'WaveKitVisualizer.tsx'}
-          </div>
+          <div className="text-xs text-white/20 font-mono">WaveKitVisualizer.tsx</div>
           <button
-            onClick={handleAction}
+            onClick={handleCopy}
             className="flex items-center gap-2 bg-white text-black px-10 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 shadow-xl shadow-white/5"
           >
-            {exportType === ExportType.LOTTIE ? (
-              <><Download size={18} /> Download Asset</>
-            ) : copied ? (
+            {copied ? (
               <><CheckCircle2 size={18} /> Copied!</>
             ) : (
               <><Copy size={18} /> Copy Code</>

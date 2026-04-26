@@ -220,7 +220,7 @@ const Controls: React.FC<ControlsProps> = ({
 
             {/* LCD Info Screen */}
             <div className={`h-9 3xl:h-11 ${DS.stroke.button} rounded-md p-1.5 px-2.5 flex flex-col justify-center gap-1 min-w-[120px] 3xl:min-w-[140px] ${theme === Theme.DARK ? 'border-[#37373B]' : DS.colors.light.border}`}>
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-start px-0.5">
                 <span className={`${DS.typography.value} uppercase ${isListening ? (isSimulated ? 'text-emerald-400' : 'text-emerald-500') : theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>
                   {isListening ? (isSimulated ? 'Simulating' : 'Live Input') : 'Standby'}
                 </span>
