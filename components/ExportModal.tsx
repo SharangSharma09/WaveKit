@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { X, Copy, CheckCircle2 } from 'lucide-react';
+import { X, Copy, CheckCircle2, Terminal, Rocket, Settings2, Ghost } from 'lucide-react';
 import { VisualizerConfig } from '../types';
 import { generateReactNativeCode } from '../utils/exportTemplates';
 import { DS } from '../styles/designSystem';
@@ -40,7 +40,9 @@ interface ExportModalProps {
 }
 
 const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) => {
+  const [activeTab, setActiveTab]       = useState<'guide' | 'export'>('guide');
   const [copied, setCopied]             = useState(false);
+  const [depCopied, setDepCopied]       = useState(false);
   // Width
   const [widthMode, setWidthMode]       = useState<WidthMode>('full');
   const [customWidth, setCustomWidth]   = useState(DEFAULT_MOBILE_WIDTH);
@@ -76,6 +78,12 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleCopyDep = () => {
+    navigator.clipboard.writeText('npx expo install @shopify/react-native-skia');
+    setDepCopied(true);
+    setTimeout(() => setDepCopied(false), 2000);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -94,28 +102,132 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
           </button>
         </div>
 
-        <div className="flex flex-1 overflow-hidden min-h-[400px]">
-          {/* Single-format content area */}
+        {/* Tab Switcher */}
+        <div className="flex px-8 border-b border-white/5 bg-white/[0.02]">
+          <button
+            onClick={() => setActiveTab('guide')}
+            className={`flex items-center gap-2 px-6 py-4 text-xs font-bold transition-all border-b-2 ${
+              activeTab === 'guide'
+                ? 'border-white text-white'
+                : 'border-transparent text-white/40 hover:text-white/60'
+            }`}
+          >
+            <Rocket size={14} />
+            Quick Start Guide
+          </button>
+          <button
+            onClick={() => setActiveTab('export')}
+            className={`flex items-center gap-2 px-6 py-4 text-xs font-bold transition-all border-b-2 ${
+              activeTab === 'export'
+                ? 'border-white text-white'
+                : 'border-transparent text-white/40 hover:text-white/60'
+            }`}
+          >
+            <Settings2 size={14} />
+            Export Options & Code
+          </button>
+        </div>
+
+        <div className="flex flex-1 overflow-hidden min-h-[440px]">
+          {/* Main content area */}
           <div className={`flex-1 flex flex-col ${DS.export.contentBg} overflow-hidden`}>
 
-            {/* React Native + Skia panel */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            {/* TAB 1: QUICK START GUIDE */}
+            {activeTab === 'guide' && (
+              <div className="flex-1 overflow-auto custom-scrollbar p-8">
+                <div className="max-w-2xl mx-auto space-y-10">
+                  
+                  {/* Step 1: Install */}
+                  <section>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-sm font-bold">1</div>
+                      <h3 className="text-white font-bold">Install Dependencies</h3>
+                    </div>
+                    <p className="text-sm text-white/40 mb-4 ml-11">
+                      WaveKit visualizers use @shopify/react-native-skia for hardware-accelerated 60fps rendering.
+                    </p>
+                    <div className="ml-11 flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl p-4 group">
+                      <Terminal size={14} className="text-white/20" />
+                      <code className="flex-1 font-mono text-[11px] text-emerald-400">
+                        npx expo install @shopify/react-native-skia
+                      </code>
+                      <button 
+                        onClick={handleCopyDep}
+                        className="p-2 hover:bg-white/10 rounded-xl transition-all text-white/40 hover:text-white"
+                      >
+                        {depCopied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                      </button>
+                    </div>
+                  </section>
 
+                  {/* Step 2: Copy File */}
+                  <section>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-sm font-bold">2</div>
+                      <h3 className="text-white font-bold">Create Component File</h3>
+                    </div>
+                    <p className="text-sm text-white/40 mb-3 ml-11">
+                      Create a new file named <code className="text-white/60 bg-white/5 px-1.5 py-0.5 rounded">WaveKitVisualizer.tsx</code> in your project.
+                    </p>
+                    <div className="ml-11 p-4 bg-white/[0.03] border border-dashed border-white/10 rounded-2xl flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/20">
+                        <Ghost size={20} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-[11px] font-bold text-white/60">WaveKitVisualizer.tsx</div>
+                        <div className="text-[10px] text-white/20">Copy the code from the Export tab info this file</div>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Step 3: Implementation */}
+                  <section>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-sm font-bold">3</div>
+                      <h3 className="text-white font-bold">Real-time Implementation</h3>
+                    </div>
+                    <p className="text-sm text-white/40 mb-4 ml-11 leading-relaxed">
+                      Pass a live <code className="text-white/60 bg-white/5 px-1.5 py-0.5 rounded">rms</code> value (0.0 to 1.0) into the component. 
+                      This value usually comes from your audio recording or playback library.
+                    </p>
+                    <div className="ml-11 bg-black/40 border border-white/5 rounded-2xl p-6 overflow-hidden">
+                      <pre className="font-mono text-[10px] leading-relaxed text-white/50">
+{`// Example usage with a mock RMS loop
+import { WaveKitVisualizer } from './WaveKitVisualizer';
+
+export default function MyScreen() {
+  const [rms, setRms] = useState(0);
+
+  // You would typically hook this up to expo-av recording
+  return (
+    <View style={{ flex: 1, backgroundColor: '#000' }}>
+      <WaveKitVisualizer rms={rms} />
+    </View>
+  );
+}`}
+                      </pre>
+                    </div>
+                  </section>
+
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: EXPORT OPTIONS & CODE */}
+            {activeTab === 'export' && (
+              <div className="flex-1 flex flex-col overflow-hidden">
                 {/* ── Canvas size + scale info strip ── */}
                 <div className="px-6 py-4 bg-white/[0.03] border-b border-white/5 flex items-start gap-6 shrink-0">
-                  <div className="flex flex-col gap-1 min-w-0 flex-1">
-                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Dependency</span>
-                    <span className="font-mono text-[11px] text-emerald-400/80 mt-1 select-all">
-                      npx expo install @shopify/react-native-skia
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-0.5 shrink-0 text-right">
-                    <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Canvas size</span>
+                  <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                    <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Target Dimensions</span>
                     <span className={`font-mono text-sm ${DS.export.codeAmber}`}>
                       {widthMode === 'full' ? 'screen' : `${customWidth}pt`} × {targetHeight}pt
                     </span>
-                    <span className="text-[10px] text-white/20">
-                      scaleX&nbsp;{scaleX.toFixed(3)}&nbsp;&nbsp;scaleY&nbsp;{scaleY.toFixed(3)}
+                  </div>
+                  <div className="flex flex-col gap-0.5 shrink-0 text-right">
+                    <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Active Scaling</span>
+                    <span className="text-[10px] text-white/40 font-mono">
+                      X&nbsp;{scaleX.toFixed(3)}&nbsp;&nbsp;Y&nbsp;{scaleY.toFixed(3)}
                     </span>
                   </div>
                 </div>
@@ -124,7 +236,6 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
                 <div className="px-6 pt-4 pb-2 border-b border-white/5 shrink-0 flex flex-col gap-3">
                   <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Canvas Width</span>
                   <div className="flex gap-2">
-                    {/* Full screen card */}
                     <button
                       onClick={() => setWidthMode('full')}
                       className={`flex-1 px-3 py-2.5 rounded-xl border text-left transition-all ${
@@ -136,12 +247,11 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
                       <div className="flex items-center justify-between mb-0.5">
                         <span className="text-[11px] font-bold">Full Screen</span>
                         <span className={`font-mono text-[11px] ${widthMode === 'full' ? DS.export.codeAmber : 'text-white/20'}`}>
-                          Dimensions.get
+                          Auto
                         </span>
                       </div>
-                      <span className="text-[10px] text-white/30 leading-tight block">Stretches edge-to-edge on any device</span>
+                      <span className="text-[10px] text-white/30 leading-tight block">Dimensions.get('window')</span>
                     </button>
-                    {/* Fixed width card */}
                     <button
                       onClick={() => setWidthMode('fixed')}
                       className={`flex-1 px-3 py-2.5 rounded-xl border text-left transition-all ${
@@ -156,7 +266,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
                           {customWidth}pt
                         </span>
                       </div>
-                      <span className="text-[10px] text-white/30 leading-tight block">Use inside a card, drawer, or partial view</span>
+                      <span className="text-[10px] text-white/30 leading-tight block">Custom clip view</span>
                     </button>
                   </div>
 
@@ -181,7 +291,6 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
                         onChange={(e) => setCustomWidth(Math.max(80, Math.min(600, parseInt(e.target.value) || DEFAULT_MOBILE_WIDTH)))}
                         className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-[11px] font-mono text-white text-center focus:outline-none focus:border-white/30"
                       />
-                      <span className="text-[10px] text-white/30 shrink-0">pt</span>
                     </div>
                   )}
                 </div>
@@ -234,32 +343,13 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
                         onChange={(e) => setCustomHeight(Math.max(80, Math.min(600, parseInt(e.target.value) || 200)))}
                         className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-[11px] font-mono text-white text-center focus:outline-none focus:border-white/30"
                       />
-                      <span className="text-[10px] text-white/30 shrink-0">pt</span>
                     </div>
                   )}
                 </div>
 
-                {/* ── Integration steps ── */}
-                <div className="px-6 py-3 border-b border-white/5 flex gap-4 shrink-0 overflow-x-auto">
-                  {[
-                    { n: '1', text: 'Install dep above' },
-                    { n: '2', text: 'Copy → WaveKitVisualizer.tsx' },
-                    { n: '3', text: '<WaveKitVisualizer rms={micRms} />' },
-                    { n: '4', text: 'Pass rms 0.0–1.0 from your mic' },
-                  ].map((step, idx, arr) => (
-                    <div key={step.n} className="flex items-center gap-2 shrink-0">
-                      <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white/40">
-                        {step.n}
-                      </span>
-                      <span className="text-[11px] text-white/40 whitespace-nowrap">{step.text}</span>
-                      {idx < arr.length - 1 && <span className="text-white/10 ml-2">›</span>}
-                    </div>
-                  ))}
-                </div>
-
                 {/* ── Code preview ── */}
                 <div className="flex-1 p-6 overflow-auto custom-scrollbar">
-                  <pre className={`font-mono text-xs leading-relaxed ${DS.export.codeEmerald} whitespace-pre`}>
+                  <pre className={`font-mono text-[11px] leading-relaxed ${DS.export.codeEmerald} whitespace-pre`}>
                     {exportedContent}
                   </pre>
                 </div>
@@ -271,17 +361,31 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
 
         {/* Footer */}
         <div className="px-8 py-6 border-t border-white/5 flex items-center justify-between bg-black/30">
-          <div className="text-xs text-white/20 font-mono">WaveKitVisualizer.tsx</div>
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-2 bg-white text-black px-10 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 shadow-xl shadow-white/5"
-          >
-            {copied ? (
-              <><CheckCircle2 size={18} /> Copied!</>
+          <div className="flex items-center gap-4">
+            <div className="text-xs text-white/20 font-mono">WaveKitVisualizer.tsx</div>
+          </div>
+          
+          <div className="flex gap-3">
+            {activeTab === 'guide' ? (
+              <button
+                onClick={() => setActiveTab('export')}
+                className="flex items-center gap-2 bg-white/10 text-white px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all active:scale-95"
+              >
+                Go to Export <Settings2 size={18} />
+              </button>
             ) : (
-              <><Copy size={18} /> Copy Code</>
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-2 bg-white text-black px-10 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 shadow-xl shadow-white/5"
+              >
+                {copied ? (
+                  <><CheckCircle2 size={18} /> Copied!</>
+                ) : (
+                  <><Copy size={18} /> Copy Code</>
+                )}
+              </button>
             )}
-          </button>
+          </div>
         </div>
       </div>
       <style>{`
