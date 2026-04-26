@@ -326,12 +326,16 @@ const Controls: React.FC<ControlsProps> = ({
               title="Full Mobile Preview">
               <Maximize size={16} className="3xl:w-5 3xl:h-5" />
             </button>
-            <button onClick={onOpenExport} className={`h-9 w-9 3xl:h-10 3xl:w-10 rounded ${DS.stroke.button} flex items-center justify-center transition-all ${theme === Theme.DARK
-              ? 'bg-transparent border-[#37373B] text-zinc-400 hover:text-zinc-200 hover:bg-[#37373B1A]'
-              : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary} ${DS.colors.light.textHoverPrimary}`
-              }`}
-              title="Export">
+            <button
+              onClick={onOpenExport}
+              className={`h-9 px-3 3xl:h-10 3xl:px-4 rounded ${DS.stroke.button} flex items-center justify-center gap-2 transition-all ${theme === Theme.DARK
+                ? 'bg-transparent border-[#37373B] text-zinc-400 hover:text-zinc-200 hover:bg-[#37373B1A]'
+                : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary} ${DS.colors.light.textHoverPrimary}`
+                }`}
+              title="Export"
+            >
               <Code2 size={14} className="3xl:w-4 3xl:h-4" />
+              <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Export</span>
             </button>
           </div>
         </div>

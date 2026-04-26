@@ -383,70 +383,103 @@ const hexToRgbNormalized = (hex: string) => {
   ] : [1, 1, 1, 1];
 };
 
-// ─── React Native Export ───────────────────────────────────────────────────────
+// ─── React Native + Skia Export ───────────────────────────────────────────────
 //
-// Target canvas: 390 logical points wide (full iPhone screen width)
-//                150 logical points tall (horizontal strip component)
+// Web canvas coordinate space:
+//   width  = containerWidth  (default 784px, user-configurable)
+//   height = ~576px          (VIRTUAL_HEIGHT 640 × CSS scale-90)
 //
-// All absolute pixel values from the WaveKit config are scaled by:
-//   scaleFactor = MOBILE_WIDTH / containerWidth
-// so the drawing looks identical on a real device to the mobile preview.
+// Mobile target:
+//   width  = Dimensions.get('window').width  (≈390pt iPhone / dp Android)
+//   height = targetHeight (user-chosen: proportional | compact | custom)
+//
+// Two scale factors:
+//   scaleX = targetWidth  / webWidth   (horizontal values)
+//   scaleY = targetHeight / webHeight  (vertical displacement values)
+//
+// Works identically on iOS and Android — Skia handles device pixel ratio.
 
+const WEB_CANVAS_HEIGHT = 576; // 640 virtual * 0.9 CSS scale
 const MOBILE_WIDTH = 390;
-const MOBILE_HEIGHT = 150;
 
 const s = (value: number, scale: number): number =>
   parseFloat((value * scale).toFixed(2));
 
-export const generateReactNativeCode = (config: VisualizerConfig): string => {
-  const scale = MOBILE_WIDTH / (config.containerWidth || 390);
+export const generateReactNativeCode = (config: VisualizerConfig, targetHeight?: number): string => {
+  const webWidth  = config.containerWidth || 784;
+  const webHeight = WEB_CANVAS_HEIGHT;
 
-  // Pre-scale every pixel-dependent value
+  const scaleX = MOBILE_WIDTH / webWidth;
+  const CANVAS_HEIGHT = targetHeight ?? Math.round(MOBILE_WIDTH * (webHeight / webWidth));
+  const scaleY = CANVAS_HEIGHT / webHeight;
+
+  // ── Scale every pixel-dependent value ─────────────────────────────────────
+  // X-axis: widths, spacings, strokeWidths, wavelengths
+  // Y-axis: amplitudes, vertical displacements, noise
   const scaled = {
     // Wave
-    waveAmplitude: s(config.wave.amplitude, scale),
-    waveNoise: s(config.wave.noise, scale),
+    waveAmplitude:         s(config.wave.amplitude,        scaleY),
+    waveNoise:             s(config.wave.noise,            scaleY),
+    waveLineWidthBase:     s(4,                            scaleX),
+    waveLineWidthRms:      s(4,                            scaleX),  // adds rms * this
+    waveShadowBlur:        s(10,                           scaleX),
     // Envelope
-    envelopeAmplitude: s(config.envelope.amplitude, scale),
-    envelopeStrokeWidth: s(config.envelope.strokeWidth, scale),
+    envelopeAmplitude:     s(config.envelope.amplitude,    scaleY),
+    envelopeRmsRange:      s(120,                          scaleY),  // hardcoded rms*120
+    envelopeStrokeWidth:   s(config.envelope.strokeWidth,  scaleX),
+    envelopeShadowBlur:    s(15,                           scaleX),
     // Sino
-    sinoAmplitude: s(config.sino.amplitude, scale),
-    sinoWavelength: s(config.sino.wavelength, scale),
+    sinoAmplitude:         s(config.sino.amplitude,        scaleY),
+    sinoRmsRange:          s(150,                          scaleY),  // hardcoded rms*150
+    sinoWavelength:        s(config.sino.wavelength,       scaleX),
+    sinoLineWidth:         s(6,                            scaleX),
     // Bars
-    barWidth: s(config.bars.width, scale),
-    barHeight: s(config.bars.height, scale),
-    barSpacing: s(config.bars.spacing, scale),
-    barAmplitude: s(config.bars.amplitude, scale),
-    // Paper
-    paperStrokeWidth: s(config.paper.strokeWidth, scale),
-    paperIdleAmplitude: s(config.paper.idle, scale),
+    barWidth:              s(config.bars.width,            scaleX),
+    barHeight:             s(config.bars.height,           scaleY),
+    barSpacing:            s(config.bars.spacing,          scaleX),
+    barAmplitude:          s(config.bars.amplitude,        scaleY),
+    barBaseHeightQuiet:    s(8,                            scaleY),
+    barBaseHeightLoud:     s(12,                           scaleY),
+    // Paper Band
+    paperStrokeWidth:      s(config.paper.strokeWidth,     scaleX),
+    paperIdleAmplitude:    s(config.paper.idle,            scaleY),
+    paperScale:            s(30,                           scaleY),  // paperScale is always 30 in editor
+    paperShadowBlur:       s(12,                           scaleX),
+    // Spring Band
+    springAmplitude:       s(60,                           scaleY),  // editor default, not in config
+    springLineWidth:       s(4,                            scaleX),
+    // Idle circle
+    idleCircleRadius:      s(50,                           (scaleX + scaleY) / 2),
+    idleCircleStroke:      s(2,                            scaleX),
   };
 
+  // Config block embedded in the generated file
   const configComment = JSON.stringify({
-    mode: config.mode,
-    sensitivity: config.sensitivity,
-    color: config.color,
-    verticalShift: config.verticalShift,
+    mode:               config.mode,
+    sensitivity:        config.sensitivity,
+    color:              config.color,
+    verticalShift:      config.verticalShift,
+    // scaled values
     ...scaled,
     // unscaled (ratios / counts, not pixel values)
-    envelopeSpeed: config.envelope.speed,
-    envelopePoints: config.envelope.points,
-    envelopeFillOpacity: config.envelope.opacity,
-    envelopeMoving: config.envelope.moving,
-    waveSpeed: config.wave.speed,
-    waveMoving: config.wave.moving,
-    sinoSpeed: config.sino.speed,
-    sinoMoving: config.sino.moving,
-    numBars: config.bars.waves,
-    barRoundness: config.bars.roundness,
-    barMoving: config.bars.moving,
-    barSpeed: config.bars.speed,
-    paperAmount: config.paper.amount,
-    paperWaves: config.paper.waves,
-    paperPoints: config.paper.points,
-    paperMoving: config.paper.moving,
-    paperSpeed: config.paper.speed,
-    paperWaveColors: config.paper.colors,
+    envelopeSpeed:      config.envelope.speed,
+    envelopePoints:     config.envelope.points,
+    envelopeFillOpacity:config.envelope.opacity,
+    envelopeMoving:     config.envelope.moving,
+    waveSpeed:          config.wave.speed,
+    waveMoving:         config.wave.moving,
+    sinoSpeed:          config.sino.speed,
+    sinoMoving:         config.sino.moving,
+    numBars:            config.bars.waves,
+    barRoundness:       config.bars.roundness,
+    barMoving:          config.bars.moving,
+    barSpeed:           config.bars.speed,
+    paperAmount:        config.paper.amount,
+    paperWaves:         config.paper.waves,
+    paperPoints:        config.paper.points,
+    paperMoving:        config.paper.moving,
+    paperSpeed:         config.paper.speed,
+    paperWaveColors:    config.paper.colors,
   }, null, 2);
 
   return `// ─────────────────────────────────────────────────────────────────────────────
@@ -454,7 +487,7 @@ export const generateReactNativeCode = (config: VisualizerConfig): string => {
 // Mode: ${config.mode}
 //
 // DEPENDENCIES — install before using:
-//   npx expo install @shopify/react-native-skia expo-av
+//   npx expo install @shopify/react-native-skia
 //
 // USAGE:
 //   import { WaveKitVisualizer } from './WaveKitVisualizer';
@@ -463,11 +496,11 @@ export const generateReactNativeCode = (config: VisualizerConfig): string => {
 //   \`rms\` should be a number from 0.0 → 1.0 representing microphone volume.
 //   Hook it up to expo-av or your existing audio pipeline.
 //
-// CANVAS SIZE: ${MOBILE_WIDTH} × ${MOBILE_HEIGHT} logical points
-//   (scales naturally across all screen sizes via Dimensions.get)
+// CANVAS:  ${MOBILE_WIDTH}pt wide × ${CANVAS_HEIGHT}pt tall
+//   scaleX = ${scaleX.toFixed(4)}  (web width  ${webWidth}px  → ${MOBILE_WIDTH}pt)
+//   scaleY = ${scaleY.toFixed(4)}  (web height ${webHeight}px → ${CANVAS_HEIGHT}pt)
 //
-// SCALE FACTOR APPLIED: ${scale.toFixed(4)}
-//   (original editor containerWidth ${config.containerWidth}px → ${MOBILE_WIDTH}pt mobile target)
+// Compatible with both iOS and Android — Skia handles device pixel density.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useEffect, useRef } from 'react';
@@ -475,47 +508,54 @@ import { Dimensions, View, StyleSheet } from 'react-native';
 import {
   Canvas,
   Path,
+  Circle,
   Skia,
-  useComputedValue,
-  useValue,
-  runTiming,
+  useDerivedValue,
+  useSharedValue,
+  Shadow,
 } from '@shopify/react-native-skia';
 
-// ── Config (all pixel values pre-scaled for ${MOBILE_WIDTH}pt screen width) ──
+// ── Scaled config (all pixel values pre-scaled for ${MOBILE_WIDTH}pt width × ${CANVAS_HEIGHT}pt height) ──
 const CONFIG = ${configComment};
 
 const CANVAS_WIDTH  = Dimensions.get('window').width;
-const CANVAS_HEIGHT = ${MOBILE_HEIGHT};
+const CANVAS_HEIGHT = ${CANVAS_HEIGHT};
 const CENTER_Y      = CANVAS_HEIGHT / 2 + CANVAS_HEIGHT * (CONFIG.verticalShift / 100);
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-function hexToRgb(hex: string) {
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const r = /^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(hex);
   return r
     ? { r: parseInt(r[1], 16), g: parseInt(r[2], 16), b: parseInt(r[3], 16) }
     : { r: 255, g: 255, b: 255 };
 }
 
-function buildWavePath(rms: number, time: number): string {
-  const pts = 80;
+function toSkiaColor(hex: string, alpha = 1): string {
+  const { r, g, b } = hexToRgb(hex);
+  return \`rgba(\${r},\${g},\${b},\${alpha})\`;
+}
+
+// ── Path builders (one per visualizer mode) ──────────────────────────────────
+
+function buildWavePath(rms: number): string {
+  const pts  = 120;
   const step = CANVAS_WIDTH / (pts - 1);
-  const amplitude = CONFIG.waveAmplitude;
-  const noise = CONFIG.waveNoise;
   let d = '';
   for (let i = 0; i < pts; i++) {
-    const x = i * step;
-    const jitter = (Math.random() - 0.5) * noise;
-    const y = CENTER_Y + (rms * CONFIG.sensitivity * amplitude + jitter);
+    const x      = i * step;
+    const noise  = (Math.random() - 0.5);
+    const mag    = CONFIG.waveNoise * 0.3 + rms * Math.abs(CONFIG.waveAmplitude);
+    const y      = CENTER_Y + noise * mag;
     d += i === 0 ? \`M\${x},\${y}\` : \` L\${x},\${y}\`;
   }
   return d;
 }
 
-function buildEnvelopePath(rms: number, phase: number): { upper: string; lower: string } {
+function buildEnvelopePaths(rms: number, phase: number): { upper: string; lower: string } {
   const pts    = CONFIG.envelopePoints;
   const step   = CANVAS_WIDTH / (pts - 1);
   const k      = (Math.PI * 2) / (CANVAS_WIDTH * 0.8);
-  const amp    = CONFIG.envelopeAmplitude + rms * 120 * CONFIG.sensitivity;
+  const amp    = CONFIG.envelopeAmplitude + rms * CONFIG.envelopeRmsRange * CONFIG.sensitivity;
   let upper = '', lower = '';
   for (let i = 0; i < pts; i++) {
     const x   = i * step;
@@ -529,7 +569,7 @@ function buildEnvelopePath(rms: number, phase: number): { upper: string; lower: 
 
 function buildSinoPath(rms: number, phase: number): string {
   const freq = (Math.PI * 2) / CONFIG.sinoWavelength;
-  const amp  = CONFIG.sinoAmplitude + rms * 150 * CONFIG.sensitivity;
+  const amp  = CONFIG.sinoAmplitude + rms * CONFIG.sinoRmsRange * CONFIG.sensitivity;
   const cx   = CANVAS_WIDTH / 2;
   let d = '';
   for (let x = 0; x <= CANVAS_WIDTH; x += 2) {
@@ -542,20 +582,88 @@ function buildSinoPath(rms: number, phase: number): string {
 }
 
 function buildBarsPath(rms: number): string {
-  const count   = CONFIG.numBars;
-  const bw      = CONFIG.barWidth;
-  const bs      = CONFIG.barSpacing;
-  const totalW  = count * bw + (count - 1) * bs;
-  const startX  = (CANVAS_WIDTH - totalW) / 2;
+  const count  = CONFIG.numBars;
+  const bw     = CONFIG.barWidth;
+  const bs     = CONFIG.barSpacing;
+  const totalW = count * bw + (count - 1) * bs;
+  const startX = (CANVAS_WIDTH - totalW) / 2;
+  const mid    = (count - 1) / 2;
+  const isQuiet = rms < 0.005;
+  const baseH   = isQuiet ? CONFIG.barBaseHeightQuiet : CONFIG.barBaseHeightLoud;
+  const roundPx = (CONFIG.barRoundness / 100) * (bw / 2);
   let d = '';
   for (let i = 0; i < count; i++) {
-    const h = Math.max(8, 12 + rms * CONFIG.sensitivity * CONFIG.barAmplitude * 2);
-    const x = startX + i * (bw + bs);
-    const y = CENTER_Y - h / 2;
-    d += \`M\${x},\${y} L\${x + bw},\${y} L\${x + bw},\${y + h} L\${x},\${y + h} Z \`;
+    const dist     = Math.abs(i - mid);
+    const dampened = isQuiet ? 0 : Math.max(0, Math.min(1, (rms - 0.005) * 20));
+    const val      = dampened * (dist / (count / 2));
+    const h        = baseH + (val + (isQuiet ? 0 : rms)) * CONFIG.barAmplitude * 2;
+    const x        = startX + i * (bw + bs);
+    const y        = CENTER_Y - h / 2;
+    const r        = Math.min(roundPx, h / 2, bw / 2);
+    // Rounded rect via arc segments
+    d += \`M\${x + r},\${y}\`;
+    d += \` L\${x + bw - r},\${y}\`;
+    d += \` Q\${x + bw},\${y} \${x + bw},\${y + r}\`;
+    d += \` L\${x + bw},\${y + h - r}\`;
+    d += \` Q\${x + bw},\${y + h} \${x + bw - r},\${y + h}\`;
+    d += \` L\${x + r},\${y + h}\`;
+    d += \` Q\${x},\${y + h} \${x},\${y + h - r}\`;
+    d += \` L\${x},\${y + r}\`;
+    d += \` Q\${x},\${y} \${x + r},\${y} Z \`;
   }
   return d;
 }
+
+function buildPaperBandPath(rms: number, phase: number, waveIndex: number): string {
+  const amount      = CONFIG.paperAmount;
+  const pointsCount = CONFIG.paperPoints;
+  const step        = CANVAS_WIDTH / (pointsCount + 1);
+  const wavePhase   = waveIndex * (Math.PI / 2);
+  const intensity   = rms * CONFIG.sensitivity;
+  const voiceMod    = intensity * CONFIG.paperScale * 2.5;
+  const magnitude   = voiceMod + CONFIG.paperIdleAmplitude;
+  const points: { x: number; y: number }[] = [{ x: 0, y: CENTER_Y }];
+  for (let i = 1; i <= pointsCount; i++) {
+    const x            = i * step;
+    const breathing    = Math.sin(Date.now() * 0.001 + i * 0.1) * 0.2;
+    const indivPhase   = wavePhase + i * 0.3 + breathing + phase;
+    const yOffset      = -magnitude * Math.sin(indivPhase);
+    points.push({ x, y: CENTER_Y + yOffset });
+  }
+  points.push({ x: CANVAS_WIDTH, y: CENTER_Y });
+
+  let d = \`M\${points[0].x},\${points[0].y}\`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i];
+    const p1 = points[i + 1];
+    const xc = (p0.x + p1.x) / 2;
+    const yc = (p0.y + p1.y) / 2;
+    d += \` Q\${p0.x},\${p0.y} \${xc},\${yc}\`;
+  }
+  const last = points[points.length - 1];
+  d += \` L\${last.x},\${last.y}\`;
+  return d;
+}
+
+function buildSpringBandPath(rms: number, strandIndex: number, strandPos: number): string {
+  const frequency  = (Math.PI * 3) / CANVAS_WIDTH;
+  const phaseOffset = (2 * Math.PI * strandIndex) / 3; // assume 3 strands
+  let d = '';
+  for (let x = 0; x <= CANVAS_WIDTH; x += 4) {
+    const env = Math.sin((x / CANVAS_WIDTH) * Math.PI);
+    const y   = CENTER_Y + Math.sin(x * frequency + phaseOffset) * strandPos * env;
+    d += x === 0 ? \`M\${x},\${y}\` : \` L\${x},\${y}\`;
+  }
+  return d;
+}
+
+// Spring physics state (module-level so it persists across renders)
+const springState = [
+  { pos: 0, vel: 0 },
+  { pos: 0, vel: 0 },
+  { pos: 0, vel: 0 },
+];
+const SPRING_COLORS = ['#40B9F8', '#8E8EFF', '#D48EFF'];
 
 // ── Component ─────────────────────────────────────────────────────────────────
 interface WaveKitVisualizerProps {
@@ -564,55 +672,208 @@ interface WaveKitVisualizerProps {
 }
 
 export function WaveKitVisualizer({ rms }: WaveKitVisualizerProps) {
-  const phase   = useValue(0);
-  const frameId = useRef<number | null>(null);
+  const phase   = useSharedValue(0);
   const tick    = useRef(0);
+  const frameId = useRef<number | null>(null);
 
-  // Animate phase each frame for moving modes
   useEffect(() => {
     const loop = () => {
       tick.current += 1;
-      phase.current += (CONFIG.envelopeSpeed ?? 1) * 0.04;
+      phase.value += (CONFIG.envelopeSpeed ?? 1) * 0.04;
       frameId.current = requestAnimationFrame(loop);
     };
     frameId.current = requestAnimationFrame(loop);
     return () => { if (frameId.current) cancelAnimationFrame(frameId.current); };
   }, []);
 
-  const path = useComputedValue(() => {
-    const t = Date.now() * 0.001;
-    const p = phase.current;
-    let svgPath = '';
+  const mainColor  = CONFIG.color;
+  const { r, g, b } = hexToRgb(mainColor);
+  const glowColor    = \`rgba(\${r},\${g},\${b},0.5)\`;
 
-    if (CONFIG.mode === 'WAVE') {
-      svgPath = buildWavePath(rms, t);
-    } else if (CONFIG.mode === 'ENVELOPE') {
-      const { upper } = buildEnvelopePath(rms, p);
-      svgPath = upper;
-    } else if (CONFIG.mode === 'SINO') {
-      svgPath = buildSinoPath(rms, p);
-    } else {
-      // BARS, PAPER_BAND, SPRING_BAND — fallback to bars representation
-      svgPath = buildBarsPath(rms);
-    }
-
-    return Skia.Path.MakeFromSVGString(svgPath) ?? Skia.Path.Make();
+  // ── Wave ──────────────────────────────────────────────────────────────────
+  const wavePath = useDerivedValue(() => {
+    const svgStr = buildWavePath(rms);
+    return Skia.Path.MakeFromSVGString(svgStr) ?? Skia.Path.Make();
   }, [phase]);
 
-  const { r, g, b } = hexToRgb(CONFIG.color);
-  const strokeColor = \`rgb(\${r},\${g},\${b})\`;
+  const waveStrokeWidth = CONFIG.waveLineWidthBase + rms * CONFIG.waveLineWidthRms;
+
+  // ── Envelope ──────────────────────────────────────────────────────────────
+  const envelopeUpperPath = useDerivedValue(() => {
+    const { upper } = buildEnvelopePaths(rms, phase.value);
+    return Skia.Path.MakeFromSVGString(upper) ?? Skia.Path.Make();
+  }, [phase]);
+
+  const envelopeLowerPath = useDerivedValue(() => {
+    const { lower } = buildEnvelopePaths(rms, phase.value);
+    return Skia.Path.MakeFromSVGString(lower) ?? Skia.Path.Make();
+  }, [phase]);
+
+  const fillOpacity = (CONFIG.envelopeFillOpacity ?? 20) / 100;
+
+  // ── Sino ──────────────────────────────────────────────────────────────────
+  const sinoPath = useDerivedValue(() => {
+    const svgStr = buildSinoPath(rms, phase.value);
+    return Skia.Path.MakeFromSVGString(svgStr) ?? Skia.Path.Make();
+  }, [phase]);
+
+  // ── Bars ──────────────────────────────────────────────────────────────────
+  const barsPath = useDerivedValue(() => {
+    const svgStr = buildBarsPath(rms);
+    return Skia.Path.MakeFromSVGString(svgStr) ?? Skia.Path.Make();
+  }, [phase]);
+
+  // ── Paper Band ────────────────────────────────────────────────────────────
+  const paperPaths = Array.from({ length: CONFIG.paperWaves ?? 3 }, (_, wi) =>
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useDerivedValue(() => {
+      const svgStr = buildPaperBandPath(rms, phase.value, wi);
+      return Skia.Path.MakeFromSVGString(svgStr) ?? Skia.Path.Make();
+    }, [phase])
+  );
+
+  // ── Spring Band ───────────────────────────────────────────────────────────
+  const stiffness = 0.15;
+  const damping   = 0.82;
+  const targetDisp = CONFIG.springAmplitude * 0.4 + rms * CONFIG.springAmplitude * 1.6;
+  springState.forEach((strand, i) => {
+    const indivTarget = targetDisp * (1.0 + i * 0.05);
+    const force = (indivTarget - strand.pos) * stiffness;
+    strand.vel  = (strand.vel + force) * damping;
+    strand.pos += strand.vel;
+  });
+
+  const springPaths = springState.map((strand, wi) =>
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useDerivedValue(() => {
+      const svgStr = buildSpringBandPath(rms, wi, strand.pos);
+      return Skia.Path.MakeFromSVGString(svgStr) ?? Skia.Path.Make();
+    }, [phase])
+  );
+
+  const mode = CONFIG.mode;
 
   return (
     <View style={styles.container}>
       <Canvas style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}>
-        <Path
-          path={path}
-          color={strokeColor}
-          style="stroke"
-          strokeWidth={CONFIG.envelopeStrokeWidth ?? 4}
-          strokeCap="round"
-          strokeJoin="round"
-        />
+
+        {/* ── WAVE ────────────────────────────────────────────── */}
+        {mode === 'WAVE' && (
+          <Path
+            path={wavePath}
+            color={mainColor}
+            style="stroke"
+            strokeWidth={waveStrokeWidth}
+            strokeCap="round"
+            strokeJoin="round"
+          >
+            <Shadow dx={0} dy={0} blur={CONFIG.waveShadowBlur} color={glowColor} />
+          </Path>
+        )}
+
+        {/* ── ENVELOPE ────────────────────────────────────────── */}
+        {mode === 'ENVELOPE' && (
+          <>
+            {/* Fill shape (upper + lower joined) */}
+            <Path
+              path={envelopeUpperPath}
+              color={toSkiaColor(mainColor, fillOpacity)}
+              style="fill"
+            />
+            {/* Upper stroke */}
+            <Path
+              path={envelopeUpperPath}
+              color={mainColor}
+              style="stroke"
+              strokeWidth={CONFIG.envelopeStrokeWidth}
+              strokeCap="round"
+              strokeJoin="round"
+            >
+              <Shadow dx={0} dy={0} blur={CONFIG.envelopeShadowBlur} color={glowColor} />
+            </Path>
+            {/* Lower stroke */}
+            <Path
+              path={envelopeLowerPath}
+              color={mainColor}
+              style="stroke"
+              strokeWidth={CONFIG.envelopeStrokeWidth}
+              strokeCap="round"
+              strokeJoin="round"
+            >
+              <Shadow dx={0} dy={0} blur={CONFIG.envelopeShadowBlur} color={glowColor} />
+            </Path>
+          </>
+        )}
+
+        {/* ── SINO ────────────────────────────────────────────── */}
+        {mode === 'SINO' && (
+          <Path
+            path={sinoPath}
+            color={mainColor}
+            style="stroke"
+            strokeWidth={CONFIG.sinoLineWidth}
+            strokeCap="round"
+            strokeJoin="round"
+          />
+        )}
+
+        {/* ── BARS ────────────────────────────────────────────── */}
+        {mode === 'BARS' && (
+          <Path
+            path={barsPath}
+            color={mainColor}
+            style="fill"
+          />
+        )}
+
+        {/* ── PAPER BAND ──────────────────────────────────────── */}
+        {mode === 'PAPER_BAND' &&
+          paperPaths.map((p, wi) => {
+            const waveColor = (CONFIG.paperWaveColors ?? [])[wi] ?? mainColor;
+            const { r: wr, g: wg, b: wb } = hexToRgb(waveColor);
+            return (
+              <Path
+                key={wi}
+                path={p}
+                color={waveColor}
+                style="stroke"
+                strokeWidth={CONFIG.paperStrokeWidth}
+                strokeCap="round"
+                strokeJoin="round"
+              >
+                <Shadow dx={0} dy={0} blur={CONFIG.paperShadowBlur} color={\`rgba(\${wr},\${wg},\${wb},0.6)\`} />
+              </Path>
+            );
+          })
+        }
+
+        {/* ── SPRING BAND ─────────────────────────────────────── */}
+        {mode === 'SPRING_BAND' &&
+          springPaths.map((p, wi) => (
+            <Path
+              key={wi}
+              path={p}
+              color={SPRING_COLORS[wi % SPRING_COLORS.length]}
+              style="stroke"
+              strokeWidth={CONFIG.springLineWidth}
+              strokeCap="round"
+              strokeJoin="round"
+            />
+          ))
+        }
+
+        {/* ── IDLE circle (no audio) — remove if always listening ─ */}
+        {!rms && (
+          <Circle
+            cx={CANVAS_WIDTH / 2}
+            cy={CENTER_Y}
+            r={CONFIG.idleCircleRadius}
+            color={toSkiaColor(mainColor, 0.5)}
+            style="stroke"
+            strokeWidth={CONFIG.idleCircleStroke}
+          />
+        )}
+
       </Canvas>
     </View>
   );
@@ -621,7 +882,7 @@ export function WaveKitVisualizer({ rms }: WaveKitVisualizerProps) {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: ${MOBILE_HEIGHT},
+    height: ${CANVAS_HEIGHT},
     overflow: 'hidden',
   },
 });

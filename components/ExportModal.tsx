@@ -4,6 +4,34 @@ import { ExportType, VisualizerConfig } from '../types';
 import { generateThreeJSCode, generateLottiePreset, generateReactNativeCode } from '../utils/exportTemplates';
 import { DS } from '../styles/designSystem';
 
+// Web canvas reference dimensions (must match VisualizerEditor.tsx)
+const WEB_CANVAS_WIDTH  = 784; // default containerWidth
+const WEB_CANVAS_HEIGHT = 576; // VIRTUAL_HEIGHT 640 * CSS scale-90
+const MOBILE_WIDTH      = 390;
+
+type HeightMode = 'proportional' | 'compact' | 'custom';
+
+const HEIGHT_OPTIONS: { id: HeightMode; label: string; description: string; getValue: (cw: number) => number }[] = [
+  {
+    id: 'proportional',
+    label: 'Proportional',
+    description: 'Preserves aspect ratio — identical look to web preview',
+    getValue: (cw) => Math.round(MOBILE_WIDTH * (WEB_CANVAS_HEIGHT / (cw || WEB_CANVAS_WIDTH))),
+  },
+  {
+    id: 'compact',
+    label: 'Compact Strip',
+    description: '150pt — fits under a music player bar',
+    getValue: () => 150,
+  },
+  {
+    id: 'custom',
+    label: 'Custom',
+    description: 'Enter your own height in points',
+    getValue: () => 200,
+  },
+];
+
 interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -11,17 +39,26 @@ interface ExportModalProps {
 }
 
 const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) => {
-  const [exportType, setExportType] = useState<ExportType>(ExportType.JS_THREE);
-  const [copied, setCopied] = useState(false);
+  const [exportType, setExportType]     = useState<ExportType>(ExportType.JS_THREE);
+  const [copied, setCopied]             = useState(false);
+  const [heightMode, setHeightMode]     = useState<HeightMode>('proportional');
+  const [customHeight, setCustomHeight] = useState(200);
+
+  const targetHeight = useMemo(() => {
+    if (heightMode === 'proportional') return HEIGHT_OPTIONS[0].getValue(config.containerWidth);
+    if (heightMode === 'compact')      return 150;
+    return customHeight;
+  }, [heightMode, customHeight, config.containerWidth]);
+
+  const scaleX = (MOBILE_WIDTH / (config.containerWidth || WEB_CANVAS_WIDTH));
+  const scaleY = (targetHeight / WEB_CANVAS_HEIGHT);
 
   const exportedContent = useMemo(() => {
-    if (exportType === ExportType.JS_THREE) return generateThreeJSCode(config);
-    if (exportType === ExportType.LOTTIE) return generateLottiePreset(config);
-    if (exportType === ExportType.REACT_NATIVE) return generateReactNativeCode(config);
+    if (exportType === ExportType.JS_THREE)     return generateThreeJSCode(config);
+    if (exportType === ExportType.LOTTIE)       return generateLottiePreset(config);
+    if (exportType === ExportType.REACT_NATIVE) return generateReactNativeCode(config, targetHeight);
     return '';
-  }, [exportType, config]);
-
-  const scaleFactor = (390 / (config.containerWidth || 390)).toFixed(4);
+  }, [exportType, config, targetHeight]);
 
   const handleAction = () => {
     if (exportType === ExportType.JS_THREE || exportType === ExportType.REACT_NATIVE) {
@@ -137,25 +174,78 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
             {/* React Native panel */}
             {exportType === ExportType.REACT_NATIVE && (
               <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Info strip */}
+
+                {/* ── Canvas size + scale info strip ── */}
                 <div className="px-6 py-4 bg-white/[0.03] border-b border-white/5 flex items-start gap-6 shrink-0">
-                  <div className="flex flex-col gap-1 min-w-0">
-                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Integration</span>
-                    <span className="font-mono text-[11px] text-emerald-400/80 mt-1">
-                      npx expo install @shopify/react-native-skia expo-av
+                  <div className="flex flex-col gap-1 min-w-0 flex-1">
+                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Dependency</span>
+                    <span className="font-mono text-[11px] text-emerald-400/80 mt-1 select-all">
+                      npx expo install @shopify/react-native-skia
                     </span>
                   </div>
                   <div className="flex flex-col gap-0.5 shrink-0 text-right">
-                    <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Scale factor</span>
-                    <span className={`font-mono text-sm ${DS.export.codeAmber}`}>{scaleFactor}×</span>
-                    <span className="text-[10px] text-white/20">{config.containerWidth}px → 390pt</span>
+                    <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Canvas size</span>
+                    <span className={`font-mono text-sm ${DS.export.codeAmber}`}>{MOBILE_WIDTH} × {targetHeight}pt</span>
+                    <span className="text-[10px] text-white/20">
+                      scaleX&nbsp;{scaleX.toFixed(3)}&nbsp;&nbsp;scaleY&nbsp;{scaleY.toFixed(3)}
+                    </span>
                   </div>
                 </div>
 
-                {/* Step callouts */}
+                {/* ── Canvas height picker ── */}
+                <div className="px-6 py-4 border-b border-white/5 shrink-0 flex flex-col gap-3">
+                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Canvas Height</span>
+                  <div className="flex gap-2">
+                    {HEIGHT_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setHeightMode(opt.id)}
+                        className={`flex-1 px-3 py-2.5 rounded-xl border text-left transition-all ${heightMode === opt.id
+                          ? 'bg-white/10 border-white/30 text-white'
+                          : 'bg-white/[0.02] border-white/5 text-white/40 hover:bg-white/5 hover:text-white/70'
+                          }`}
+                      >
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-[11px] font-bold">{opt.label}</span>
+                          <span className={`font-mono text-[11px] ${heightMode === opt.id ? DS.export.codeAmber : 'text-white/20'}`}>
+                            {opt.id === 'custom' ? `${customHeight}pt` : `${opt.getValue(config.containerWidth)}pt`}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-white/30 leading-tight block">{opt.description}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Custom height input */}
+                  {heightMode === 'custom' && (
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-[10px] text-white/40 font-mono uppercase tracking-wider shrink-0">Height (pt)</span>
+                      <input
+                        type="range"
+                        min={80}
+                        max={600}
+                        step={10}
+                        value={customHeight}
+                        onChange={(e) => setCustomHeight(parseInt(e.target.value))}
+                        className="flex-1 h-[2px] accent-white cursor-pointer"
+                      />
+                      <input
+                        type="number"
+                        min={80}
+                        max={600}
+                        value={customHeight}
+                        onChange={(e) => setCustomHeight(Math.max(80, Math.min(600, parseInt(e.target.value) || 200)))}
+                        className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-[11px] font-mono text-white text-center focus:outline-none focus:border-white/30"
+                      />
+                      <span className="text-[10px] text-white/30 shrink-0">pt</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* ── Integration steps ── */}
                 <div className="px-6 py-3 border-b border-white/5 flex gap-4 shrink-0 overflow-x-auto">
                   {[
-                    { n: '1', text: 'Install deps above' },
+                    { n: '1', text: 'Install dep above' },
                     { n: '2', text: 'Copy → WaveKitVisualizer.tsx' },
                     { n: '3', text: '<WaveKitVisualizer rms={micRms} />' },
                     { n: '4', text: 'Pass rms 0.0–1.0 from your mic' },
@@ -170,7 +260,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
                   ))}
                 </div>
 
-                {/* Code preview */}
+                {/* ── Code preview ── */}
                 <div className="flex-1 p-6 overflow-auto custom-scrollbar">
                   <pre className={`font-mono text-xs leading-relaxed ${DS.export.codeEmerald} whitespace-pre`}>
                     {exportedContent}
@@ -185,8 +275,8 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, config }) =>
         {/* Footer */}
         <div className="px-8 py-6 border-t border-white/5 flex items-center justify-between bg-black/30">
           <div className="text-xs text-white/20 font-mono">
-            {exportType === ExportType.JS_THREE && 'index.html'}
-            {exportType === ExportType.LOTTIE && 'animation.json'}
+            {exportType === ExportType.JS_THREE     && 'index.html'}
+            {exportType === ExportType.LOTTIE       && 'animation.json'}
             {exportType === ExportType.REACT_NATIVE && 'WaveKitVisualizer.tsx'}
           </div>
           <button
