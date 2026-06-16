@@ -48,7 +48,7 @@ uniform bool  u_forward_only;
 out vec4 fragColor;
 
 // ---- Colors (hardcoded for icy/fluid feel) --------------------------------
-const vec3 COLOR_TOP   = vec3(0.8706, 0.9608, 0.9961); // #DEF5FE (Light Blue-White)
+const vec3 COLOR_TOP   = vec3(0.6941, 0.9176, 1.0000); // #B1EAFF (New Light Blue-White)
 const vec3 COLOR_MID_T = vec3(0.9843, 0.9843, 0.9843); // #FBFBFB (White)
 const vec3 COLOR_MID_B = vec3(0.3412, 0.8000, 1.0000); // #57CCFF (Light Blue)
 const vec3 COLOR_BOT   = vec3(0.3686, 0.5608, 1.0000); // #5E8FFF (Periwinkle Blue)
@@ -165,13 +165,13 @@ void main() {
   float spread = u_blur * 0.15;
   
   // Transition 1: Bottom -> Lower Middle
-  float blend1 = smoothstep(0.35 - spread, 0.40 + spread, f);
+  float blend1 = smoothstep(0.20 - spread, 0.35 + spread, f);
   
   // Transition 2: Lower Middle -> Upper Middle
-  float blend2 = smoothstep(0.45 - spread, 0.50 + spread, f);
+  float blend2 = smoothstep(0.40 - spread, 0.55 + spread, f);
   
   // Transition 3: Upper Middle -> Top
-  float blend3 = smoothstep(0.55 - spread, 0.60 + spread, f);
+  float blend3 = smoothstep(0.60 - spread, 0.75 + spread, f);
 
   // ---- Color mapping ------------------------------------------------------
   vec3 col = mix(COLOR_BOT, COLOR_MID_B, blend1);
