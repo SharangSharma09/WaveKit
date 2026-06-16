@@ -21,19 +21,77 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
     }
   };
 
+  type OrbPreset = {
+    sensitivity: number;
+    orbNoise: number;
+    orbBlur: number;
+    orbSpeed: number;
+    orbNoiseScale: number;
+    orbWarpStrength: number;
+    orbVerticalBias: number;
+    orbSaturation: number;
+    orbContrast: number;
+    orbForwardOnly: boolean;
+  };
+
+  const PRESETS: OrbPreset[] = [
+    {
+      // Preset 1: Previous Default
+      sensitivity: 2.0,
+      orbNoise: 0.8,
+      orbBlur: 0.8,
+      orbSpeed: 0.2,
+      orbNoiseScale: 0.6,
+      orbWarpStrength: 1.0,
+      orbVerticalBias: 0.6,
+      orbSaturation: 1.0,
+      orbContrast: 1.0,
+      orbForwardOnly: false,
+    },
+    {
+      // Preset 2: Screenshot Settings
+      sensitivity: 2.0,
+      orbNoise: 0.8,
+      orbBlur: 0.6,
+      orbSpeed: 0.4,
+      orbNoiseScale: 0.6,
+      orbWarpStrength: 0.6,
+      orbVerticalBias: 0.6,
+      orbSaturation: 1.5,
+      orbContrast: 1.0,
+      orbForwardOnly: true,
+    }
+  ];
+
   // ---- Core orb state (wired to Controls) ----------------------------------
-  const [sensitivity, setSensitivity]         = useState(2.0);
-  const [orbNoise, setOrbNoise]               = useState(0.8);
-  const [orbBlur, setOrbBlur]                 = useState(0.8);
-  const [orbSpeed, setOrbSpeed]               = useState(0.2);
-  const [orbNoiseScale, setOrbNoiseScale]     = useState(0.6);
-  const [orbWarpStrength, setOrbWarpStrength] = useState(1.0);
-  const [orbVerticalBias, setOrbVerticalBias] = useState(0.6);
-  const [orbSaturation, setOrbSaturation]     = useState(1.0);
-  const [orbContrast, setOrbContrast]         = useState(1.0);
-  const [orbForwardOnly, setOrbForwardOnly]   = useState(false);
+  const [sensitivity, setSensitivity]         = useState(PRESETS[0].sensitivity);
+  const [orbNoise, setOrbNoise]               = useState(PRESETS[0].orbNoise);
+  const [orbBlur, setOrbBlur]                 = useState(PRESETS[0].orbBlur);
+  const [orbSpeed, setOrbSpeed]               = useState(PRESETS[0].orbSpeed);
+  const [orbNoiseScale, setOrbNoiseScale]     = useState(PRESETS[0].orbNoiseScale);
+  const [orbWarpStrength, setOrbWarpStrength] = useState(PRESETS[0].orbWarpStrength);
+  const [orbVerticalBias, setOrbVerticalBias] = useState(PRESETS[0].orbVerticalBias);
+  const [orbSaturation, setOrbSaturation]     = useState(PRESETS[0].orbSaturation);
+  const [orbContrast, setOrbContrast]         = useState(PRESETS[0].orbContrast);
+  const [orbForwardOnly, setOrbForwardOnly]   = useState(PRESETS[0].orbForwardOnly);
   const [theme] = useState<Theme>(Theme.DARK);
   const [currentRms, setCurrentRms]           = useState(0);
+  const [selectedPreset, setSelectedPreset]   = useState(1);
+
+  const handlePresetSelect = (index: number) => {
+    setSelectedPreset(index);
+    const p = PRESETS[index - 1];
+    setSensitivity(p.sensitivity);
+    setOrbNoise(p.orbNoise);
+    setOrbBlur(p.orbBlur);
+    setOrbSpeed(p.orbSpeed);
+    setOrbNoiseScale(p.orbNoiseScale);
+    setOrbWarpStrength(p.orbWarpStrength);
+    setOrbVerticalBias(p.orbVerticalBias);
+    setOrbSaturation(p.orbSaturation);
+    setOrbContrast(p.orbContrast);
+    setOrbForwardOnly(p.orbForwardOnly);
+  };
 
   // ---- Stub state for Controls props that don't affect the orb -------------
   // (Controls.tsx is reused as-is; irrelevant sliders simply have no effect)
@@ -133,7 +191,34 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
         
         {/* ---- Left Column: Controls (4 cols, offset by 2) -------------------- */}
         <div className="col-start-3 col-span-4 flex justify-center py-6 px-4 overflow-y-auto custom-scrollbar">
-          <div className="w-full">
+          <div className="w-full flex flex-col gap-8">
+            {/* Preset ButtonGrid */}
+            <div className="w-full flex flex-col gap-3">
+              <span className={`${DS.typography.sectionHeader} ${theme === Theme.DARK ? DS.colors.dark.textPrimary : DS.colors.light.textPrimary}`}>Saved Presets</span>
+              <div className="grid grid-cols-5 gap-2 w-full">
+                {PRESETS.map((_, index) => {
+                  const n = index + 1;
+                  return (
+                    <button
+                      key={`preset-${n}`}
+                      type="button"
+                      onClick={() => handlePresetSelect(n)}
+                      className={`aspect-square rounded-lg ${DS.stroke.button} flex items-center justify-center ${DS.typography.preset} transition-all ${theme === Theme.DARK
+                        ? selectedPreset === n
+                          ? `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textPrimary} ${DS.colors.dark.outlineSelected}`
+                          : `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textSecondary} ${DS.colors.dark.textHoverPrimary}`
+                        : selectedPreset === n
+                          ? `${DS.colors.light.bgPanel} border-zinc-600 ${DS.colors.light.textPrimary} ${DS.colors.light.outlineSelected}`
+                          : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary} ${DS.colors.light.textHoverPrimary}`
+                        }`}
+                    >
+                      {n}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <Controls
               isListening={isListening}
               isSimulated={isSimulated}
