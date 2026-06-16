@@ -15,7 +15,8 @@ export enum VisualizerMode {
   SINO = 'SINO',
   SPRING_BAND = 'SPRING_BAND',
   ENVELOPE = 'ENVELOPE',
-  PAPER_BAND = 'PAPER_BAND'
+  PAPER_BAND = 'PAPER_BAND',
+  ORB = 'ORB'
 }
 
 export enum ExportType {

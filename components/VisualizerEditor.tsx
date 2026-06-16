@@ -17,9 +17,10 @@ const DEBUG_MODE = false; // Toggle this to show X/Y/Height sliders and bounding
 interface VisualizerEditorProps {
   initialConfig?: VisualizerConfig;
   onBack: () => void;
+  onNavigateToOrb?: () => void;
 }
 
-const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBack }) => {
+const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBack, onNavigateToOrb }) => {
   const { isListening, isSimulated, start, stop, getMetrics, error } = useAudioAnalyzer();
 
   // -- Initialization from props or defaults --
@@ -528,8 +529,25 @@ const VisualizerEditor: React.FC<VisualizerEditorProps> = ({ initialConfig, onBa
                     <span className={DS.typography.modeLabel}>{item.label}</span>
                   </button>
                 ))}
-                {/* Empty placeholder for 2x3 alignment if needed */}
-                <div className="w-[80px] h-[60px]" />
+                {/* ORB — navigates to dedicated page */}
+                {onNavigateToOrb && (
+                  <button
+                    type="button"
+                    onClick={onNavigateToOrb}
+                    className={`w-[80px] h-[60px] rounded-lg ${DS.stroke.button} flex flex-col items-center justify-center gap-2 transition-all ${
+                      theme === Theme.DARK
+                        ? `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textSecondary} ${DS.colors.dark.textHoverPrimary}`
+                        : `${DS.colors.light.bgPanel} ${DS.colors.light.border} ${DS.colors.light.textSecondary} ${DS.colors.light.textHoverPrimary}`
+                    }`}
+                  >
+                    {/* Simple circle icon for ORB */}
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="2" />
+                      <circle cx="6" cy="6" r="1.5" fill="currentColor" opacity="0.5" />
+                    </svg>
+                    <span className={DS.typography.modeLabel}>ORB</span>
+                  </button>
+                )}
               </div>
 
               {/* Preset ButtonGrid */}

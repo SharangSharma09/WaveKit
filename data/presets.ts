@@ -101,7 +101,8 @@ export const PRESETS_BY_MODE: Record<VisualizerMode, Preset[]> = {
     { id: 'bars-3', name: 'Bars 3', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#4DA3FF', sensitivity: 1.5, bars: { waves: 20, width: 17, spacing: 9, amplitude: 150, height: 17, roundness: 100, moving: false } }) },
     { id: 'bars-4', name: 'Bars 4', videoUrl: '', config: createConfig({ mode: VisualizerMode.BARS, color: '#F2C94C', sensitivity: 1.5, bars: { waves: 12, width: 4, spacing: 13, amplitude: 150, height: 13, roundness: 100, moving: false } }) }
   ],
-  [VisualizerMode.SPRING_BAND]: [] // Handle properly if spring band is added
+  [VisualizerMode.SPRING_BAND]: [], // Handle properly if spring band is added
+  [VisualizerMode.ORB]: []          // Orb has its own dedicated page, no presets here
 };
 
 export const PRESETS = Object.values(PRESETS_BY_MODE).flat();

@@ -8,6 +8,7 @@ export interface ControlsProps {
   isListening: boolean;
   isSimulated: boolean;
   onToggleListening: () => void;
+  onToggleSimulation?: () => void;
   mode: VisualizerMode;
   onModeChange: (mode: VisualizerMode) => void;
   theme: Theme;
@@ -91,6 +92,20 @@ export interface ControlsProps {
   onOpenExport: () => void;
   onOpenFullscreenPreview: () => void;
   title?: string;
+  orbNoise?: number;
+  onOrbNoiseChange?: (val: number) => void;
+  orbBlur?: number;
+  onOrbBlurChange?: (val: number) => void;
+  orbSpeed?: number;
+  onOrbSpeedChange?: (val: number) => void;
+  orbNoiseScale?: number;
+  onOrbNoiseScaleChange?: (val: number) => void;
+  orbWarpStrength?: number;
+  onOrbWarpStrengthChange?: (val: number) => void;
+  orbVerticalBias?: number;
+  onOrbVerticalBiasChange?: (val: number) => void;
+  orbForwardOnly?: boolean;
+  onOrbForwardOnlyChange?: (val: boolean) => void;
 }
 
 const ControlKnobLike = ({ label, value, onChange, min, max, step, suffix = '', theme }: any) => {
@@ -137,7 +152,7 @@ const SlidingToggle = ({ isOn, onToggle, theme }: { isOn: boolean; onToggle: () 
 };
 
 const Controls: React.FC<ControlsProps> = ({
-  isListening, isSimulated, onToggleListening, mode, onModeChange, theme, onThemeToggle, sensitivity, onSensitivityChange,
+  isListening, isSimulated, onToggleListening, onToggleSimulation, mode, onModeChange, theme, onThemeToggle, sensitivity, onSensitivityChange,
   verticalShift, onVerticalShiftChange, containerWidth, onContainerWidthChange, rms,
   colors, selectedColor, onColorChange, numWaves, onNumWavesChange, barWidth, onBarWidthChange,
   barHeight = 50, onBarHeightChange = (_val: number) => { },
@@ -166,7 +181,21 @@ const Controls: React.FC<ControlsProps> = ({
   paperMoving = false, onPaperMovingChange = (_val: boolean) => { },
   paperSpeed = 2, onPaperSpeedChange = (_val: number) => { },
   showPhoneFrame, onTogglePhoneFrame, onOpenExport, onOpenFullscreenPreview,
-  title
+  title,
+  orbNoise = 0.25,
+  onOrbNoiseChange = (_val: number) => { },
+  orbBlur = 0.2,
+  onOrbBlurChange = (_val: number) => { },
+  orbSpeed = 0.045,
+  onOrbSpeedChange = (_val: number) => { },
+  orbNoiseScale = 2.6,
+  onOrbNoiseScaleChange = (_val: number) => { },
+  orbWarpStrength = 0.55,
+  onOrbWarpStrengthChange = (_val: number) => { },
+  orbVerticalBias = 0.18,
+  onOrbVerticalBiasChange = (_val: number) => { },
+  orbForwardOnly = false,
+  onOrbForwardOnlyChange = (_val: boolean) => { }
 }) => {
   const [showPositionMenu, setShowPositionMenu] = React.useState(false);
   const positionMenuRef = React.useRef<HTMLDivElement>(null);
@@ -204,18 +233,39 @@ const Controls: React.FC<ControlsProps> = ({
         <div className={`${theme === Theme.DARK ? 'bg-[#1C1C1C] border-[#37373B]' : `${DS.colors.light.bgPanel} ${DS.colors.light.border}`} p-3 3xl:p-4 flex items-center justify-between border-b relative z-10 shrink-0`}>
           <div className="flex items-center gap-4 3xl:gap-6">
             {/* Main Power/Mic Button */}
-            <div className="relative">
-              <button
-                onClick={onToggleListening}
-                className={`w-12 h-12 3xl:w-14 3xl:h-14 rounded-full flex items-center justify-center ${DS.stroke.button} active:scale-95 transition-all duration-100 ${theme === Theme.DARK
-                  ? (isListening ? 'shadow-[0_4px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] bg-[#1c1c1f] border-[#37373B]' : 'shadow-[0_4px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] bg-transparent border-[#37373B] hover:bg-[#37373B1A]')
-                  : (isListening ? `bg-transparent border-[#d4d4d8] shadow-sm opacity-90` : `${DS.colors.light.bgMain} border-[#d4d4d8] hover:opacity-80`)
-                  }`}
-              >
-                <Power size={18} className={`3xl:w-5 3xl:h-5 ${isListening ? 'text-[#ef4444] drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]' : theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`} />
-              </button>
-              {/* LED Indicator Dot */}
-              <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${DS.stroke.button} ${theme === Theme.DARK ? 'border-[#18181b]' : 'border-zinc-100'} ${isListening ? (isSimulated ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.8)]' : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.8)]') : theme === Theme.DARK ? 'bg-zinc-800' : 'bg-zinc-300'}`}></div>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <button
+                  onClick={onToggleListening}
+                  className={`w-12 h-12 3xl:w-14 3xl:h-14 rounded-full flex items-center justify-center ${DS.stroke.button} active:scale-95 transition-all duration-100 ${theme === Theme.DARK
+                    ? (isListening ? 'shadow-[0_4px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] bg-[#1c1c1f] border-[#37373B]' : 'shadow-[0_4px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] bg-transparent border-[#37373B] hover:bg-[#37373B1A]')
+                    : (isListening ? `bg-transparent border-[#d4d4d8] shadow-sm opacity-90` : `${DS.colors.light.bgMain} border-[#d4d4d8] hover:opacity-80`)
+                    }`}
+                  title={isListening ? "Stop Microphone" : "Start Microphone"}
+                >
+                  <Power size={18} className={`3xl:w-5 3xl:h-5 ${isListening ? 'text-[#ef4444] drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]' : theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`} />
+                </button>
+                {/* LED Indicator Dot */}
+                <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${DS.stroke.button} ${theme === Theme.DARK ? 'border-[#18181b]' : 'border-zinc-100'} ${isListening && !isSimulated ? 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.8)]' : theme === Theme.DARK ? 'bg-zinc-800' : 'bg-zinc-300'}`}></div>
+              </div>
+
+              {/* Simulator Toggle Button */}
+              {onToggleSimulation && (
+                <div className="relative">
+                  <button
+                    onClick={onToggleSimulation}
+                    className={`w-12 h-12 3xl:w-14 3xl:h-14 rounded-full flex items-center justify-center ${DS.stroke.button} active:scale-95 transition-all duration-100 ${theme === Theme.DARK
+                      ? (isSimulated ? 'shadow-[0_4px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] bg-[#1c1c1f] border-[#37373B]' : 'shadow-[0_4px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] bg-transparent border-[#37373B] hover:bg-[#37373B1A]')
+                      : (isSimulated ? `bg-transparent border-[#d4d4d8] shadow-sm opacity-90` : `${DS.colors.light.bgMain} border-[#d4d4d8] hover:opacity-80`)
+                      }`}
+                    title={isSimulated ? "Stop Simulator" : "Start Voice Simulator"}
+                  >
+                    <Activity size={18} className={`3xl:w-5 3xl:h-5 ${isSimulated ? 'text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]' : theme === Theme.DARK ? 'text-zinc-500' : 'text-zinc-600'}`} />
+                  </button>
+                  {/* LED Indicator Dot for Simulator */}
+                  <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${DS.stroke.button} ${theme === Theme.DARK ? 'border-[#18181b]' : 'border-zinc-100'} ${isSimulated ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.8)]' : theme === Theme.DARK ? 'bg-zinc-800' : 'bg-zinc-300'}`}></div>
+                </div>
+              )}
             </div>
 
             {/* LCD Info Screen */}
@@ -552,6 +602,57 @@ const Controls: React.FC<ControlsProps> = ({
                       />
                     </div>
                   </div>
+                </div>
+              </>
+            )}
+
+            {mode === VisualizerMode.ORB && (
+              <>
+                <ControlKnobLike
+                  label="Noise Level"
+                  value={orbNoise}
+                  onChange={onOrbNoiseChange}
+                  min={0.0} max={1.0} step={0.05}
+                  theme={theme}
+                />
+                <ControlKnobLike
+                  label="Haze Level"
+                  value={orbBlur}
+                  onChange={onOrbBlurChange}
+                  min={0.0} max={1.0} step={0.05}
+                  theme={theme}
+                />
+                <ControlKnobLike
+                  label="Speed"
+                  value={orbSpeed}
+                  onChange={onOrbSpeedChange}
+                  min={0.01} max={1.0} step={0.01}
+                  theme={theme}
+                />
+                <ControlKnobLike
+                  label="Surface Scale"
+                  value={orbNoiseScale}
+                  onChange={onOrbNoiseScaleChange}
+                  min={0.5} max={6.0} step={0.1}
+                  theme={theme}
+                />
+                <ControlKnobLike
+                  label="Warp Fold"
+                  value={orbWarpStrength}
+                  onChange={onOrbWarpStrengthChange}
+                  min={0.0} max={2.0} step={0.05}
+                  theme={theme}
+                />
+                <ControlKnobLike
+                  label="Vertical Bias"
+                  value={orbVerticalBias}
+                  onChange={onOrbVerticalBiasChange}
+                  min={0.0} max={1.0} step={0.05}
+                  theme={theme}
+                />
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                  <span className={`${DS.typography.label} ${theme === Theme.DARK ? DS.colors.dark.textSecondary : DS.colors.light.textSecondary}`}>Continuous Flow (Forward Only)</span>
+                  <SlidingToggle isOn={orbForwardOnly} onToggle={() => onOrbForwardOnlyChange(!orbForwardOnly)} theme={theme} />
                 </div>
               </>
             )}
