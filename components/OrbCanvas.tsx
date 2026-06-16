@@ -10,6 +10,8 @@ interface OrbCanvasProps {
   orbNoiseScale: number;    // surface fbm spatial frequency
   orbWarpStrength: number;  // domain warp displacement strength
   orbVerticalBias: number;  // blue-down / white-up separation
+  orbSaturation?: number;
+  orbContrast?: number;
   orbForwardOnly?: boolean;
   size?: number;            // canvas size in px, default 500
 }
@@ -38,17 +40,22 @@ uniform float u_speed;          // base field evolution rate
 uniform float u_noise_scale;    // surface fbm spatial frequency
 uniform float u_warp_strength;  // domain warp displacement strength
 uniform float u_vertical_bias;  // blue-down / white-up separation
+uniform float u_saturation;     // color saturation multiplier
+uniform float u_contrast;       // color contrast multiplier
 uniform float u_audio_acc;
 uniform bool  u_forward_only;
 
 out vec4 fragColor;
 
-// ---- Fixed values (not user-adjustable) --------------------------------
-const vec3  COLOR_WHITE = vec3(0.8706, 0.9608, 0.9961); // #DEF5FE
-const vec3  COLOR_BLUE  = vec3(0.3686, 0.5608, 1.0000); // #5E8FFF
+// ---- Colors (hardcoded for icy/fluid feel) --------------------------------
+const vec3 COLOR_TOP   = vec3(0.8706, 0.9608, 0.9961); // #DEF5FE (Light Blue-White)
+const vec3 COLOR_MID_T = vec3(0.9843, 0.9843, 0.9843); // #FBFBFB (White)
+const vec3 COLOR_MID_B = vec3(0.3412, 0.8000, 1.0000); // #57CCFF (Light Blue)
+const vec3 COLOR_BOT   = vec3(0.3686, 0.5608, 1.0000); // #5E8FFF (Periwinkle Blue)
+
 const float WARP_SCALE  = 2.1;   // warp field spatial frequency
-const float GRAD_LOW    = 0.36;  // smoothstep low edge  (t → blue)
-const float GRAD_HIGH   = 0.64;  // smoothstep high edge (t → white)
+const float GRAD_LOW    = 0.36;  // Used as the base boundary mapping
+const float GRAD_HIGH   = 0.64;  // Used as the base boundary mapping
 
 // ---- Value noise ---------------------------------------------------------
 float hash(vec3 p) {
@@ -112,11 +119,12 @@ void main() {
   // Reduced to 0.44 so the feathered edge fits inside the 0.5 canvas bounds
   float orbRadius = 0.44;
 
-  // ---- Edge alpha — controlled by u_blur for soft/hazy rim ----------------
-  // When u_blur is 0, the edge is sharp (tiny feathering for anti-aliasing only)
-  float featherLo = orbRadius * (1.0 - u_blur * 0.20 - 0.005);
-  float featherHi = orbRadius * (1.0 + u_blur * 0.10 + 0.005);
-  float alpha = 1.0 - smoothstep(featherLo, featherHi, r);
+  // ---- Crisp Circular Mask ------------------------------------------------
+  // We use a fixed radius (slightly inside orbRadius) with a tiny 0.005 feather 
+  // for smooth 1-pixel anti-aliasing. This keeps the physical boundary of the 
+  // orb perfectly sharp, even when the haze inside is cranked up to maximum.
+  float maskRadius = orbRadius * 0.98;
+  float alpha = 1.0 - smoothstep(maskRadius - 0.005, maskRadius + 0.005, r);
   if (alpha <= 0.0) discard;
 
   // ---- Coordinate space for the surface (uv scaled to match previous feel) -
@@ -153,17 +161,36 @@ void main() {
   }
 
   // ---- Wide, feathered gradient boundary ----------------------------------
-  // u_blur widens the smoothstep range → softer, hazier boundary
-  float spread  = u_blur * 0.18;
-  float lo = GRAD_LOW  - spread;
-  float hi = GRAD_HIGH + spread;
-  float blend = smoothstep(lo, hi, f);
+  // We use u_blur to widen the smoothsteps, causing softer transitions.
+  float spread = u_blur * 0.15;
+  
+  // Transition 1: Bottom -> Lower Middle
+  float blend1 = smoothstep(0.35 - spread, 0.40 + spread, f);
+  
+  // Transition 2: Lower Middle -> Upper Middle
+  float blend2 = smoothstep(0.45 - spread, 0.50 + spread, f);
+  
+  // Transition 3: Upper Middle -> Top
+  float blend3 = smoothstep(0.55 - spread, 0.60 + spread, f);
 
-  // ---- Color mapping: blue (low f) → icy white (high f) ------------------
-  vec3 col = mix(COLOR_BLUE, COLOR_WHITE, blend);
+  // ---- Color mapping ------------------------------------------------------
+  vec3 col = mix(COLOR_BOT, COLOR_MID_B, blend1);
+  col = mix(col, COLOR_MID_T, blend2);
+  col = mix(col, COLOR_TOP, blend3);
 
-  // ---- Haze overlay: as u_blur rises, fog toward icy white ---------------
-  col = mix(col, COLOR_WHITE, u_blur * 0.22);
+  // ---- Haze overlay: as u_blur rises, fog toward the upper middle color -
+  col = mix(col, COLOR_MID_T, u_blur * 0.22);
+  
+  // ---- Saturation Adjustment ----------------------------------------------
+  // Calculate luminance (sRGB)
+  float luminance = dot(col, vec3(0.2126, 0.7152, 0.0722));
+  vec3 greyScaleColor = vec3(luminance);
+  col = mix(greyScaleColor, col, u_saturation);
+
+  // ---- Contrast Adjustment ------------------------------------------------
+  // Standard contrast formula: (color - 0.5) * contrast + 0.5
+  col = (col - 0.5) * u_contrast + 0.5;
+
   col = clamp(col, 0.0, 1.0);
 
   // ---- Final output -------------------------------------------------------
@@ -216,6 +243,8 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
   orbNoiseScale,
   orbWarpStrength,
   orbVerticalBias,
+  orbSaturation = 1.0,
+  orbContrast = 1.0,
   orbForwardOnly = false,
   size = 500,
 }) => {
@@ -231,6 +260,8 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
   const noiseScaleRef    = useRef<number>(orbNoiseScale);
   const warpStrengthRef  = useRef<number>(orbWarpStrength);
   const verticalBiasRef  = useRef<number>(orbVerticalBias);
+  const saturationRef    = useRef<number>(orbSaturation);
+  const contrastRef      = useRef<number>(orbContrast);
 
   useEffect(() => { noiseRef.current        = orbNoise;        }, [orbNoise]);
   useEffect(() => { blurRef.current         = orbBlur;         }, [orbBlur]);
@@ -238,6 +269,8 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
   useEffect(() => { noiseScaleRef.current   = orbNoiseScale;   }, [orbNoiseScale]);
   useEffect(() => { warpStrengthRef.current = orbWarpStrength; }, [orbWarpStrength]);
   useEffect(() => { verticalBiasRef.current = orbVerticalBias; }, [orbVerticalBias]);
+  useEffect(() => { saturationRef.current   = orbSaturation;   }, [orbSaturation]);
+  useEffect(() => { contrastRef.current     = orbContrast;     }, [orbContrast]);
 
   // Uniform locations (cached after program link)
   const uResolution    = useRef<WebGLUniformLocation | null>(null);
@@ -250,6 +283,8 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
   const uNoiseScale    = useRef<WebGLUniformLocation | null>(null);
   const uWarpStrength  = useRef<WebGLUniformLocation | null>(null);
   const uVerticalBias  = useRef<WebGLUniformLocation | null>(null);
+  const uSaturation    = useRef<WebGLUniformLocation | null>(null);
+  const uContrast      = useRef<WebGLUniformLocation | null>(null);
   const uAudioAcc      = useRef<WebGLUniformLocation | null>(null);
   const uForwardOnly   = useRef<WebGLUniformLocation | null>(null);
 
@@ -290,6 +325,8 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
     uNoiseScale.current   = gl.getUniformLocation(program, 'u_noise_scale');
     uWarpStrength.current = gl.getUniformLocation(program, 'u_warp_strength');
     uVerticalBias.current = gl.getUniformLocation(program, 'u_vertical_bias');
+    uSaturation.current   = gl.getUniformLocation(program, 'u_saturation');
+    uContrast.current     = gl.getUniformLocation(program, 'u_contrast');
     uAudioAcc.current     = gl.getUniformLocation(program, 'u_audio_acc');
     uForwardOnly.current  = gl.getUniformLocation(program, 'u_forward_only');
 
@@ -342,6 +379,8 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
       gl.uniform1f(uNoiseScale.current,   noiseScaleRef.current);
       gl.uniform1f(uWarpStrength.current, warpStrengthRef.current);
       gl.uniform1f(uVerticalBias.current, verticalBiasRef.current);
+      gl.uniform1f(uSaturation.current,   saturationRef.current);
+      gl.uniform1f(uContrast.current,     contrastRef.current);
       gl.uniform1f(uAudioAcc.current,     audioAccRef.current);
       gl.uniform1i(uForwardOnly.current,  orbForwardOnly ? 1 : 0);
 

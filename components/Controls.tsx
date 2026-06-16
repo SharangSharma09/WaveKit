@@ -104,6 +104,10 @@ export interface ControlsProps {
   onOrbWarpStrengthChange?: (val: number) => void;
   orbVerticalBias?: number;
   onOrbVerticalBiasChange?: (val: number) => void;
+  orbSaturation?: number;
+  onOrbSaturationChange?: (val: number) => void;
+  orbContrast?: number;
+  onOrbContrastChange?: (val: number) => void;
   orbForwardOnly?: boolean;
   onOrbForwardOnlyChange?: (val: boolean) => void;
 }
@@ -194,6 +198,10 @@ const Controls: React.FC<ControlsProps> = ({
   onOrbWarpStrengthChange = (_val: number) => { },
   orbVerticalBias = 0.18,
   onOrbVerticalBiasChange = (_val: number) => { },
+  orbSaturation = 1.0,
+  onOrbSaturationChange = (_val: number) => { },
+  orbContrast = 1.0,
+  onOrbContrastChange = (_val: number) => { },
   orbForwardOnly = false,
   onOrbForwardOnlyChange = (_val: boolean) => { }
 }) => {
@@ -648,6 +656,20 @@ const Controls: React.FC<ControlsProps> = ({
                   value={orbVerticalBias}
                   onChange={onOrbVerticalBiasChange}
                   min={0.0} max={1.0} step={0.05}
+                  theme={theme}
+                />
+                <ControlKnobLike
+                  label="Saturation"
+                  value={orbSaturation}
+                  onChange={onOrbSaturationChange}
+                  min={0.0} max={3.0} step={0.05}
+                  theme={theme}
+                />
+                <ControlKnobLike
+                  label="Contrast"
+                  value={orbContrast}
+                  onChange={onOrbContrastChange}
+                  min={0.0} max={3.0} step={0.05}
                   theme={theme}
                 />
                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">

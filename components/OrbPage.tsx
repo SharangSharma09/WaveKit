@@ -29,6 +29,8 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
   const [orbNoiseScale, setOrbNoiseScale]     = useState(0.6);
   const [orbWarpStrength, setOrbWarpStrength] = useState(1.0);
   const [orbVerticalBias, setOrbVerticalBias] = useState(0.6);
+  const [orbSaturation, setOrbSaturation]     = useState(1.0);
+  const [orbContrast, setOrbContrast]         = useState(1.0);
   const [orbForwardOnly, setOrbForwardOnly]   = useState(false);
   const [theme] = useState<Theme>(Theme.DARK);
   const [currentRms, setCurrentRms]           = useState(0);
@@ -167,6 +169,12 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
               orbVerticalBias={orbVerticalBias}
               onOrbVerticalBiasChange={setOrbVerticalBias}
 
+              orbSaturation={orbSaturation}
+              onOrbSaturationChange={setOrbSaturation}
+
+              orbContrast={orbContrast}
+              onOrbContrastChange={setOrbContrast}
+
               orbForwardOnly={orbForwardOnly}
               onOrbForwardOnlyChange={setOrbForwardOnly}
 
@@ -287,6 +295,8 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
                 orbNoiseScale={orbNoiseScale}
                 orbWarpStrength={orbWarpStrength}
                 orbVerticalBias={orbVerticalBias}
+                orbSaturation={orbSaturation}
+                orbContrast={orbContrast}
                 orbForwardOnly={orbForwardOnly}
                 size={170} // 170px canvas with 0.44 radius = ~150px visual orb
               />
