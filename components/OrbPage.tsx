@@ -4,7 +4,8 @@ import OrbCanvas from './OrbCanvas';
 import Controls from './Controls';
 import { VisualizerMode, Theme } from '../types';
 import { DS, getThemeColor } from '../styles/designSystem';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Mic, Volume2 } from 'lucide-react';
+import { useSpeakingAudio } from '../hooks/useSpeakingPattern';
 
 // ---- Color Families --------------------------------------------------------
 type ColorFamily = {
@@ -93,9 +94,11 @@ function closestFamily(pickedHex: string): ColorFamily {
 
 interface OrbPageProps {
   onBack: () => void;
+  /** Optional: driven externally by AI speech state. If provided, overrides the internal dev toggle. */
+  isSpeaking?: boolean;
 }
 
-const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
+const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExternal }) => {
   const { isListening, isSimulated, start, stop, getMetrics, error } = useAudioAnalyzer();
 
   const handleToggleSimulation = () => {
@@ -175,6 +178,14 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
   const [theme] = useState<Theme>(Theme.DARK);
   const [currentRms, setCurrentRms]           = useState(0);
   const [selectedPreset, setSelectedPreset]   = useState(1);
+
+  // ---- Speaking mode -------------------------------------------------------
+  // Internal dev toggle — overridden by the optional external isSpeaking prop
+  const [isSpeakingInternal, setIsSpeakingInternal] = useState(false);
+  const speakingActive = isSpeakingExternal ?? isSpeakingInternal;
+  const speakingScale  = useSpeakingAudio(speakingActive);
+  // Slow the fluid animation in speaking mode to feel more focused/calm
+  const effectiveOrbSpeed = speakingActive ? orbSpeed * 0.35 : orbSpeed;
 
   const handlePresetSelect = (index: number) => {
     setSelectedPreset(index);
@@ -287,13 +298,32 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
           Back to Editor
         </button>
 
-        <div className="flex items-center gap-2">
-          <h1 className="text-white/80 text-[13px] font-bold uppercase tracking-widest">
-            Orb
-          </h1>
-          <span className="px-1.5 py-0.5 rounded border border-emerald-500/40 text-emerald-500 text-[9px] font-bold uppercase tracking-widest">
-            BETA
-          </span>
+        <div className="flex items-center gap-3">
+          {/* Dev toggle — switch between Listening and Speaking mode */}
+          {isSpeakingExternal === undefined && (
+            <button
+              onClick={() => setIsSpeakingInternal(v => !v)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded border text-[9px] font-bold uppercase tracking-widest transition-colors ${
+                speakingActive
+                  ? 'border-sky-500/60 text-sky-400 bg-sky-500/10 hover:bg-sky-500/20'
+                  : 'border-[#37373B] text-[#71717a] hover:text-white hover:border-white/30'
+              }`}
+            >
+              {speakingActive
+                ? <><Volume2 size={10} /> Speaking</>
+                : <><Mic size={10} /> Listening</>
+              }
+            </button>
+          )}
+
+          <div className="flex items-center gap-2">
+            <h1 className="text-white/80 text-[13px] font-bold uppercase tracking-widest">
+              Orb
+            </h1>
+            <span className="px-1.5 py-0.5 rounded border border-emerald-500/40 text-emerald-500 text-[9px] font-bold uppercase tracking-widest">
+              BETA
+            </span>
+          </div>
         </div>
       </div>
 
@@ -473,7 +503,10 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
               className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
             />
             {/* The Orb perfectly centered inside the frame - z-20 brings it to front */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center pointer-events-none">
+            <div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center pointer-events-none"
+              style={{ transform: `translate(-50%, -50%) scale(${speakingScale})` }}
+            >
               {/* Subtle ambient background glow behind the orb */}
               <div
                 className="absolute inset-0 pointer-events-none -z-10 scale-150"
@@ -487,7 +520,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
                 sensitivity={sensitivity}
                 orbNoise={orbNoise}
                 orbBlur={orbBlur}
-                orbSpeed={orbSpeed}
+                orbSpeed={effectiveOrbSpeed}
                 orbNoiseScale={orbNoiseScale}
                 orbWarpStrength={orbWarpStrength}
                 orbVerticalBias={orbVerticalBias}
