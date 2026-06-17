@@ -31,11 +31,11 @@ const ORB_COLOR_FAMILIES: Record<string, ColorFamily> = {
     top: [0.9647, 1.0000, 0.8902]
   },
   YELLOW: {
-    hex: '#FFD45E',
-    bot: [1.0000, 0.8314, 0.3686],
-    midB: [1.0000, 0.9451, 0.3412],
-    midT: [0.9843, 0.9843, 0.9843],
-    top: [0.9961, 0.9843, 0.8902]
+    hex: '#F7797D',
+    bot: [0.9686, 0.4745, 0.4902],
+    midB: [0.9843, 0.8431, 0.5255],
+    midT: [0.9686, 0.9451, 0.8863],
+    top: [0.7765, 1.0000, 0.8667]
   },
   PINK: {
     hex: '#FF5E8F',
@@ -243,7 +243,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
   const [paperStrokeWidth, setPaperStrokeWidth]   = useState(6);
   const [paperWaveColors, setPaperWaveColors]     = useState<string[]>(DS.palettes.paper);
 
-  const activePalette = ['#5E8FFF', '#96E6A1', '#FFD45E', '#FF5E8F', '#9B5EFF', '#7A8490'];
+  const activePalette = ['#5E8FFF', '#96E6A1', '#F7797D', '#FF5E8F', '#9B5EFF', '#7A8490'];
 
   // ---- Auto-start mic ------------------------------------------------------
   useEffect(() => {
