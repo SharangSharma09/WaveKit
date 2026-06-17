@@ -563,10 +563,27 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                     bottom: 50, 
                     right: 50 
                   }}
-                  onClick={isListening ? stop : () => start(true)}
-                  aria-label="Toggle listening"
+                  onClick={() => {
+                    if (speakingActive) {
+                      setIsSpeakingInternal(false);
+                      start(true);
+                    } else {
+                      setIsSpeakingInternal(true);
+                      stop();
+                    }
+                  }}
+                  aria-label={speakingActive ? "Unmute microphone (Switch to Listening)" : "Mute microphone (Switch to AI Speaking)"}
                 >
-                  <Mic size={18} className="text-black" />
+                  {speakingActive ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-black">
+                      <path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02-3.07L15 5c0-1.66-1.34-3-3-3-.81 0-1.54.32-2.08.84l4.06 4.09zM2.81 2.81L1.39 4.22l4.98 4.98c-.22.58-.37 1.2-.37 1.8h1.7c0-.28.06-.55.15-.81l7.85 7.85c-.83.69-1.89 1.11-3.05 1.11-2.76 0-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c1.37-.2 2.62-.77 3.63-1.6l3.15 3.15 1.41-1.41L2.81 2.81zM12 14c-1.66 0-3-1.34-3-3v-.17l3.17 3.17H12z" />
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-black">
+                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                    </svg>
+                  )}
                 </button>
               </div>
             </div>
