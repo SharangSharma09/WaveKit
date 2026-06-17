@@ -355,9 +355,12 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
 
       const { rms } = isListening ? getMetrics() : { rms: 0 };
 
-      // Smooth RMS with exponential moving average (same as existing canvas)
+      // Organic Envelope Follower:
+      // Fast attack (reacts quickly) but very slow release (decays organically)
+      // This stops the visualization from jumping perfectly 1:1 with the raw audio waveform
       const target = rms * sensitivity;
-      smoothRms.current += (target - smoothRms.current) * 0.10;
+      const attackRate = target > smoothRms.current ? 0.15 : 0.01;
+      smoothRms.current += (target - smoothRms.current) * attackRate;
       
       // Accumulate audio energy for the forward-only drift
       audioAccRef.current += smoothRms.current * 0.05;

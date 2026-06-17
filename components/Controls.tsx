@@ -301,7 +301,7 @@ const Controls: React.FC<ControlsProps> = ({
 
           {/* SENSITIVITY SLIDER - Moved to Top Deck */}
           <div className="flex-1 max-w-[200px] 3xl:max-w-[240px] px-4">
-            <ControlKnobLike label="SENS" value={sensitivity} onChange={onSensitivityChange} min={0.1} max={4.0} step={0.1} theme={theme} />
+            <ControlKnobLike label="SENS" value={sensitivity} onChange={onSensitivityChange} min={0.1} max={6.0} step={0.1} theme={theme} />
           </div>
 
           {/* Utility Buttons */}

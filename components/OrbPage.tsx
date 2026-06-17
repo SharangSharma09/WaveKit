@@ -60,6 +60,19 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
       orbSaturation: 1.5,
       orbContrast: 1.0,
       orbForwardOnly: true,
+    },
+    {
+      // Preset 3: User's New Screenshot
+      sensitivity: 3.8,
+      orbNoise: 0.1,
+      orbBlur: 0.6,
+      orbSpeed: 0.8,
+      orbNoiseScale: 0.6,
+      orbWarpStrength: 0.6,
+      orbVerticalBias: 0.6,
+      orbSaturation: 1.5,
+      orbContrast: 1.0,
+      orbForwardOnly: true,
     }
   ];
 
@@ -195,7 +208,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
             {/* Preset ButtonGrid */}
             <div className="w-full flex flex-col gap-3">
               <span className={`${DS.typography.sectionHeader} ${theme === Theme.DARK ? DS.colors.dark.textPrimary : DS.colors.light.textPrimary}`}>Saved Presets</span>
-              <div className="grid grid-cols-5 gap-2 w-full">
+              <div className="flex flex-wrap gap-3 w-full">
                 {PRESETS.map((_, index) => {
                   const n = index + 1;
                   return (
@@ -203,7 +216,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
                       key={`preset-${n}`}
                       type="button"
                       onClick={() => handlePresetSelect(n)}
-                      className={`aspect-square rounded-lg ${DS.stroke.button} flex items-center justify-center ${DS.typography.preset} transition-all ${theme === Theme.DARK
+                      className={`w-[72px] h-[72px] shrink-0 rounded-lg ${DS.stroke.button} flex items-center justify-center ${DS.typography.preset} transition-all ${theme === Theme.DARK
                         ? selectedPreset === n
                           ? `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textPrimary} ${DS.colors.dark.outlineSelected}`
                           : `${DS.colors.dark.bgPanel} ${DS.colors.dark.border} ${DS.colors.dark.textSecondary} ${DS.colors.dark.textHoverPrimary}`
