@@ -502,37 +502,73 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
               alt="iPhone Mockup" 
               className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
             />
-            {/* The Orb perfectly centered inside the frame - z-20 brings it to front */}
-            <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center pointer-events-none"
-              style={{ transform: `translate(-50%, -50%) scale(${speakingScale})` }}
-            >
-              {/* Subtle ambient background glow behind the orb */}
-              <div
-                className="absolute inset-0 pointer-events-none -z-10 scale-150"
-                style={{
-                  background: `radial-gradient(circle at 50% 50%, ${hexToRgbaStr(selectedColor, 0.12)} 0%, transparent 70%)`,
-                }}
+            {/* Bottom-aligned wrapper for the three divs */}
+            <div className="absolute bottom-0 left-0 w-full z-20 flex flex-col pointer-events-none">
+              {/* Vad div - 262px height */}
+              <div 
+                className="relative w-full pointer-events-auto" 
+                style={{ height: 262 }}
+              >
+                {/* Microphone button: 40x40px, circular, white background, black icon */}
+                <button
+                  type="button"
+                  className="absolute flex items-center justify-center rounded-full bg-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+                  style={{ 
+                    width: 40, 
+                    height: 40, 
+                    bottom: 50, 
+                    right: 50 
+                  }}
+                  onClick={isListening ? stop : () => start(true)}
+                  aria-label="Toggle listening"
+                >
+                  <Mic size={18} className="text-black" />
+                </button>
+              </div>
+
+              {/* captions div - 120px height */}
+              <div 
+                className="relative w-full" 
+                style={{ height: 120 }}
               />
-              <OrbCanvas
-                isListening={isListening}
-                getMetrics={getMetrics}
-                sensitivity={sensitivity}
-                orbNoise={orbNoise}
-                orbBlur={orbBlur}
-                orbSpeed={effectiveOrbSpeed}
-                orbNoiseScale={orbNoiseScale}
-                orbWarpStrength={orbWarpStrength}
-                orbVerticalBias={orbVerticalBias}
-                orbSaturation={orbSaturation}
-                orbContrast={orbContrast}
-                orbForwardOnly={orbForwardOnly}
-                orbColorBot={orbColorBot}
-                orbColorMidB={orbColorMidB}
-                orbColorMidT={orbColorMidT}
-                orbColorTop={orbColorTop}
-                size={170} // 170px canvas with 0.44 radius = ~150px visual orb
-              />
+
+              {/* Orb div - 200px height */}
+              <div 
+                className="relative w-full flex items-center justify-center" 
+                style={{ height: 200 }}
+              >
+                {/* Subtle ambient background glow behind the orb */}
+                <div
+                  className="absolute inset-0 pointer-events-none -z-10 scale-150"
+                  style={{
+                    background: `radial-gradient(circle at 50% 50%, ${hexToRgbaStr(selectedColor, 0.12)} 0%, transparent 70%)`,
+                  }}
+                />
+                <div
+                  className="flex items-center justify-center pointer-events-none"
+                  style={{ transform: `scale(${speakingScale})` }}
+                >
+                  <OrbCanvas
+                    isListening={isListening}
+                    getMetrics={getMetrics}
+                    sensitivity={sensitivity}
+                    orbNoise={orbNoise}
+                    orbBlur={orbBlur}
+                    orbSpeed={effectiveOrbSpeed}
+                    orbNoiseScale={orbNoiseScale}
+                    orbWarpStrength={orbWarpStrength}
+                    orbVerticalBias={orbVerticalBias}
+                    orbSaturation={orbSaturation}
+                    orbContrast={orbContrast}
+                    orbForwardOnly={orbForwardOnly}
+                    orbColorBot={orbColorBot}
+                    orbColorMidB={orbColorMidB}
+                    orbColorMidT={orbColorMidT}
+                    orbColorTop={orbColorTop}
+                    size={170} // 170px canvas with 0.44 radius = ~150px visual orb
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
