@@ -6,6 +6,91 @@ import { VisualizerMode, Theme } from '../types';
 import { DS, getThemeColor } from '../styles/designSystem';
 import { ArrowLeft } from 'lucide-react';
 
+// ---- Color Families --------------------------------------------------------
+type ColorFamily = {
+  hex: string;
+  bot: [number, number, number];
+  midB: [number, number, number];
+  midT: [number, number, number];
+  top: [number, number, number];
+};
+
+const ORB_COLOR_FAMILIES: Record<string, ColorFamily> = {
+  BLUE: {
+    hex: '#5E8FFF',
+    bot: [0.3686, 0.5608, 1.0000],
+    midB: [0.3412, 0.8000, 1.0000],
+    midT: [0.9843, 0.9843, 0.9843],
+    top: [0.8706, 0.9608, 0.9961]
+  },
+  GREEN: {
+    hex: '#96E6A1',
+    bot: [0.5882, 0.9020, 0.6314],
+    midB: [0.8314, 0.9882, 0.4745],
+    midT: [0.9843, 0.9843, 0.9843],
+    top: [0.9647, 1.0000, 0.8902]
+  },
+  YELLOW: {
+    hex: '#FFD45E',
+    bot: [1.0000, 0.8314, 0.3686],
+    midB: [1.0000, 0.9451, 0.3412],
+    midT: [0.9843, 0.9843, 0.9843],
+    top: [0.9961, 0.9843, 0.8902]
+  },
+  PINK: {
+    hex: '#FF5E8F',
+    bot: [1.0000, 0.3686, 0.5608],
+    midB: [1.0000, 0.5333, 0.8314],
+    midT: [0.9843, 0.9843, 0.9843],
+    top: [0.9961, 0.8980, 0.9608]
+  },
+  PURPLE: {
+    hex: '#9B5EFF',
+    bot: [0.6078, 0.3686, 1.0000],
+    midB: [0.8000, 0.5333, 1.0000],
+    midT: [0.9843, 0.9843, 0.9843],
+    top: [0.9490, 0.8980, 0.9961]
+  },
+  GREY: {
+    hex: '#7A8490',
+    bot: [0.4784, 0.5176, 0.5647],
+    midB: [0.7216, 0.7686, 0.8000],
+    midT: [0.9843, 0.9843, 0.9843],
+    top: [0.9412, 0.9490, 0.9569]
+  }
+};
+
+function hexToRgb(hex: string): [number, number, number] {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? [
+    parseInt(result[1], 16),
+    parseInt(result[2], 16),
+    parseInt(result[3], 16)
+  ] : [0, 0, 0];
+}
+
+function hexToRgbaStr(hex: string, alpha: number): string {
+  const [r, g, b] = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function closestFamily(pickedHex: string): ColorFamily {
+  const [r1, g1, b1] = hexToRgb(pickedHex);
+  let closest = ORB_COLOR_FAMILIES.BLUE;
+  let minDistance = Infinity;
+
+  for (const family of Object.values(ORB_COLOR_FAMILIES)) {
+    const [r2, g2, b2] = hexToRgb(family.hex);
+    const distance = Math.pow(r1 - r2, 2) + Math.pow(g1 - g2, 2) + Math.pow(b1 - b2, 2);
+    if (distance < minDistance) {
+      minDistance = distance;
+      closest = family;
+    }
+  }
+
+  return closest;
+}
+
 interface OrbPageProps {
   onBack: () => void;
 }
@@ -110,7 +195,20 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
   // (Controls.tsx is reused as-is; irrelevant sliders simply have no effect)
   const [containerWidth, setContainerWidth] = useState(500);
   const [verticalShift]  = useState(0);
-  const [selectedColor, setSelectedColor] = useState(DS.palettes.dark[0]);
+  const [selectedColor, setSelectedColor] = useState('#5E8FFF');
+
+  const [orbColorBot, setOrbColorBot]   = useState<[number, number, number]>(ORB_COLOR_FAMILIES.BLUE.bot);
+  const [orbColorMidB, setOrbColorMidB] = useState<[number, number, number]>(ORB_COLOR_FAMILIES.BLUE.midB);
+  const [orbColorMidT, setOrbColorMidT] = useState<[number, number, number]>(ORB_COLOR_FAMILIES.BLUE.midT);
+  const [orbColorTop, setOrbColorTop]   = useState<[number, number, number]>(ORB_COLOR_FAMILIES.BLUE.top);
+
+  useEffect(() => {
+    const family = closestFamily(selectedColor);
+    setOrbColorBot(family.bot);
+    setOrbColorMidB(family.midB);
+    setOrbColorMidT(family.midT);
+    setOrbColorTop(family.top);
+  }, [selectedColor]);
 
   // Envelope stubs
   const [envelopeAmplitude, setEnvelopeAmplitude] = useState(40);
@@ -145,7 +243,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
   const [paperStrokeWidth, setPaperStrokeWidth]   = useState(6);
   const [paperWaveColors, setPaperWaveColors]     = useState<string[]>(DS.palettes.paper);
 
-  const activePalette = DS.palettes.dark;
+  const activePalette = ['#5E8FFF', '#96E6A1', '#FFD45E', '#FF5E8F', '#9B5EFF', '#7A8490'];
 
   // ---- Auto-start mic ------------------------------------------------------
   useEffect(() => {
@@ -380,7 +478,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
               <div
                 className="absolute inset-0 pointer-events-none -z-10 scale-150"
                 style={{
-                  background: 'radial-gradient(circle at 50% 50%, rgba(80,140,255,0.12) 0%, transparent 70%)',
+                  background: `radial-gradient(circle at 50% 50%, ${hexToRgbaStr(selectedColor, 0.12)} 0%, transparent 70%)`,
                 }}
               />
               <OrbCanvas
@@ -396,6 +494,10 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack }) => {
                 orbSaturation={orbSaturation}
                 orbContrast={orbContrast}
                 orbForwardOnly={orbForwardOnly}
+                orbColorBot={orbColorBot}
+                orbColorMidB={orbColorMidB}
+                orbColorMidT={orbColorMidT}
+                orbColorTop={orbColorTop}
                 size={170} // 170px canvas with 0.44 radius = ~150px visual orb
               />
             </div>

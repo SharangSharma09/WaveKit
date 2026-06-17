@@ -13,6 +13,10 @@ interface OrbCanvasProps {
   orbSaturation?: number;
   orbContrast?: number;
   orbForwardOnly?: boolean;
+  orbColorBot?: [number, number, number];
+  orbColorMidB?: [number, number, number];
+  orbColorMidT?: [number, number, number];
+  orbColorTop?: [number, number, number];
   size?: number;            // canvas size in px, default 500
 }
 
@@ -45,13 +49,13 @@ uniform float u_contrast;       // color contrast multiplier
 uniform float u_audio_acc;
 uniform bool  u_forward_only;
 
-out vec4 fragColor;
+// Dynamic colors driven by React props
+uniform vec3 u_color_bot;
+uniform vec3 u_color_mid_b;
+uniform vec3 u_color_mid_t;
+uniform vec3 u_color_top;
 
-// ---- Colors (hardcoded for icy/fluid feel) --------------------------------
-const vec3 COLOR_TOP   = vec3(0.6941, 0.9176, 1.0000); // #B1EAFF (New Light Blue-White)
-const vec3 COLOR_MID_T = vec3(0.9843, 0.9843, 0.9843); // #FBFBFB (White)
-const vec3 COLOR_MID_B = vec3(0.3412, 0.8000, 1.0000); // #57CCFF (Light Blue)
-const vec3 COLOR_BOT   = vec3(0.3686, 0.5608, 1.0000); // #5E8FFF (Periwinkle Blue)
+out vec4 fragColor;
 
 const float WARP_SCALE  = 2.1;   // warp field spatial frequency
 const float GRAD_LOW    = 0.36;  // Used as the base boundary mapping
@@ -174,12 +178,12 @@ void main() {
   float blend3 = smoothstep(0.60 - spread, 0.75 + spread, f);
 
   // ---- Color mapping ------------------------------------------------------
-  vec3 col = mix(COLOR_BOT, COLOR_MID_B, blend1);
-  col = mix(col, COLOR_MID_T, blend2);
-  col = mix(col, COLOR_TOP, blend3);
+  vec3 col = mix(u_color_bot, u_color_mid_b, blend1);
+  col = mix(col, u_color_mid_t, blend2);
+  col = mix(col, u_color_top, blend3);
 
   // ---- Haze overlay: as u_blur rises, fog toward the upper middle color -
-  col = mix(col, COLOR_MID_T, u_blur * 0.22);
+  col = mix(col, u_color_mid_t, u_blur * 0.22);
   
   // ---- Saturation Adjustment ----------------------------------------------
   // Calculate luminance (sRGB)
@@ -246,6 +250,10 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
   orbSaturation = 1.0,
   orbContrast = 1.0,
   orbForwardOnly = false,
+  orbColorBot = [0.3686, 0.5608, 1.0000],
+  orbColorMidB = [0.3412, 0.8000, 1.0000],
+  orbColorMidT = [0.9843, 0.9843, 0.9843],
+  orbColorTop = [0.8706, 0.9608, 0.9961],
   size = 500,
 }) => {
   const canvasRef        = useRef<HTMLCanvasElement>(null);
@@ -262,6 +270,10 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
   const verticalBiasRef  = useRef<number>(orbVerticalBias);
   const saturationRef    = useRef<number>(orbSaturation);
   const contrastRef      = useRef<number>(orbContrast);
+  const colorBotRef      = useRef<[number, number, number]>(orbColorBot);
+  const colorMidBRef     = useRef<[number, number, number]>(orbColorMidB);
+  const colorMidTRef     = useRef<[number, number, number]>(orbColorMidT);
+  const colorTopRef      = useRef<[number, number, number]>(orbColorTop);
 
   useEffect(() => { noiseRef.current        = orbNoise;        }, [orbNoise]);
   useEffect(() => { blurRef.current         = orbBlur;         }, [orbBlur]);
@@ -271,6 +283,10 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
   useEffect(() => { verticalBiasRef.current = orbVerticalBias; }, [orbVerticalBias]);
   useEffect(() => { saturationRef.current   = orbSaturation;   }, [orbSaturation]);
   useEffect(() => { contrastRef.current     = orbContrast;     }, [orbContrast]);
+  useEffect(() => { colorBotRef.current     = orbColorBot;     }, [orbColorBot]);
+  useEffect(() => { colorMidBRef.current    = orbColorMidB;    }, [orbColorMidB]);
+  useEffect(() => { colorMidTRef.current    = orbColorMidT;    }, [orbColorMidT]);
+  useEffect(() => { colorTopRef.current     = orbColorTop;     }, [orbColorTop]);
 
   // Uniform locations (cached after program link)
   const uResolution    = useRef<WebGLUniformLocation | null>(null);
@@ -287,6 +303,11 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
   const uContrast      = useRef<WebGLUniformLocation | null>(null);
   const uAudioAcc      = useRef<WebGLUniformLocation | null>(null);
   const uForwardOnly   = useRef<WebGLUniformLocation | null>(null);
+  
+  const uColorBot      = useRef<WebGLUniformLocation | null>(null);
+  const uColorMidB     = useRef<WebGLUniformLocation | null>(null);
+  const uColorMidT     = useRef<WebGLUniformLocation | null>(null);
+  const uColorTop      = useRef<WebGLUniformLocation | null>(null);
 
   const audioAccRef    = useRef<number>(0);
 
@@ -329,6 +350,11 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
     uContrast.current     = gl.getUniformLocation(program, 'u_contrast');
     uAudioAcc.current     = gl.getUniformLocation(program, 'u_audio_acc');
     uForwardOnly.current  = gl.getUniformLocation(program, 'u_forward_only');
+
+    uColorBot.current     = gl.getUniformLocation(program, 'u_color_bot');
+    uColorMidB.current    = gl.getUniformLocation(program, 'u_color_mid_b');
+    uColorMidT.current    = gl.getUniformLocation(program, 'u_color_mid_t');
+    uColorTop.current     = gl.getUniformLocation(program, 'u_color_top');
 
     // Full-screen quad (two triangles covering clip space)
     const vao = gl.createVertexArray();
@@ -386,6 +412,11 @@ const OrbCanvas: React.FC<OrbCanvasProps> = ({
       gl.uniform1f(uContrast.current,     contrastRef.current);
       gl.uniform1f(uAudioAcc.current,     audioAccRef.current);
       gl.uniform1i(uForwardOnly.current,  orbForwardOnly ? 1 : 0);
+
+      gl.uniform3fv(uColorBot.current,    colorBotRef.current);
+      gl.uniform3fv(uColorMidB.current,   colorMidBRef.current);
+      gl.uniform3fv(uColorMidT.current,   colorMidTRef.current);
+      gl.uniform3fv(uColorTop.current,    colorTopRef.current);
 
       gl.bindVertexArray(vao);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
