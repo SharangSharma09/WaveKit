@@ -504,35 +504,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
             />
             {/* Bottom-aligned wrapper for the three divs */}
             <div className="absolute bottom-0 left-0 w-full z-20 flex flex-col pointer-events-none">
-              {/* Vad div - 262px height */}
-              <div 
-                className="relative w-full pointer-events-auto" 
-                style={{ height: 262 }}
-              >
-                {/* Microphone button: 40x40px, circular, white background, black icon */}
-                <button
-                  type="button"
-                  className="absolute flex items-center justify-center rounded-full bg-white shadow-lg transition-transform hover:scale-105 active:scale-95"
-                  style={{ 
-                    width: 40, 
-                    height: 40, 
-                    bottom: 50, 
-                    right: 50 
-                  }}
-                  onClick={isListening ? stop : () => start(true)}
-                  aria-label="Toggle listening"
-                >
-                  <Mic size={18} className="text-black" />
-                </button>
-              </div>
-
-              {/* captions div - 120px height */}
-              <div 
-                className="relative w-full" 
-                style={{ height: 120 }}
-              />
-
-              {/* Orb div - 200px height */}
+              {/* Orb div - 200px height (at the top of the stack) */}
               <div 
                 className="relative w-full flex items-center justify-center" 
                 style={{ height: 200 }}
@@ -568,6 +540,34 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                     size={170} // 170px canvas with 0.44 radius = ~150px visual orb
                   />
                 </div>
+              </div>
+
+              {/* captions div - 120px height (in the middle) */}
+              <div 
+                className="relative w-full" 
+                style={{ height: 120 }}
+              />
+
+              {/* Vad div - 262px height (at the bottom of the stack) */}
+              <div 
+                className="relative w-full pointer-events-auto" 
+                style={{ height: 262 }}
+              >
+                {/* Microphone button: 40x40px, circular, white background, black icon */}
+                <button
+                  type="button"
+                  className="absolute flex items-center justify-center rounded-full bg-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+                  style={{ 
+                    width: 40, 
+                    height: 40, 
+                    bottom: 50, 
+                    right: 50 
+                  }}
+                  onClick={isListening ? stop : () => start(true)}
+                  aria-label="Toggle listening"
+                >
+                  <Mic size={18} className="text-black" />
+                </button>
               </div>
             </div>
           </div>
