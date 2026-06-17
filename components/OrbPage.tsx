@@ -207,6 +207,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
   const [containerWidth, setContainerWidth] = useState(500);
   const [verticalShift]  = useState(0);
   const [selectedColor, setSelectedColor] = useState('#5E8FFF');
+  const [captionsEnabled, setCaptionsEnabled] = useState(false);
 
   const [orbColorBot, setOrbColorBot]   = useState<[number, number, number]>(ORB_COLOR_FAMILIES.BLUE.bot);
   const [orbColorMidB, setOrbColorMidB] = useState<[number, number, number]>(ORB_COLOR_FAMILIES.BLUE.midB);
@@ -553,13 +554,33 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                 className="relative w-full pointer-events-auto" 
                 style={{ height: 262 }}
               >
-                {/* Microphone button: 40x40px, circular, white background, black icon */}
+                {/* Captions button: 48x48px, circular, bottom-left aligned */}
+                <button
+                  type="button"
+                  className={`absolute flex items-center justify-center rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 ${
+                    captionsEnabled ? 'bg-white text-black' : 'bg-[#8C94AE] text-white'
+                  }`}
+                  style={{ 
+                    width: 48, 
+                    height: 48, 
+                    bottom: 50, 
+                    left: 50 
+                  }}
+                  onClick={() => setCaptionsEnabled(prev => !prev)}
+                  aria-label="Toggle captions"
+                >
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H6c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-4c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v1z" />
+                  </svg>
+                </button>
+
+                {/* Microphone button: 48x48px, circular, white background, black icon */}
                 <button
                   type="button"
                   className="absolute flex items-center justify-center rounded-full bg-white shadow-lg transition-transform hover:scale-105 active:scale-95"
                   style={{ 
-                    width: 40, 
-                    height: 40, 
+                    width: 48, 
+                    height: 48, 
                     bottom: 50, 
                     right: 50 
                   }}
@@ -575,7 +596,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                   aria-label={speakingActive ? "Unmute microphone (Switch to Listening)" : "Mute microphone (Switch to AI Speaking)"}
                 >
                   {speakingActive ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-red-500">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-red-500">
                       {/* Solid Microphone Base */}
                       <g fill="currentColor">
                         <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
@@ -586,7 +607,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                       <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                   ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-black">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="text-black">
                       <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
                       <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
                     </svg>
