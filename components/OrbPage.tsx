@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { useAudioAnalyzer } from '../hooks/useAudioAnalyzer';
 import OrbCanvas from './OrbCanvas';
 import Controls from './Controls';
@@ -91,6 +91,9 @@ function closestFamily(pickedHex: string): ColorFamily {
 
   return closest;
 }
+
+const SAMPLE_CAPTION_TEXT = "This is a demonstration of real-time captions appearing word by word. As you speak into the microphone, the application listens to your voice and transcribes the words instantly. The orb visualization reacts dynamically to the audio input. You can toggle between listening mode and speaking mode to see how the system behaves. Closed captions are designed to fit perfectly within this three-line layout, wrapping automatically and starting from the top when the space is filled.";
+const SAMPLE_WORDS = SAMPLE_CAPTION_TEXT.split(" ");
 
 interface OrbPageProps {
   onBack: () => void;
@@ -221,6 +224,47 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
     setOrbColorMidT(family.midT);
     setOrbColorTop(family.top);
   }, [selectedColor]);
+
+  // ---- Word-by-word captions simulation state and logic -------------------
+  const [displayedWords, setDisplayedWords] = useState<string[]>([]);
+  const [wordIndex, setWordIndex] = useState(0);
+  const captionRef = useRef<HTMLParagraphElement>(null);
+
+  // Append new word at steady interval when listening and captions enabled
+  useEffect(() => {
+    if (!isListening || !captionsEnabled) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setDisplayedWords((prev) => {
+        const nextWord = SAMPLE_WORDS[wordIndex % SAMPLE_WORDS.length];
+        setWordIndex((idx) => idx + 1);
+        return [...prev, nextWord];
+      });
+    }, 280); // ~280ms per word
+
+    return () => clearInterval(interval);
+  }, [isListening, captionsEnabled, wordIndex]);
+
+  // Reset words when user stops listening
+  useEffect(() => {
+    if (!isListening) {
+      setDisplayedWords([]);
+      setWordIndex(0);
+    }
+  }, [isListening]);
+
+  // Measure scroll height to limit text to maximum of 3 lines (72px at 24px line-height)
+  useLayoutEffect(() => {
+    if (captionRef.current) {
+      const el = captionRef.current;
+      if (el.scrollHeight > 74 && displayedWords.length > 1) {
+        const lastWord = displayedWords[displayedWords.length - 1];
+        setDisplayedWords([lastWord]);
+      }
+    }
+  }, [displayedWords]);
 
   // Envelope stubs
   const [envelopeAmplitude, setEnvelopeAmplitude] = useState(40);
@@ -545,9 +589,26 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
 
               {/* captions div - 120px height (in the middle) */}
               <div 
-                className="relative w-full" 
+                className="relative w-full flex items-center justify-center" 
                 style={{ height: 120 }}
-              />
+              >
+                {captionsEnabled && displayedWords.length > 0 && (
+                  <p
+                    ref={captionRef}
+                    className="text-white text-center font-medium leading-[24px] w-full"
+                    style={{
+                      paddingLeft: 32,
+                      paddingRight: 32,
+                      fontSize: '15px',
+                      maxHeight: 72,
+                      overflow: 'hidden',
+                      textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+                    }}
+                  >
+                    {displayedWords.join(' ')}
+                  </p>
+                )}
+              </div>
 
               {/* Vad div - 262px height (at the bottom of the stack) */}
               <div 
