@@ -211,6 +211,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
   const [verticalShift]  = useState(0);
   const [selectedColor, setSelectedColor] = useState('#5E8FFF');
   const [captionsEnabled, setCaptionsEnabled] = useState(false);
+  const currentFamily = useMemo(() => closestFamily(selectedColor), [selectedColor]);
 
   const [orbColorBot, setOrbColorBot]   = useState<[number, number, number]>(ORB_COLOR_FAMILIES.BLUE.bot);
   const [orbColorMidB, setOrbColorMidB] = useState<[number, number, number]>(ORB_COLOR_FAMILIES.BLUE.midB);
@@ -638,6 +639,23 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
               alt="iPhone Mockup" 
               className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
             />
+            {/* Ambient Speaking Glow (blurred semi-circle at the bottom) */}
+            {speakingActive && (
+              <div 
+                className="absolute bottom-0 left-1/2 pointer-events-none transition-transform duration-75"
+                style={{
+                  width: 320,
+                  height: 200,
+                  bottom: -100, // half-submerged to form a dome/semi-circle
+                  borderRadius: '160px 160px 0 0',
+                  background: `rgba(${Math.round(currentFamily.top[0] * 255)}, ${Math.round(currentFamily.top[1] * 255)}, ${Math.round(currentFamily.top[2] * 255)}, 0.25)`,
+                  filter: 'blur(30px)',
+                  transform: `translate(-50%, 0) scale(${1 + (speakingScale - 1.0) * 2.5})`,
+                  transformOrigin: 'bottom center',
+                  zIndex: 15,
+                }}
+              />
+            )}
             {captionsEnabled ? (
               /* Bottom-aligned wrapper for the three divs when captions are ON */
               <div className="absolute bottom-0 left-0 w-full z-20 flex flex-col pointer-events-none">
