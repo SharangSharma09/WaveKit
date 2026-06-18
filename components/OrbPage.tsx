@@ -634,7 +634,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
           >
             {/* The iPhone mockup frame - z-10 so it stays behind the orb */}
             <img 
-              src="/iphone-orb.png?v=2" 
+              src="/iphone-orb.png?v=3" 
               alt="iPhone Mockup" 
               className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
             />
