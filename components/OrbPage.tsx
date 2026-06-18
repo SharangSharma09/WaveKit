@@ -255,11 +255,11 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
     }
   }, [isListening]);
 
-  // Measure scroll height to limit text to maximum of 3 lines (72px at 24px line-height)
+  // Measure scroll height to limit text to maximum of 3 lines (72px at 24px line-height, plus 24px top padding = 96px)
   useLayoutEffect(() => {
     if (captionRef.current) {
       const el = captionRef.current;
-      if (el.scrollHeight > 74 && displayedWords.length > 1) {
+      if (el.scrollHeight > 98 && displayedWords.length > 1) {
         const lastWord = displayedWords[displayedWords.length - 1];
         setDisplayedWords([lastWord]);
       }
@@ -587,20 +587,20 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                 </div>
               </div>
 
-              {/* captions div - 120px height (in the middle) */}
+              {/* captions div - 120px height (in the middle, top-aligned) */}
               <div 
-                className="relative w-full flex items-center justify-center" 
+                className="relative w-full flex justify-center" 
                 style={{ height: 120 }}
               >
                 {captionsEnabled && displayedWords.length > 0 && (
                   <p
                     ref={captionRef}
-                    className="text-white text-center font-medium leading-[24px] w-full"
+                    className="text-white text-center font-medium leading-[24px]"
                     style={{
-                      paddingLeft: 32,
-                      paddingRight: 32,
+                      width: 260,
+                      paddingTop: 24,
                       fontSize: '15px',
-                      maxHeight: 72,
+                      maxHeight: 96,
                       overflow: 'hidden',
                       textShadow: '0 1px 3px rgba(0,0,0,0.5)',
                     }}
