@@ -703,20 +703,24 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                   className="relative w-full pointer-events-auto" 
                   style={{ height: 262, overflow: 'visible' }}
                 >
-                  {/* Ambient Speaking Glow — DEBUG: always visible, solid color, no blur */}
-                  <div
-                    className="absolute left-1/2 pointer-events-none"
-                    style={{
-                      width: 320,
-                      height: 200,
-                      bottom: 0,
-                      borderRadius: '160px 160px 0 0',
-                      background: 'rgba(87, 204, 255, 0.4)',
-                      border: '2px solid red',
-                      transform: 'translate(-50%, 0)',
-                      zIndex: 30,
-                    }}
-                  />
+                  {/* Ambient Listening Glow — reacts to user's voice via currentRms */}
+                  {isListening && (
+                    <div
+                      className="absolute left-1/2 pointer-events-none"
+                      style={{
+                        width: 320,
+                        height: 200,
+                        bottom: 0,
+                        borderRadius: '160px 160px 0 0',
+                        background: 'rgba(87, 204, 255, 0.22)',
+                        filter: 'blur(28px)',
+                        transform: `translate(-50%, 0) scaleY(${1 + currentRms * 2.5})`,
+                        transformOrigin: 'bottom center',
+                        transition: 'transform 80ms ease-out',
+                        zIndex: 30,
+                      }}
+                    />
+                  )}
                   {/* Captions button: 48x48px, circular, bottom-left aligned */}
                   <button
                     type="button"
@@ -810,20 +814,24 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                   className="absolute bottom-0 left-0 w-full z-20 pointer-events-auto" 
                   style={{ height: 262, overflow: 'visible' }}
                 >
-                  {/* Ambient Speaking Glow — DEBUG: always visible, solid color, no blur */}
-                  <div
-                    className="absolute left-1/2 pointer-events-none"
-                    style={{
-                      width: 320,
-                      height: 200,
-                      bottom: 0,
-                      borderRadius: '160px 160px 0 0',
-                      background: 'rgba(87, 204, 255, 0.4)',
-                      border: '2px solid red',
-                      transform: 'translate(-50%, 0)',
-                      zIndex: 30,
-                    }}
-                  />
+                  {/* Ambient Listening Glow — reacts to user's voice via currentRms */}
+                  {isListening && (
+                    <div
+                      className="absolute left-1/2 pointer-events-none"
+                      style={{
+                        width: 320,
+                        height: 200,
+                        bottom: 0,
+                        borderRadius: '160px 160px 0 0',
+                        background: 'rgba(87, 204, 255, 0.22)',
+                        filter: 'blur(28px)',
+                        transform: `translate(-50%, 0) scaleY(${1 + currentRms * 2.5})`,
+                        transformOrigin: 'bottom center',
+                        transition: 'transform 80ms ease-out',
+                        zIndex: 30,
+                      }}
+                    />
+                  )}
                   {/* Captions button: 48x48px, circular, bottom-left aligned */}
                   <button
                     type="button"
