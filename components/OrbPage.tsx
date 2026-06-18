@@ -233,9 +233,10 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
   const lastWordCountRef = useRef(0);
   const captionRef = useRef<HTMLParagraphElement>(null);
   // Glow sine-wave animation refs
-  const glowRef1   = useRef<HTMLDivElement>(null);
-  const glowRef2   = useRef<HTMLDivElement>(null);
-  const glowPhase  = useRef(0);
+  const glowRef1       = useRef<HTMLDivElement>(null);
+  const glowRef2       = useRef<HTMLDivElement>(null);
+  const glowPhase      = useRef(0);
+  const smoothedRms    = useRef(0);
 
   // Handle Speech Recognition or Simulated Captions Loop
   useEffect(() => {
@@ -415,27 +416,58 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
     return () => removeListeners();
   }, [isListening, start]);
 
-  // ---- RMS polling + glow sine-wave animation ----------------------------
+  // ---- RMS polling + glow shape-morphing animation -----------------------
   useEffect(() => {
     let raf: number;
     const update = () => {
       const rms = isListening ? getMetrics().rms : 0;
       setCurrentRms(rms);
 
-      // Drive the glow semi-circle with a soothing sine wave.
-      // Amplitude is proportional to RMS so it stays still when silent.
-      glowPhase.current += 0.022; // ~1.3 rad/s — slow and calming
-      const amp = rms * sensitivity * 1.4;          // stronger reaction to voice
-      const scaleY = 1 + Math.sin(glowPhase.current) * amp
-                       + Math.sin(glowPhase.current * 1.6 + 1.1) * amp * 0.35;
-      const scaleX = 1 + Math.sin(glowPhase.current * 0.9 + 0.5) * amp * 0.15;
-      const opacity = 0.55 + rms * sensitivity * 0.45;
-      const transform = `translate(-50%, 0) scaleX(${scaleX}) scaleY(${Math.max(0.01, scaleY)})`;
+      // Exponential moving average: fast attack, slow release
+      smoothedRms.current = rms > smoothedRms.current
+        ? rms * 0.5  + smoothedRms.current * 0.5   // fast attack
+        : rms * 0.04 + smoothedRms.current * 0.96; // slow release
+
+      // voiceLevel: 0 = silent, 1 = loud speech
+      const voiceLevel = Math.min(1, smoothedRms.current * sensitivity * 5);
+
+      // Phase always ticks for continuous idle animation
+      glowPhase.current += 0.018;
+      const t = glowPhase.current;
+
+      // --- Idle blob shape (silent) ---
+      // Asymmetric border-radius corners oscillate to create organic morphing
+      const idleTL = 55 + 22 * Math.sin(t);
+      const idleTR = 55 - 22 * Math.sin(t * 0.8 + 0.7);
+      const idleVert = 30 + 12 * Math.sin(t * 1.1 + 0.3); // vertical curvature %
+      const idleHeight = 70; // px — flat pill in silence
+
+      // --- Speaking dome shape (voice detected) ---
+      const speakTL   = 40;  // % of width (40% of 320 = 128px)
+      const speakTR   = 40;
+      const speakVert = 100; // % of height = full dome
+      const speakHeight = 200; // px
+
+      // Lerp between idle and speaking based on voiceLevel
+      const tl     = idleTL   + (speakTL   - idleTL)   * voiceLevel;
+      const tr     = idleTR   + (speakTR   - idleTR)   * voiceLevel;
+      const vert   = idleVert + (speakVert - idleVert) * voiceLevel;
+      const height = idleHeight + (speakHeight - idleHeight) * voiceLevel;
+
+      // Extra sinusoidal breathing on top when voice is active
+      const breatheY = 1 + Math.sin(t * 1.5) * voiceLevel * 0.12
+                         + Math.sin(t * 2.3 + 1) * voiceLevel * 0.06;
+
+      const opacity   = 0.45 + voiceLevel * 0.45;
+      const borderRad = `${tl}% ${tr}% 0 0 / ${vert}% ${vert}% 0 0`;
+      const transform = `translate(-50%, 0) scaleY(${breatheY})`;
 
       [glowRef1.current, glowRef2.current].forEach(el => {
         if (!el) return;
-        el.style.transform = transform;
-        el.style.opacity   = String(Math.min(1, opacity));
+        el.style.height       = `${height}px`;
+        el.style.borderRadius = borderRad;
+        el.style.transform    = transform;
+        el.style.opacity      = String(Math.min(1, opacity));
       });
 
       raf = requestAnimationFrame(update);
@@ -732,16 +764,16 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                       className="absolute left-1/2 pointer-events-none"
                       style={{
                         width: 320,
-                        height: 200,
+                        height: 70,
                         bottom: 0,
-                        borderRadius: '128px 128px 0 0',
+                        borderRadius: '55% 55% 0 0 / 30% 30% 0 0',
                         background: 'rgba(87, 204, 255, 0.5)',
                         filter: 'blur(28px)',
                         transform: 'translate(-50%, 0)',
                         transformOrigin: 'bottom center',
-                        opacity: 0.55,
+                        opacity: 0.45,
                         zIndex: 30,
-                        willChange: 'transform, opacity',
+                        willChange: 'transform, opacity, height, border-radius',
                       }}
                     />
                   )}
@@ -845,16 +877,16 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                       className="absolute left-1/2 pointer-events-none"
                       style={{
                         width: 320,
-                        height: 200,
+                        height: 70,
                         bottom: 0,
-                        borderRadius: '128px 128px 0 0',
+                        borderRadius: '55% 55% 0 0 / 30% 30% 0 0',
                         background: 'rgba(87, 204, 255, 0.5)',
                         filter: 'blur(28px)',
                         transform: 'translate(-50%, 0)',
                         transformOrigin: 'bottom center',
-                        opacity: 0.55,
+                        opacity: 0.45,
                         zIndex: 30,
-                        willChange: 'transform, opacity',
+                        willChange: 'transform, opacity, height, border-radius',
                       }}
                     />
                   )}
