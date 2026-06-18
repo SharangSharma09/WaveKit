@@ -227,6 +227,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
 
   // ---- Word-by-word captions state and real-time transcription logic -------
   const [displayedWords, setDisplayedWords] = useState<string[]>([]);
+  const [speechRecognitionFailed, setSpeechRecognitionFailed] = useState(false);
   const wordIndexRef = useRef(0);
   const lastWordCountRef = useRef(0);
   const captionRef = useRef<HTMLParagraphElement>(null);
@@ -240,8 +241,9 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
       console.warn("Speech Recognition API is not supported in this browser.");
     }
 
-    const useSimulation = !SpeechRecognition || isSimulated || !isListening;
-    console.log(`SpeechRecognition effect: isListening=${isListening}, captionsEnabled=${captionsEnabled}, isSimulated=${isSimulated}, useSimulation=${useSimulation}`);
+    // Fall back to simulation if browser is unsupported, mic is simulated, speech failed, or we aren't listening
+    const useSimulation = !SpeechRecognition || isSimulated || !isListening || speechRecognitionFailed;
+    console.log(`SpeechRecognition effect: isListening=${isListening}, captionsEnabled=${captionsEnabled}, isSimulated=${isSimulated}, speechRecognitionFailed=${speechRecognitionFailed}, useSimulation=${useSimulation}`);
 
     if (useSimulation) {
       if (!isListening || !captionsEnabled) {
@@ -300,12 +302,15 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
 
       recognition.onerror = (err: any) => {
         console.error("Speech Recognition error callback:", err.error, err.message || '');
+        // Set speechRecognitionFailed to true on connection or block errors to fallback immediately
+        console.warn("Speech Recognition failed with network/permission block. Falling back to simulated captions.");
+        setSpeechRecognitionFailed(true);
       };
 
       recognition.onend = () => {
         console.log("Speech Recognition session ended.");
-        // Auto-restart if we are still active and transcribing
-        if (isListening && captionsEnabled) {
+        // Auto-restart if we are still active and transcribing and didn't fail
+        if (isListening && captionsEnabled && !speechRecognitionFailed) {
           try {
             console.log("Attempting to auto-restart Speech Recognition...");
             recognition.start();
@@ -318,6 +323,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
       recognition.start();
     } catch (e) {
       console.error("Failed to start Speech Recognition:", e);
+      setSpeechRecognitionFailed(true);
     }
 
     return () => {
@@ -327,7 +333,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
         recognition.stop();
       }
     };
-  }, [isListening, captionsEnabled, isSimulated]);
+  }, [isListening, captionsEnabled, isSimulated, speechRecognitionFailed]);
 
   // Reset words when user stops listening
   useEffect(() => {
@@ -336,6 +342,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
       setDisplayedWords([]);
       wordIndexRef.current = 0;
       lastWordCountRef.current = 0;
+      setSpeechRecognitionFailed(false); // Clear failure state for next turn
     }
   }, [isListening]);
 
