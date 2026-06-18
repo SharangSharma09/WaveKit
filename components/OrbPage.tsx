@@ -425,11 +425,11 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
       // Drive the glow semi-circle with a soothing sine wave.
       // Amplitude is proportional to RMS so it stays still when silent.
       glowPhase.current += 0.022; // ~1.3 rad/s — slow and calming
-      const amp = rms * sensitivity * 0.55;          // max ~0.55 vertical stretch
+      const amp = rms * sensitivity * 1.4;          // stronger reaction to voice
       const scaleY = 1 + Math.sin(glowPhase.current) * amp
                        + Math.sin(glowPhase.current * 1.6 + 1.1) * amp * 0.35;
       const scaleX = 1 + Math.sin(glowPhase.current * 0.9 + 0.5) * amp * 0.15;
-      const opacity = 0.18 + rms * sensitivity * 0.45;
+      const opacity = 0.55 + rms * sensitivity * 0.45;
       const transform = `translate(-50%, 0) scaleX(${scaleX}) scaleY(${Math.max(0.01, scaleY)})`;
 
       [glowRef1.current, glowRef2.current].forEach(el => {
@@ -735,11 +735,11 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                         height: 200,
                         bottom: 0,
                         borderRadius: '128px 128px 0 0',
-                        background: 'rgba(87, 204, 255, 0.22)',
+                        background: 'rgba(87, 204, 255, 0.5)',
                         filter: 'blur(28px)',
                         transform: 'translate(-50%, 0)',
                         transformOrigin: 'bottom center',
-                        opacity: 0.18,
+                        opacity: 0.55,
                         zIndex: 30,
                         willChange: 'transform, opacity',
                       }}
@@ -848,11 +848,11 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                         height: 200,
                         bottom: 0,
                         borderRadius: '128px 128px 0 0',
-                        background: 'rgba(87, 204, 255, 0.22)',
+                        background: 'rgba(87, 204, 255, 0.5)',
                         filter: 'blur(28px)',
                         transform: 'translate(-50%, 0)',
                         transformOrigin: 'bottom center',
-                        opacity: 0.18,
+                        opacity: 0.55,
                         zIndex: 30,
                         willChange: 'transform, opacity',
                       }}
