@@ -555,13 +555,6 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                   className="relative w-full flex items-center justify-center" 
                   style={{ height: 200 }}
                 >
-                  {/* Subtle ambient background glow behind the orb */}
-                  <div
-                    className="absolute inset-0 pointer-events-none -z-10 scale-150"
-                    style={{
-                      background: `radial-gradient(circle at 50% 50%, ${hexToRgbaStr(selectedColor, 0.12)} 0%, transparent 70%)`,
-                    }}
-                  />
                   <div
                     className="flex items-center justify-center pointer-events-none"
                     style={{ transform: `scale(${speakingScale})` }}
@@ -596,14 +589,15 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                   {displayedWords.length > 0 && (
                     <p
                       ref={captionRef}
-                      className="text-white text-center font-medium leading-[24px]"
+                      className="text-white text-left font-medium leading-[24px]"
                       style={{
                         width: 260,
                         paddingTop: 24,
                         fontSize: '15px',
                         maxHeight: 96,
                         overflow: 'hidden',
-                        textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+                        opacity: 0.8,
+                        textShadow: '0 1px 2px rgba(0,0,0,0.3)',
                       }}
                     >
                       {displayedWords.join(' ')}
@@ -683,13 +677,6 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center pointer-events-none"
                   style={{ transform: `translate(-50%, -50%) scale(${speakingScale})` }}
                 >
-                  {/* Subtle ambient background glow behind the orb */}
-                  <div
-                    className="absolute inset-0 pointer-events-none -z-10 scale-150"
-                    style={{
-                      background: `radial-gradient(circle at 50% 50%, ${hexToRgbaStr(selectedColor, 0.12)} 0%, transparent 70%)`,
-                    }}
-                  />
                   <OrbCanvas
                     isListening={isListening}
                     getMetrics={getMetrics}
