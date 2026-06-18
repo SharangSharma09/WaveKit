@@ -589,11 +589,12 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                   {displayedWords.length > 0 && (
                     <p
                       ref={captionRef}
-                      className="text-white text-left font-medium leading-[24px]"
+                      className="text-white text-left font-normal leading-[24px]"
                       style={{
                         width: 260,
                         paddingTop: 24,
                         fontSize: '15px',
+                        fontFamily: 'Roboto, sans-serif',
                         maxHeight: 96,
                         overflow: 'hidden',
                         opacity: 0.8,
