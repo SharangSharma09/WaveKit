@@ -708,10 +708,10 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                     <div
                       className="absolute left-1/2 pointer-events-none"
                       style={{
-                        width: 320,
-                        height: 200,
+                        width: 256,
+                        height: 160,
                         bottom: 0,
-                        borderRadius: '160px 160px 0 0',
+                        borderRadius: '128px 128px 0 0',
                         background: 'rgba(87, 204, 255, 0.22)',
                         filter: 'blur(28px)',
                         transform: `translate(-50%, 0) scaleY(${1 + currentRms * 2.5})`,
@@ -819,10 +819,10 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                     <div
                       className="absolute left-1/2 pointer-events-none"
                       style={{
-                        width: 320,
-                        height: 200,
+                        width: 256,
+                        height: 160,
                         bottom: 0,
-                        borderRadius: '160px 160px 0 0',
+                        borderRadius: '128px 128px 0 0',
                         background: 'rgba(87, 204, 255, 0.22)',
                         filter: 'blur(28px)',
                         transform: `translate(-50%, 0) scaleY(${1 + currentRms * 2.5})`,
