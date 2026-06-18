@@ -424,6 +424,21 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
 
   return (
     <div className="relative w-full h-screen bg-[#0A0A0A] overflow-hidden flex flex-col font-sans select-none">
+      <style>{`
+        @keyframes fadeInWord {
+          from {
+            opacity: 0;
+            transform: translateY(2px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .fade-in-word {
+          animation: fadeInWord 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+      `}</style>
 
       {/* ---- Top bar -------------------------------------------------------- */}
       <div className="shrink-0 w-full flex items-center justify-between px-6 pt-5 pb-2">
@@ -693,7 +708,17 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                         textShadow: '0 1px 2px rgba(0,0,0,0.3)',
                       }}
                     >
-                      {displayedWords.join(' ')}
+                      {displayedWords.map((word, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-block fade-in-word"
+                          style={{
+                            marginRight: '5px',
+                          }}
+                        >
+                          {word}
+                        </span>
+                      ))}
                     </p>
                   )}
                 </div>
