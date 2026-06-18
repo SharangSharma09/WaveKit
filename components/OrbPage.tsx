@@ -232,6 +232,10 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
   const wordIndexRef = useRef(0);
   const lastWordCountRef = useRef(0);
   const captionRef = useRef<HTMLParagraphElement>(null);
+  // Glow sine-wave animation refs
+  const glowRef1   = useRef<HTMLDivElement>(null);
+  const glowRef2   = useRef<HTMLDivElement>(null);
+  const glowPhase  = useRef(0);
 
   // Handle Speech Recognition or Simulated Captions Loop
   useEffect(() => {
@@ -411,16 +415,34 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
     return () => removeListeners();
   }, [isListening, start]);
 
-  // ---- RMS polling for Controls meter ------------------------------------
+  // ---- RMS polling + glow sine-wave animation ----------------------------
   useEffect(() => {
     let raf: number;
     const update = () => {
-      setCurrentRms(isListening ? getMetrics().rms : 0);
+      const rms = isListening ? getMetrics().rms : 0;
+      setCurrentRms(rms);
+
+      // Drive the glow semi-circle with a soothing sine wave.
+      // Amplitude is proportional to RMS so it stays still when silent.
+      glowPhase.current += 0.022; // ~1.3 rad/s — slow and calming
+      const amp = rms * sensitivity * 0.55;          // max ~0.55 vertical stretch
+      const scaleY = 1 + Math.sin(glowPhase.current) * amp
+                       + Math.sin(glowPhase.current * 1.6 + 1.1) * amp * 0.35;
+      const scaleX = 1 + Math.sin(glowPhase.current * 0.9 + 0.5) * amp * 0.15;
+      const opacity = 0.18 + rms * sensitivity * 0.45;
+      const transform = `translate(-50%, 0) scaleX(${scaleX}) scaleY(${Math.max(0.01, scaleY)})`;
+
+      [glowRef1.current, glowRef2.current].forEach(el => {
+        if (!el) return;
+        el.style.transform = transform;
+        el.style.opacity   = String(Math.min(1, opacity));
+      });
+
       raf = requestAnimationFrame(update);
     };
     raf = requestAnimationFrame(update);
     return () => cancelAnimationFrame(raf);
-  }, [isListening, getMetrics]);
+  }, [isListening, getMetrics, sensitivity]);
 
   return (
     <div className="relative w-full h-screen bg-[#0A0A0A] overflow-hidden flex flex-col font-sans select-none">
@@ -703,9 +725,10 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                   className="relative w-full pointer-events-auto" 
                   style={{ height: 262, overflow: 'visible' }}
                 >
-                  {/* Ambient Listening Glow — reacts to user's voice via currentRms */}
+                  {/* Ambient Listening Glow — sine-wave driven, reacts to voice */}
                   {isListening && (
                     <div
+                      ref={glowRef1}
                       className="absolute left-1/2 pointer-events-none"
                       style={{
                         width: 320,
@@ -714,10 +737,11 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                         borderRadius: '128px 128px 0 0',
                         background: 'rgba(87, 204, 255, 0.22)',
                         filter: 'blur(28px)',
-                        transform: `translate(-50%, 0) scaleY(${1 + currentRms * 2.5})`,
+                        transform: 'translate(-50%, 0)',
                         transformOrigin: 'bottom center',
-                        transition: 'transform 80ms ease-out',
+                        opacity: 0.18,
                         zIndex: 30,
+                        willChange: 'transform, opacity',
                       }}
                     />
                   )}
@@ -814,9 +838,10 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                   className="absolute bottom-0 left-0 w-full z-20 pointer-events-auto" 
                   style={{ height: 262, overflow: 'visible' }}
                 >
-                  {/* Ambient Listening Glow — reacts to user's voice via currentRms */}
+                  {/* Ambient Listening Glow — sine-wave driven, reacts to voice */}
                   {isListening && (
                     <div
+                      ref={glowRef2}
                       className="absolute left-1/2 pointer-events-none"
                       style={{
                         width: 320,
@@ -825,10 +850,11 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                         borderRadius: '128px 128px 0 0',
                         background: 'rgba(87, 204, 255, 0.22)',
                         filter: 'blur(28px)',
-                        transform: `translate(-50%, 0) scaleY(${1 + currentRms * 2.5})`,
+                        transform: 'translate(-50%, 0)',
                         transformOrigin: 'bottom center',
-                        transition: 'transform 80ms ease-out',
+                        opacity: 0.18,
                         zIndex: 30,
+                        willChange: 'transform, opacity',
                       }}
                     />
                   )}
