@@ -547,24 +547,149 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
               alt="iPhone Mockup" 
               className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
             />
-            {/* Bottom-aligned wrapper for the three divs */}
-            <div className="absolute bottom-0 left-0 w-full z-20 flex flex-col pointer-events-none">
-              {/* Orb div - 200px height (at the top of the stack) */}
-              <div 
-                className="relative w-full flex items-center justify-center" 
-                style={{ height: 200 }}
-              >
-                {/* Subtle ambient background glow behind the orb */}
-                <div
-                  className="absolute inset-0 pointer-events-none -z-10 scale-150"
-                  style={{
-                    background: `radial-gradient(circle at 50% 50%, ${hexToRgbaStr(selectedColor, 0.12)} 0%, transparent 70%)`,
-                  }}
-                />
-                <div
-                  className="flex items-center justify-center pointer-events-none"
-                  style={{ transform: `scale(${speakingScale})` }}
+            {captionsEnabled ? (
+              /* Bottom-aligned wrapper for the three divs when captions are ON */
+              <div className="absolute bottom-0 left-0 w-full z-20 flex flex-col pointer-events-none">
+                {/* Orb div - 200px height (at the top of the stack) */}
+                <div 
+                  className="relative w-full flex items-center justify-center" 
+                  style={{ height: 200 }}
                 >
+                  {/* Subtle ambient background glow behind the orb */}
+                  <div
+                    className="absolute inset-0 pointer-events-none -z-10 scale-150"
+                    style={{
+                      background: `radial-gradient(circle at 50% 50%, ${hexToRgbaStr(selectedColor, 0.12)} 0%, transparent 70%)`,
+                    }}
+                  />
+                  <div
+                    className="flex items-center justify-center pointer-events-none"
+                    style={{ transform: `scale(${speakingScale})` }}
+                  >
+                    <OrbCanvas
+                      isListening={isListening}
+                      getMetrics={getMetrics}
+                      sensitivity={sensitivity}
+                      orbNoise={orbNoise}
+                      orbBlur={orbBlur}
+                      orbSpeed={effectiveOrbSpeed}
+                      orbNoiseScale={orbNoiseScale}
+                      orbWarpStrength={orbWarpStrength}
+                      orbVerticalBias={orbVerticalBias}
+                      orbSaturation={orbSaturation}
+                      orbContrast={orbContrast}
+                      orbForwardOnly={orbForwardOnly}
+                      orbColorBot={orbColorBot}
+                      orbColorMidB={orbColorMidB}
+                      orbColorMidT={orbColorMidT}
+                      orbColorTop={orbColorTop}
+                      size={170} // 170px canvas with 0.44 radius = ~150px visual orb
+                    />
+                  </div>
+                </div>
+
+                {/* captions div - 120px height (in the middle, top-aligned) */}
+                <div 
+                  className="relative w-full flex justify-center" 
+                  style={{ height: 120 }}
+                >
+                  {displayedWords.length > 0 && (
+                    <p
+                      ref={captionRef}
+                      className="text-white text-center font-medium leading-[24px]"
+                      style={{
+                        width: 260,
+                        paddingTop: 24,
+                        fontSize: '15px',
+                        maxHeight: 96,
+                        overflow: 'hidden',
+                        textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+                      }}
+                    >
+                      {displayedWords.join(' ')}
+                    </p>
+                  )}
+                </div>
+
+                {/* Vad div - 262px height (at the bottom of the stack) */}
+                <div 
+                  className="relative w-full pointer-events-auto" 
+                  style={{ height: 262 }}
+                >
+                  {/* Captions button: 48x48px, circular, bottom-left aligned */}
+                  <button
+                    type="button"
+                    className="absolute flex items-center justify-center rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 bg-white text-black"
+                    style={{ 
+                      width: 48, 
+                      height: 48, 
+                      bottom: 50, 
+                      left: 50 
+                    }}
+                    onClick={() => setCaptionsEnabled(false)}
+                    aria-label="Toggle captions"
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H6c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-4c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v1z" />
+                    </svg>
+                  </button>
+
+                  {/* Microphone button: 48x48px, circular, white background, black icon */}
+                  <button
+                    type="button"
+                    className="absolute flex items-center justify-center rounded-full bg-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+                    style={{ 
+                      width: 48, 
+                      height: 48, 
+                      bottom: 50, 
+                      right: 50 
+                    }}
+                    onClick={() => {
+                      if (speakingActive) {
+                        setIsSpeakingInternal(false);
+                        start(true);
+                      } else {
+                        setIsSpeakingInternal(true);
+                        stop();
+                      }
+                    }}
+                    aria-label={speakingActive ? "Unmute microphone (Switch to Listening)" : "Mute microphone (Switch to AI Speaking)"}
+                  >
+                    {speakingActive ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-red-500">
+                        {/* Solid Microphone Base */}
+                        <g fill="currentColor">
+                          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                        </g>
+                        {/* Clean diagonal slash with white backing to create a gap */}
+                        <line x1="3" y1="3" x2="21" y2="21" stroke="white" strokeWidth="3.5" strokeLinecap="round" />
+                        <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    ) : (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="text-black">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Centered Orb and bottom-aligned Vad div when captions are OFF */
+              <>
+                {/* The Orb perfectly centered inside the frame - z-20 brings it to front */}
+                <div
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center pointer-events-none"
+                  style={{ transform: `translate(-50%, -50%) scale(${speakingScale})` }}
+                >
+                  {/* Subtle ambient background glow behind the orb */}
+                  <div
+                    className="absolute inset-0 pointer-events-none -z-10 scale-150"
+                    style={{
+                      background: `radial-gradient(circle at 50% 50%, ${hexToRgbaStr(selectedColor, 0.12)} 0%, transparent 70%)`,
+                    }}
+                  />
                   <OrbCanvas
                     isListening={isListening}
                     getMetrics={getMetrics}
@@ -585,97 +710,72 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                     size={170} // 170px canvas with 0.44 radius = ~150px visual orb
                   />
                 </div>
-              </div>
 
-              {/* captions div - 120px height (in the middle, top-aligned) */}
-              <div 
-                className="relative w-full flex justify-center" 
-                style={{ height: 120 }}
-              >
-                {captionsEnabled && displayedWords.length > 0 && (
-                  <p
-                    ref={captionRef}
-                    className="text-white text-center font-medium leading-[24px]"
-                    style={{
-                      width: 260,
-                      paddingTop: 24,
-                      fontSize: '15px',
-                      maxHeight: 96,
-                      overflow: 'hidden',
-                      textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+                {/* Vad div - 262px height (at the bottom) */}
+                <div 
+                  className="absolute bottom-0 left-0 w-full z-20 pointer-events-auto" 
+                  style={{ height: 262 }}
+                >
+                  {/* Captions button: 48x48px, circular, bottom-left aligned */}
+                  <button
+                    type="button"
+                    className="absolute flex items-center justify-center rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 bg-[#8C94AE] text-white"
+                    style={{ 
+                      width: 48, 
+                      height: 48, 
+                      bottom: 50, 
+                      left: 50 
                     }}
+                    onClick={() => setCaptionsEnabled(true)}
+                    aria-label="Toggle captions"
                   >
-                    {displayedWords.join(' ')}
-                  </p>
-                )}
-              </div>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H6c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-4c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v1z" />
+                    </svg>
+                  </button>
 
-              {/* Vad div - 262px height (at the bottom of the stack) */}
-              <div 
-                className="relative w-full pointer-events-auto" 
-                style={{ height: 262 }}
-              >
-                {/* Captions button: 48x48px, circular, bottom-left aligned */}
-                <button
-                  type="button"
-                  className={`absolute flex items-center justify-center rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 ${
-                    captionsEnabled ? 'bg-white text-black' : 'bg-[#8C94AE] text-white'
-                  }`}
-                  style={{ 
-                    width: 48, 
-                    height: 48, 
-                    bottom: 50, 
-                    left: 50 
-                  }}
-                  onClick={() => setCaptionsEnabled(prev => !prev)}
-                  aria-label="Toggle captions"
-                >
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H6c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-4c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v1z" />
-                  </svg>
-                </button>
-
-                {/* Microphone button: 48x48px, circular, white background, black icon */}
-                <button
-                  type="button"
-                  className="absolute flex items-center justify-center rounded-full bg-white shadow-lg transition-transform hover:scale-105 active:scale-95"
-                  style={{ 
-                    width: 48, 
-                    height: 48, 
-                    bottom: 50, 
-                    right: 50 
-                  }}
-                  onClick={() => {
-                    if (speakingActive) {
-                      setIsSpeakingInternal(false);
-                      start(true);
-                    } else {
-                      setIsSpeakingInternal(true);
-                      stop();
-                    }
-                  }}
-                  aria-label={speakingActive ? "Unmute microphone (Switch to Listening)" : "Mute microphone (Switch to AI Speaking)"}
-                >
-                  {speakingActive ? (
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-red-500">
-                      {/* Solid Microphone Base */}
-                      <g fill="currentColor">
+                  {/* Microphone button: 48x48px, circular, white background, black icon */}
+                  <button
+                    type="button"
+                    className="absolute flex items-center justify-center rounded-full bg-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+                    style={{ 
+                      width: 48, 
+                      height: 48, 
+                      bottom: 50, 
+                      right: 50 
+                    }}
+                    onClick={() => {
+                      if (speakingActive) {
+                        setIsSpeakingInternal(false);
+                        start(true);
+                      } else {
+                        setIsSpeakingInternal(true);
+                        stop();
+                      }
+                    }}
+                    aria-label={speakingActive ? "Unmute microphone (Switch to Listening)" : "Mute microphone (Switch to AI Speaking)"}
+                  >
+                    {speakingActive ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-red-500">
+                        {/* Solid Microphone Base */}
+                        <g fill="currentColor">
+                          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                        </g>
+                        {/* Clean diagonal slash with white backing to create a gap */}
+                        <line x1="3" y1="3" x2="21" y2="21" stroke="white" strokeWidth="3.5" strokeLinecap="round" />
+                        <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    ) : (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="text-black">
                         <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
                         <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                      </g>
-                      {/* Clean diagonal slash with white backing to create a gap */}
-                      <line x1="3" y1="3" x2="21" y2="21" stroke="white" strokeWidth="3.5" strokeLinecap="round" />
-                      <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  ) : (
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="text-black">
-                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
