@@ -626,7 +626,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
         {/* ---- Right Column: iPhone Mockup (4 cols) --------------------------- */}
         <div className="col-start-7 col-span-4 flex items-center justify-center py-6 px-4 border-l border-white/5 relative bg-black/40">
           <div
-            className="relative overflow-hidden"
+            className="relative"
             style={{ 
               width: '100%', 
               maxWidth: 364, 
@@ -703,24 +703,20 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                   className="relative w-full pointer-events-auto" 
                   style={{ height: 262, overflow: 'visible' }}
                 >
-                  {/* Ambient Speaking Glow — bottom-aligned inside Vad div */}
-                  {speakingActive && (
-                    <div
-                      className="absolute left-1/2 pointer-events-none"
-                      style={{
-                        width: 320,
-                        height: 200,
-                        bottom: 0,
-                        borderRadius: '160px 160px 0 0',
-                        background: `rgba(${Math.round(currentFamily.top[0] * 255)}, ${Math.round(currentFamily.top[1] * 255)}, ${Math.round(currentFamily.top[2] * 255)}, 0.25)`,
-                        filter: 'blur(32px)',
-                        transform: `translate(-50%, 0) scaleY(${1 + (speakingScale - 1.0) * 3})`,
-                        transformOrigin: 'bottom center',
-                        zIndex: 0,
-                        border: '2px solid red',
-                      }}
-                    />
-                  )}
+                  {/* Ambient Speaking Glow — DEBUG: always visible, solid color, no blur */}
+                  <div
+                    className="absolute left-1/2 pointer-events-none"
+                    style={{
+                      width: 320,
+                      height: 200,
+                      bottom: 0,
+                      borderRadius: '160px 160px 0 0',
+                      background: 'rgba(87, 204, 255, 0.4)',
+                      border: '2px solid red',
+                      transform: 'translate(-50%, 0)',
+                      zIndex: 30,
+                    }}
+                  />
                   {/* Captions button: 48x48px, circular, bottom-left aligned */}
                   <button
                     type="button"
@@ -814,24 +810,20 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                   className="absolute bottom-0 left-0 w-full z-20 pointer-events-auto" 
                   style={{ height: 262, overflow: 'visible' }}
                 >
-                  {/* Ambient Speaking Glow — bottom-aligned inside Vad div */}
-                  {speakingActive && (
-                    <div
-                      className="absolute left-1/2 pointer-events-none"
-                      style={{
-                        width: 320,
-                        height: 200,
-                        bottom: 0,
-                        borderRadius: '160px 160px 0 0',
-                        background: `rgba(${Math.round(currentFamily.top[0] * 255)}, ${Math.round(currentFamily.top[1] * 255)}, ${Math.round(currentFamily.top[2] * 255)}, 0.25)`,
-                        filter: 'blur(32px)',
-                        transform: `translate(-50%, 0) scaleY(${1 + (speakingScale - 1.0) * 3})`,
-                        transformOrigin: 'bottom center',
-                        zIndex: 0,
-                        border: '2px solid red',
-                      }}
-                    />
-                  )}
+                  {/* Ambient Speaking Glow — DEBUG: always visible, solid color, no blur */}
+                  <div
+                    className="absolute left-1/2 pointer-events-none"
+                    style={{
+                      width: 320,
+                      height: 200,
+                      bottom: 0,
+                      borderRadius: '160px 160px 0 0',
+                      background: 'rgba(87, 204, 255, 0.4)',
+                      border: '2px solid red',
+                      transform: 'translate(-50%, 0)',
+                      zIndex: 30,
+                    }}
+                  />
                   {/* Captions button: 48x48px, circular, bottom-left aligned */}
                   <button
                     type="button"
