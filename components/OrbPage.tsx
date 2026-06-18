@@ -227,29 +227,40 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
 
   // ---- Word-by-word captions state and real-time transcription logic -------
   const [displayedWords, setDisplayedWords] = useState<string[]>([]);
-  const [wordIndex, setWordIndex] = useState(0);
+  const wordIndexRef = useRef(0);
   const lastWordCountRef = useRef(0);
   const captionRef = useRef<HTMLParagraphElement>(null);
 
   // Handle Speech Recognition or Simulated Captions Loop
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    // Explicitly check browser support
+    if (!SpeechRecognition) {
+      console.warn("Speech Recognition API is not supported in this browser.");
+    }
+
     const useSimulation = !SpeechRecognition || isSimulated || !isListening;
+    console.log(`SpeechRecognition effect: isListening=${isListening}, captionsEnabled=${captionsEnabled}, isSimulated=${isSimulated}, useSimulation=${useSimulation}`);
 
     if (useSimulation) {
       if (!isListening || !captionsEnabled) {
         return;
       }
 
+      console.log("Starting simulated caption interval...");
       const interval = setInterval(() => {
         setDisplayedWords((prev) => {
-          const nextWord = SAMPLE_WORDS[wordIndex % SAMPLE_WORDS.length];
-          setWordIndex((idx) => idx + 1);
+          const nextWord = SAMPLE_WORDS[wordIndexRef.current % SAMPLE_WORDS.length];
+          wordIndexRef.current = wordIndexRef.current + 1;
           return [...prev, nextWord];
         });
       }, 280); // ~280ms per word
 
-      return () => clearInterval(interval);
+      return () => {
+        console.log("Clearing simulated caption interval.");
+        clearInterval(interval);
+      };
     }
 
     // Real-time voice transcription using native browser Speech Recognition
@@ -259,10 +270,15 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
 
     let recognition: any;
     try {
+      console.log("Initializing Web Speech Recognition...");
       recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        console.log("Speech Recognition session started successfully.");
+      };
 
       recognition.onresult = (event: any) => {
         let speechToText = '';
@@ -272,22 +288,26 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
 
         const allWords = speechToText.trim().split(/\s+/).filter(Boolean);
         const lastProcessedCount = lastWordCountRef.current;
+        console.log(`Speech Recognition result received. Word count: ${allWords.length}, previously processed: ${lastProcessedCount}`);
 
         if (allWords.length > lastProcessedCount) {
           const newWords = allWords.slice(lastProcessedCount);
           lastWordCountRef.current = allWords.length;
+          console.log("Appending new transcribed words:", newWords);
           setDisplayedWords((prev) => [...prev, ...newWords]);
         }
       };
 
       recognition.onerror = (err: any) => {
-        console.error("Speech Recognition error:", err);
+        console.error("Speech Recognition error callback:", err.error, err.message || '');
       };
 
       recognition.onend = () => {
+        console.log("Speech Recognition session ended.");
         // Auto-restart if we are still active and transcribing
         if (isListening && captionsEnabled) {
           try {
+            console.log("Attempting to auto-restart Speech Recognition...");
             recognition.start();
           } catch (e) {
             // SpeechRecognition already running
@@ -302,17 +322,19 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
 
     return () => {
       if (recognition) {
+        console.log("Cleaning up and stopping Speech Recognition.");
         recognition.onend = null;
         recognition.stop();
       }
     };
-  }, [isListening, captionsEnabled, wordIndex, isSimulated]);
+  }, [isListening, captionsEnabled, isSimulated]);
 
   // Reset words when user stops listening
   useEffect(() => {
     if (!isListening) {
+      console.log("Listening stopped, resetting captions state.");
       setDisplayedWords([]);
-      setWordIndex(0);
+      wordIndexRef.current = 0;
       lastWordCountRef.current = 0;
     }
   }, [isListening]);
