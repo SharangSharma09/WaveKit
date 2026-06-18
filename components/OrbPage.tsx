@@ -717,6 +717,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                         transform: `translate(-50%, 0) scaleY(${1 + (speakingScale - 1.0) * 3})`,
                         transformOrigin: 'bottom center',
                         zIndex: 0,
+                        border: '2px solid red',
                       }}
                     />
                   )}
@@ -827,6 +828,7 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                         transform: `translate(-50%, 0) scaleY(${1 + (speakingScale - 1.0) * 3})`,
                         transformOrigin: 'bottom center',
                         zIndex: 0,
+                        border: '2px solid red',
                       }}
                     />
                   )}
