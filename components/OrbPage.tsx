@@ -225,33 +225,95 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
     setOrbColorTop(family.top);
   }, [selectedColor]);
 
-  // ---- Word-by-word captions simulation state and logic -------------------
+  // ---- Word-by-word captions state and real-time transcription logic -------
   const [displayedWords, setDisplayedWords] = useState<string[]>([]);
   const [wordIndex, setWordIndex] = useState(0);
+  const lastWordCountRef = useRef(0);
   const captionRef = useRef<HTMLParagraphElement>(null);
 
-  // Append new word at steady interval when listening and captions enabled
+  // Handle Speech Recognition or Simulated Captions Loop
   useEffect(() => {
-    if (!isListening || !captionsEnabled) {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const useSimulation = !SpeechRecognition || isSimulated || !isListening;
+
+    if (useSimulation) {
+      if (!isListening || !captionsEnabled) {
+        return;
+      }
+
+      const interval = setInterval(() => {
+        setDisplayedWords((prev) => {
+          const nextWord = SAMPLE_WORDS[wordIndex % SAMPLE_WORDS.length];
+          setWordIndex((idx) => idx + 1);
+          return [...prev, nextWord];
+        });
+      }, 280); // ~280ms per word
+
+      return () => clearInterval(interval);
+    }
+
+    // Real-time voice transcription using native browser Speech Recognition
+    if (!captionsEnabled) {
       return;
     }
 
-    const interval = setInterval(() => {
-      setDisplayedWords((prev) => {
-        const nextWord = SAMPLE_WORDS[wordIndex % SAMPLE_WORDS.length];
-        setWordIndex((idx) => idx + 1);
-        return [...prev, nextWord];
-      });
-    }, 280); // ~280ms per word
+    let recognition: any;
+    try {
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
 
-    return () => clearInterval(interval);
-  }, [isListening, captionsEnabled, wordIndex]);
+      recognition.onresult = (event: any) => {
+        let speechToText = '';
+        for (let i = 0; i < event.results.length; i++) {
+          speechToText += event.results[i][0].transcript + ' ';
+        }
+
+        const allWords = speechToText.trim().split(/\s+/).filter(Boolean);
+        const lastProcessedCount = lastWordCountRef.current;
+
+        if (allWords.length > lastProcessedCount) {
+          const newWords = allWords.slice(lastProcessedCount);
+          lastWordCountRef.current = allWords.length;
+          setDisplayedWords((prev) => [...prev, ...newWords]);
+        }
+      };
+
+      recognition.onerror = (err: any) => {
+        console.error("Speech Recognition error:", err);
+      };
+
+      recognition.onend = () => {
+        // Auto-restart if we are still active and transcribing
+        if (isListening && captionsEnabled) {
+          try {
+            recognition.start();
+          } catch (e) {
+            // SpeechRecognition already running
+          }
+        }
+      };
+
+      recognition.start();
+    } catch (e) {
+      console.error("Failed to start Speech Recognition:", e);
+    }
+
+    return () => {
+      if (recognition) {
+        recognition.onend = null;
+        recognition.stop();
+      }
+    };
+  }, [isListening, captionsEnabled, wordIndex, isSimulated]);
 
   // Reset words when user stops listening
   useEffect(() => {
     if (!isListening) {
       setDisplayedWords([]);
       setWordIndex(0);
+      lastWordCountRef.current = 0;
     }
   }, [isListening]);
 
