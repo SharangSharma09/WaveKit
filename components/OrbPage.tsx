@@ -232,11 +232,6 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
   const wordIndexRef = useRef(0);
   const lastWordCountRef = useRef(0);
   const captionRef = useRef<HTMLParagraphElement>(null);
-  // Glow sine-wave animation refs
-  const glowRef1       = useRef<HTMLDivElement>(null);
-  const glowRef2       = useRef<HTMLDivElement>(null);
-  const glowPhase      = useRef(0);
-  const smoothedRms    = useRef(0);
 
   // Handle Speech Recognition or Simulated Captions Loop
   useEffect(() => {
@@ -416,65 +411,16 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
     return () => removeListeners();
   }, [isListening, start]);
 
-  // ---- RMS polling + glow shape-morphing animation -----------------------
+  // ---- RMS polling for Controls meter ------------------------------------
   useEffect(() => {
     let raf: number;
     const update = () => {
-      const rms = isListening ? getMetrics().rms : 0;
-      setCurrentRms(rms);
-
-      // Exponential moving average: fast attack, slow release
-      smoothedRms.current = rms > smoothedRms.current
-        ? rms * 0.5  + smoothedRms.current * 0.5   // fast attack
-        : rms * 0.04 + smoothedRms.current * 0.96; // slow release
-
-      // voiceLevel: 0 = silent, 1 = loud speech
-      const voiceLevel = Math.min(1, smoothedRms.current * sensitivity * 5);
-
-      // Phase always ticks for continuous idle animation
-      glowPhase.current += 0.018;
-      const t = glowPhase.current;
-
-      // --- Idle blob shape (silent) ---
-      // Asymmetric border-radius corners oscillate to create organic morphing
-      const idleTL = 55 + 22 * Math.sin(t);
-      const idleTR = 55 - 22 * Math.sin(t * 0.8 + 0.7);
-      const idleVert = 30 + 12 * Math.sin(t * 1.1 + 0.3); // vertical curvature %
-      const idleHeight = 70; // px — flat pill in silence
-
-      // --- Speaking dome shape (voice detected) ---
-      const speakTL   = 40;  // % of width (40% of 320 = 128px)
-      const speakTR   = 40;
-      const speakVert = 100; // % of height = full dome
-      const speakHeight = 200; // px
-
-      // Lerp between idle and speaking based on voiceLevel
-      const tl     = idleTL   + (speakTL   - idleTL)   * voiceLevel;
-      const tr     = idleTR   + (speakTR   - idleTR)   * voiceLevel;
-      const vert   = idleVert + (speakVert - idleVert) * voiceLevel;
-      const height = idleHeight + (speakHeight - idleHeight) * voiceLevel;
-
-      // Extra sinusoidal breathing on top when voice is active
-      const breatheY = 1 + Math.sin(t * 1.5) * voiceLevel * 0.12
-                         + Math.sin(t * 2.3 + 1) * voiceLevel * 0.06;
-
-      const opacity   = 0.45 + voiceLevel * 0.45;
-      const borderRad = `${tl}% ${tr}% 0 0 / ${vert}% ${vert}% 0 0`;
-      const transform = `translate(-50%, 0) scaleY(${breatheY})`;
-
-      [glowRef1.current, glowRef2.current].forEach(el => {
-        if (!el) return;
-        el.style.height       = `${height}px`;
-        el.style.borderRadius = borderRad;
-        el.style.transform    = transform;
-        el.style.opacity      = String(Math.min(1, opacity));
-      });
-
+      setCurrentRms(isListening ? getMetrics().rms : 0);
       raf = requestAnimationFrame(update);
     };
     raf = requestAnimationFrame(update);
     return () => cancelAnimationFrame(raf);
-  }, [isListening, getMetrics, sensitivity]);
+  }, [isListening, getMetrics]);
 
   return (
     <div className="relative w-full h-screen bg-[#0A0A0A] overflow-hidden flex flex-col font-sans select-none">
@@ -755,28 +701,8 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                 {/* Vad div - 262px height (at the bottom of the stack) */}
                 <div 
                   className="relative w-full pointer-events-auto" 
-                  style={{ height: 262, overflow: 'visible' }}
+                  style={{ height: 262 }}
                 >
-                  {/* Ambient Listening Glow — sine-wave driven, reacts to voice */}
-                  {isListening && (
-                    <div
-                      ref={glowRef1}
-                      className="absolute left-1/2 pointer-events-none"
-                      style={{
-                        width: 320,
-                        height: 70,
-                        bottom: 0,
-                        borderRadius: '55% 55% 0 0 / 30% 30% 0 0',
-                        background: 'rgba(87, 204, 255, 0.5)',
-                        filter: 'blur(28px)',
-                        transform: 'translate(-50%, 0)',
-                        transformOrigin: 'bottom center',
-                        opacity: 0.45,
-                        zIndex: 30,
-                        willChange: 'transform, opacity, height, border-radius',
-                      }}
-                    />
-                  )}
                   {/* Captions button: 48x48px, circular, bottom-left aligned */}
                   <button
                     type="button"
@@ -868,28 +794,8 @@ const OrbPage: React.FC<OrbPageProps> = ({ onBack, isSpeaking: isSpeakingExterna
                 {/* Vad div - 262px height (at the bottom) */}
                 <div 
                   className="absolute bottom-0 left-0 w-full z-20 pointer-events-auto" 
-                  style={{ height: 262, overflow: 'visible' }}
+                  style={{ height: 262 }}
                 >
-                  {/* Ambient Listening Glow — sine-wave driven, reacts to voice */}
-                  {isListening && (
-                    <div
-                      ref={glowRef2}
-                      className="absolute left-1/2 pointer-events-none"
-                      style={{
-                        width: 320,
-                        height: 70,
-                        bottom: 0,
-                        borderRadius: '55% 55% 0 0 / 30% 30% 0 0',
-                        background: 'rgba(87, 204, 255, 0.5)',
-                        filter: 'blur(28px)',
-                        transform: 'translate(-50%, 0)',
-                        transformOrigin: 'bottom center',
-                        opacity: 0.45,
-                        zIndex: 30,
-                        willChange: 'transform, opacity, height, border-radius',
-                      }}
-                    />
-                  )}
                   {/* Captions button: 48x48px, circular, bottom-left aligned */}
                   <button
                     type="button"
